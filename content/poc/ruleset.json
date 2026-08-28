@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "poc-core",
+  "version": "0.1.0",
+  "name": "CivilizationClone POC Core",
+  "description": "Original placeholder ruleset manifest for deterministic engine development.",
+  "metadata": {
+    "content_origin": "original",
+    "milestone": "v0.1"
+  }
+}
