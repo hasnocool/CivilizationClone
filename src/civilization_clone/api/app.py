@@ -31,7 +31,7 @@ from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
 from civilization_clone.engine.research import available_technologies
 from civilization_clone.engine.session import CommandResult, GameEngine
-from civilization_clone.observability.logging import log_with_context
+from civilization_clone.observability.logging import safe_log_with_context
 from civilization_clone.rules.poc import POC_CIVILIZATIONS
 
 _PUBLIC_EVENT_TYPES = frozenset(
@@ -79,7 +79,7 @@ def create_app(
             finally:
                 duration_ms = round((time.perf_counter() - started) * 1000, 3)
                 await asyncio.to_thread(
-                    log_with_context,
+                    safe_log_with_context,
                     runtime_logger,
                     logging.INFO if status_code < 500 else logging.ERROR,
                     "http request completed",
