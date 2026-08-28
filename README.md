@@ -16,7 +16,9 @@ v0.1 establishes the foundations required by later engine milestones:
 - immutable command and event envelopes;
 - canonical state serialization and SHA-256 hashing;
 - strict, versioned JSON ruleset manifest loading;
-- deterministic tests and conventional agent-free CI.
+- deterministic in-memory domain event journal;
+- structured runtime/debug logging and typed user feedback;
+- deterministic tests and agent-operated local-only CI.
 
 Map generation, turns, units, settlements, persistence, HTTP APIs, AI, and playable clients are later
 milestones described in `PLAN.md`.
@@ -29,7 +31,7 @@ Install the project and development tools with `uv`:
 uv sync --dev
 ```
 
-Run the canonical local verification gate:
+Run the canonical local verification gate (all CI is local; GitHub Actions is not used):
 
 ```bash
 bash scripts/ci.sh
@@ -41,4 +43,14 @@ Focused test run:
 uv run pytest
 ```
 
-See `AGENTS.md` and `docs/WORKFLOW.md` for the required development and QA process.
+See `AGENTS.md`, `docs/WORKFLOW.md`, and `docs/LOGGING.md` for the required development, QA, and observability process.
+
+## Logging model
+
+CivilizationClone separates three channels:
+
+- **domain event journal** — deterministic authoritative history used for replay/debugging;
+- **runtime logs** — operational structured diagnostics that never affect simulation state;
+- **user feedback** — safe typed messages clients can render without exposing internal debug information.
+
+Generated local logs/artifacts belong under ignored `logs/` and `artifacts/` directories.
