@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from civilization_clone.domain.gameplay import PlayerState
 from civilization_clone.domain.strategy import TechnologyDefinition
 from civilization_clone.domain.types import JsonValue
+from civilization_clone.rules.poc import POC_CIVILIZATIONS_BY_ID
 
 TECHNOLOGIES: dict[str, TechnologyDefinition] = {
     "surveying": TechnologyDefinition("surveying", 5, unlocks=("exploration_methods",)),
@@ -125,6 +126,15 @@ def production_is_unlocked(player: PlayerState, definition_id: str) -> bool:
     return required is None or required in player.research.completed
 
 
+def effective_research_cost(player: PlayerState, technology_id: str) -> int:
+    """Return deterministic technology cost after generic civilization modifiers."""
+    definition = TECHNOLOGIES[technology_id]
+    civilization = POC_CIVILIZATIONS_BY_ID.get(player.civilization_id)
+    percent = civilization.research_cost_percent if civilization is not None else 0
+    multiplier = 100 + percent
+    return max(1, (definition.cost * multiplier + 99) // 100)
+
+
 def resolve_research(player: PlayerState) -> tuple[ResearchOutcome, ...]:
     """Spend accumulated science on selected research without losing overflow."""
     outcomes: list[ResearchOutcome] = []
@@ -134,7 +144,8 @@ def resolve_research(player: PlayerState) -> tuple[ResearchOutcome, ...]:
 
     while selected is not None and player.science > 0:
         definition = TECHNOLOGIES[selected]
-        remaining = definition.cost - player.research.progress
+        cost = effective_research_cost(player, selected)
+        remaining = cost - player.research.progress
         spent = min(player.science, remaining)
         player.science -= spent
         player.research.progress += spent
@@ -146,11 +157,11 @@ def resolve_research(player: PlayerState) -> tuple[ResearchOutcome, ...]:
                     "technology_id": selected,
                     "spent": spent,
                     "progress": player.research.progress,
-                    "cost": definition.cost,
+                    "cost": cost,
                 },
             )
         )
-        if player.research.progress < definition.cost:
+        if player.research.progress < cost:
             break
 
         player.research.completed.add(selected)
