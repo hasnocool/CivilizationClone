@@ -71,6 +71,21 @@ def accept_peace(session: GameSession, actor: PlayerId, target: PlayerId) -> str
     return None
 
 
+def reject_peace(session: GameSession, actor: PlayerId, target: PlayerId) -> str | None:
+    """Reject the opposing player's pending peace offer while remaining at war."""
+    if actor not in session.players or target not in session.players:
+        return "player_not_found"
+    if actor == target:
+        return "self_target"
+    relationship = get_relationship(session, actor, target)
+    if relationship.status is not DiplomacyStatus.WAR:
+        return "not_at_war"
+    if relationship.pending_peace_from != target:
+        return "no_pending_offer"
+    relationship.pending_peace_from = None
+    return None
+
+
 def at_war(session: GameSession, first: PlayerId, second: PlayerId) -> bool:
     """Return whether two players are currently at war without mutating state."""
     relationship = session.diplomacy.get(relationship_key(first, second))
