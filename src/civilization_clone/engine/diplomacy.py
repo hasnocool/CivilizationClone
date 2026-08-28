@@ -72,5 +72,6 @@ def accept_peace(session: GameSession, actor: PlayerId, target: PlayerId) -> str
 
 
 def at_war(session: GameSession, first: PlayerId, second: PlayerId) -> bool:
-    """Return whether two players are currently at war."""
-    return get_relationship(session, first, second).status is DiplomacyStatus.WAR
+    """Return whether two players are currently at war without mutating state."""
+    relationship = session.diplomacy.get(relationship_key(first, second))
+    return relationship is not None and relationship.status is DiplomacyStatus.WAR
