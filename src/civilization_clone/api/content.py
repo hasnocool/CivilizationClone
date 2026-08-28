@@ -146,8 +146,9 @@ def research_options_response(
     session: GameSession,
     player_id: PlayerId,
 ) -> ResearchOptionsResponse:
-    """Return viewer-authorized research costs and selectable states."""
+    """Return viewer-authorized research costs, content state, and turn legality."""
     player = session.players[player_id]
+    is_active_player = session.current_player_id == player_id and not player.eliminated
     options: list[ResearchOptionResponse] = []
     for technology_id, definition in sorted(TECHNOLOGIES.items()):
         blockers: list[str] = []
@@ -161,6 +162,8 @@ def research_options_response(
             status = "selected"
         else:
             status = "available"
+        if not is_active_player and "already_completed" not in blockers:
+            blockers.append("not_active_player")
         options.append(
             ResearchOptionResponse(
                 technology_id=technology_id,
@@ -178,6 +181,7 @@ def research_options_response(
         game_id=str(session.game_id),
         player_id=str(player_id),
         state_version=session.state_version,
+        is_active_player=is_active_player,
         options=options,
     )
 
