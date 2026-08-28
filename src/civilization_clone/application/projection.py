@@ -114,6 +114,7 @@ def project_game(session: GameSession, viewer_id: PlayerId) -> dict[str, Any]:
             "player_id": str(viewer_id),
             "name": player.name,
             "controller": player.controller.value,
+            "civilization_id": str(player.civilization_id),
             "gold": player.gold,
             "science": player.science,
             "culture": player.culture,
@@ -129,6 +130,7 @@ def project_game(session: GameSession, viewer_id: PlayerId) -> dict[str, Any]:
                 "player_id": str(player_id),
                 "name": other.name,
                 "controller": other.controller.value,
+                "civilization_id": str(other.civilization_id),
                 "eliminated": other.eliminated,
             }
             for player_id, other in sorted(session.players.items())
