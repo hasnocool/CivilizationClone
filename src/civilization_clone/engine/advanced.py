@@ -16,7 +16,6 @@ from civilization_clone.engine.diplomacy import (
     accept_trade,
     cancel_trade,
     cancel_trade_offers_for_player,
-    get_relationship,
     offer_trade,
     reject_trade,
 )
@@ -103,8 +102,7 @@ class AdvancedGameEngine(GameEngine):
             return self._rejected("NOT_ACTIVE_PLAYER", "Only the active player may accept trade.")
         if target is None:
             return self._rejected("INVALID_TRADE", "target_player_id is required.")
-        relationship = get_relationship(self.session, player_id, target)
-        offer = relationship.pending_trade
+        offer = self._pending_trade(player_id, target)
         reason = accept_trade(self.session, player_id, target)
         if reason is not None:
             return self._rejected(
@@ -128,8 +126,7 @@ class AdvancedGameEngine(GameEngine):
             return self._rejected("NOT_ACTIVE_PLAYER", "Only the active player may reject trade.")
         if target is None:
             return self._rejected("INVALID_TRADE", "target_player_id is required.")
-        relationship = get_relationship(self.session, player_id, target)
-        offer = relationship.pending_trade
+        offer = self._pending_trade(player_id, target)
         reason = reject_trade(self.session, player_id, target)
         if reason is not None:
             return self._rejected(
@@ -153,8 +150,7 @@ class AdvancedGameEngine(GameEngine):
             return self._rejected("NOT_ACTIVE_PLAYER", "Only the active player may cancel trade.")
         if target is None:
             return self._rejected("INVALID_TRADE", "target_player_id is required.")
-        relationship = get_relationship(self.session, player_id, target)
-        offer = relationship.pending_trade
+        offer = self._pending_trade(player_id, target)
         reason = cancel_trade(self.session, player_id, target)
         if reason is not None:
             return self._rejected(
@@ -179,12 +175,8 @@ class AdvancedGameEngine(GameEngine):
         target = self._target_player(command)
         player_id = command.player_id
         offer: TradeOffer | None = None
-        if player_id is not None and target is not None and player_id != target:
-            relationship = self.session.diplomacy.get(
-                (player_id, target) if player_id < target else (target, player_id)
-            )
-            if relationship is not None:
-                offer = relationship.pending_trade
+        if player_id is not None and target is not None:
+            offer = self._pending_trade(player_id, target)
 
         result = super()._declare_war(command)
         if not result.accepted or offer is None or player_id is None or target is None:
@@ -255,6 +247,14 @@ class AdvancedGameEngine(GameEngine):
                     command_id,
                 )
             )
+
+    def _pending_trade(self, first: PlayerId, second: PlayerId) -> TradeOffer | None:
+        """Read existing bilateral trade state without creating relationship state."""
+        if first == second:
+            return None
+        key = (first, second) if first < second else (second, first)
+        relationship = self.session.diplomacy.get(key)
+        return relationship.pending_trade if relationship is not None else None
 
     @staticmethod
     def _trade_amount(command: CommandEnvelope, key: str) -> int | None:
