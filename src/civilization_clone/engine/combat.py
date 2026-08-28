@@ -34,19 +34,22 @@ def validate_attack(
     if session.current_player_id != player_id:
         return "not_active_player"
     attacker = session.units.get(attacker_id)
-    defender = session.units.get(defender_id)
-    if attacker is None or defender is None:
+    if attacker is None:
         return "unit_not_found"
     if attacker.owner_id != player_id:
         return "not_owner"
-    if defender.owner_id == player_id:
-        return "friendly_target"
     if attacker.movement_remaining <= 0:
         return "no_actions_remaining"
+
+    defender = session.units.get(defender_id)
+    if defender is None:
+        return "target_unavailable"
+    if defender.owner_id == player_id:
+        return "friendly_target"
+    if session.players[player_id].visibility.get(defender.position) is not Visibility.VISIBLE:
+        return "target_unavailable"
     if not at_war(session, attacker.owner_id, defender.owner_id):
         return "not_at_war"
-    if session.players[player_id].visibility.get(defender.position) is not Visibility.VISIBLE:
-        return "target_not_visible"
     attack_range = max(1, attacker.definition.ranged_range)
     if distance(attacker.position, defender.position) > attack_range:
         return "target_out_of_range"
