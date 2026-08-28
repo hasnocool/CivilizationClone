@@ -1,5 +1,9 @@
-# tests/client/test_tui.py
-from civilization_clone.client.tui import parse_player_command, render_map, render_state
+from civilization_clone.client.tui import (
+    parse_player_command,
+    render_civilizations,
+    render_map,
+    render_state,
+)
 
 
 def test_parse_player_commands_cover_core_gameplay_surface() -> None:
@@ -19,7 +23,41 @@ def test_parse_player_commands_cover_core_gameplay_surface() -> None:
         "AttackUnit",
         {"attacker_id": "u1", "defender_id": "u2"},
     )
+    assert parse_player_command(["reject", "p2"]) == (
+        "RejectPeace",
+        {"target_player_id": "p2"},
+    )
     assert parse_player_command(["concede"]) == ("Concede", {})
+
+
+def test_render_civilizations_explains_public_gameplay_bonuses() -> None:
+    rendered = render_civilizations(
+        [
+            {
+                "civilization_id": "horizon_league",
+                "name": "Horizon League",
+                "description": "Exploration and knowledge.",
+                "tags": ["exploration", "knowledge"],
+                "starting_resources": {"gold": 2, "science": 2},
+                "yield_modifiers": [
+                    {
+                        "yield_type": "science",
+                        "operation": "flat",
+                        "value": 1,
+                        "priority": 50,
+                    }
+                ],
+                "research_cost_percent": -15,
+                "attack_strength_percent": 0,
+                "defense_strength_percent": 0,
+            }
+        ]
+    )
+
+    assert "Horizon League" in rendered
+    assert "science +1 per settlement" in rendered
+    assert "research cost -15%" in rendered
+    assert "start gold +2, science +2" in rendered
 
 
 def test_render_map_contains_only_projection_tiles_and_visible_entities() -> None:
@@ -31,6 +69,7 @@ def test_render_map_contains_only_projection_tiles_and_visible_entities() -> Non
         "state_version": 3,
         "viewer": {
             "player_id": "p1",
+            "civilization_id": "river_compact",
             "gold": 0,
             "science": 0,
             "culture": 0,
@@ -62,3 +101,4 @@ def test_render_map_contains_only_projection_tiles_and_visible_entities() -> Non
     assert "U" in rendered_map
     assert "u1:founder@(0,0)" in rendered_state
     assert "Game g | turn 1" in rendered_state
+    assert "civ=river_compact" in rendered_state
