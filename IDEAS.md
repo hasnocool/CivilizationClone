@@ -2016,3 +2016,336 @@ No designer had to script that exact story.
 The simulation created it from geography, people, institutions, economics, politics, technology, diplomacy, and historical memory.
 
 That is the standard CivilizationClone should aim for: not merely "one more turn," but **one more chapter in a world whose history the player actually understands and helped create.**
+
+---
+
+# Complete Priority Ranking (1-245)
+
+This ranking is intended as a **development-priority ranking**, not a ranking of which ideas are coolest. It weights each idea by:
+
+- core gameplay impact: 30%;
+- how many other systems depend on it: 25%;
+- late-game improvement / anti-micromanagement value: 20%;
+- emergent-history and replayability value: 15%;
+- technical/platform leverage: 10%.
+
+Items #191-245 are audit-gap candidates identified after the original 190-item backlog. Their names are retained here so the ranking can serve as the master prioritization index even before every candidate receives a full write-up.
+
+## S Tier - Foundational / Must-Have
+
+1. **#132 Attention Budget**
+2. **#239 Hierarchical Simulation / Level of Detail**
+3. **#1 Dynamic Population**
+4. **#133 Domain-Level Automation**
+5. **#134 Policy-Driven Automation**
+6. **#63 Logistics Networks**
+7. **#48 Production Chains**
+8. **#49 Dynamic Markets**
+9. **#17 Administrative Capacity**
+10. **#11 Internal Political Factions**
+11. **#73 Dynamic Technology Discovery**
+12. **#75 Knowledge Diffusion**
+13. **#26 Rise, Fall, Fragmentation, and Reunification**
+14. **#32 Persistent Historical Layers**
+15. **#99 Clause-Based Diplomacy**
+16. **#113 Strategic Command Layer**
+17. **#199 Geological World Generation**
+18. **#191 Mod-First Rules Architecture**
+19. **#144 AI Has the Same Institutional Constraints**
+20. **#142 Difficulty Through Better Decisions, Not Huge Cheats**
+21. **#93 Fog of Knowledge**
+22. **#64 Infrastructure Networks**
+23. **#53 Private Economy**
+24. **#41 Persistent Institutions**
+25. **#169 Nationalities Change Rules, Not Just Yields**
+26. **#211 Rule of Law**
+27. **#217 Labor Markets**
+28. **#220 Technology Adoption Curves**
+29. **#222 Non-Sedentary Civilizations**
+30. **#159 World-History Ledger**
+
+## A+ Tier - Very High Value
+
+31. **#245 Performance as a Game-Design Constraint**
+32. **#141 Automation Must Be Deterministic**
+33. **#139 Strategic Planning Mode**
+34. **#135 Governors Execute Intent**
+35. **#136 Exception-Based Management**
+36. **#143 AI Strategic Identity**
+37. **#145 AI Explainability**
+38. **#182 Causal Tooltips**
+39. **#35 Adaptive Crises**
+40. **#33 Age Transitions Triggered by the World**
+41. **#34 No Hard Historical Reset**
+42. **#102 Limited Wars and Explicit War Goals**
+43. **#101 Negotiated Diplomatic Plays**
+44. **#104 Long-Term Diplomatic Memory**
+45. **#110 Minor Powers with Agency**
+46. **#57 Public Finance**
+47. **#50 Transport Costs**
+48. **#81 Education Systems**
+49. **#193 First-Class Multiplayer Simulation**
+50. **#198 Branchable Historical Replays**
+51. **#192 WorldBuilder + Scenario Studio**
+52. **#242 Mod Compatibility and Versioned Rulesets**
+53. **#150 No Single Predetermined Endgame Loop**
+54. **#158 World-Order Endgame**
+55. **#15 Legitimacy**
+56. **#13 Composable Governments**
+57. **#14 Governments Evolve Instead of Unlocking**
+58. **#19 Local Governors as Autonomous Actors**
+59. **#37 Settlements Evolve Naturally**
+60. **#38 Cities Develop Identities**
+61. **#70 Communication Networks**
+62. **#124 Soil and Agriculture**
+63. **#126 Food Storage and Famine Resilience**
+64. **#122 Dynamic Climate**
+65. **#98 Intelligence Networks**
+66. **#100 Diplomatic Leverage**
+67. **#108 World Institutions**
+68. **#106 Spheres of Influence**
+69. **#27 Successor States**
+70. **#28 Play After Collapse**
+71. **#171 Geography Can Reshape National Identity**
+72. **#173 Asymmetry Must Remain Legible**
+73. **#240 Layered Complexity and Onboarding**
+74. **#241 Strategic Map Lenses**
+75. **#200 Resource Discovery and Reserve Estimates**
+76. **#203 Mobility Ecologies**
+77. **#205 Metropolitan Regions**
+78. **#228 Strategic Maritime Layer**
+79. **#237 Simulation-Driven Narrative Events**
+80. **#10 Household Needs**
+
+## A Tier - High Value
+
+81. **#2 Migration**
+82. **#4 Dynamic Culture**
+83. **#76 Research Ecosystems**
+84. **#79 Engineering vs. Science**
+85. **#116 Doctrine**
+86. **#117 Mobilization Has Economic Consequences**
+87. **#118 War Weariness Is Social**
+88. **#119 Occupation Is Governance**
+89. **#120 Resistance and Collaboration Are Political**
+90. **#121 Reconstruction and Reintegration**
+91. **#103 Peace Conferences**
+92. **#107 Federations and Power Blocs**
+93. **#109 International Law**
+94. **#112 Protectorates, Subjects, and Autonomy**
+95. **#105 Domestic Foreign-Policy Lobbies**
+96. **#111 Non-State Actors**
+97. **#16 Public Mandates and Promises**
+98. **#20 Federalism and Autonomy**
+99. **#24 Political Capital**
+100. **#25 Revolutions with Negotiated Outcomes**
+101. **#31 Historical Claims**
+102. **#36 Crises Create Opportunities**
+103. **#43 Institutional Networks**
+104. **#46 Maintenance and Decay**
+105. **#54 Firms and Entrepreneurship**
+106. **#56 Foreign Investment**
+107. **#58 Debt and Credit**
+108. **#62 Strategic Reserves**
+109. **#65 Rivers as Major Systems**
+110. **#67 Hydrology**
+111. **#68 Electricity as a Resource**
+112. **#69 Energy Transitions**
+113. **#71 Standards and Interoperability**
+114. **#74 Competing Technology Paths**
+115. **#80 Open Knowledge, Patents, and Secrecy**
+116. **#82 Brain Drain and Brain Gain**
+117. **#84 Dynamic Religion**
+118. **#86 Ideologies Emerge from Conditions**
+119. **#87 Public Sphere and Media**
+120. **#88 Information Reliability**
+121. **#94 Maps Can Be Wrong or Outdated**
+122. **#127 Public Health**
+123. **#129 Pollution**
+124. **#131 Disaster Recovery**
+125. **#137 Empire-Wide Queues and Templates**
+126. **#138 Batch Decisions**
+127. **#140 Advisor Recommendations with Reasons**
+128. **#146 AI Memory**
+129. **#149 AI Uses Delegation Too**
+130. **#151 Dynamic Historical Objectives**
+131. **#152 Civilization Ambitions**
+132. **#155 Make Losing Fun**
+133. **#160 Procedural Chronicle**
+134. **#161 Historical Maps**
+135. **#166 Great People Emerge from the Simulation**
+136. **#170 Nationality-Specific Technology Ecosystems**
+137. **#172 Traditions Persist Through Transformation**
+138. **#183 Future Projection**
+139. **#184 Compare Policies Before Enacting**
+140. **#195 Simultaneous Planning**
+
+## B Tier - Strong Additions
+
+141. **#197 Observer / Spectator / AI Civilization Mode**
+142. **#201 Resource Depletion**
+143. **#202 Material Substitution and Recycling**
+144. **#204 Living Oceans**
+145. **#210 Municipal Government**
+146. **#212 Professional Civil Service**
+147. **#213 Systemic Corruption**
+148. **#214 Internal Fog of Government**
+149. **#215 Citizenship and Legal Status**
+150. **#216 Civil Society and Social Movements**
+151. **#218 Skills and Qualifications**
+152. **#219 Service Economies**
+153. **#223 Non-Territorial Power**
+154. **#224 Colonial Governance and Decolonization**
+155. **#225 Frontier Societies**
+156. **#226 Diplomatic Corps**
+157. **#229 Strategic Airspace Layer**
+158. **#230 Secularization and Religious Pluralism**
+159. **#232 Religious Social Institutions**
+160. **#233 Cultural Movements**
+161. **#243 Shareable Seeds and Historical Worlds**
+162. **#3 Diasporas**
+163. **#5 Hybrid Cultures**
+164. **#6 Languages**
+165. **#7 Demographic Transition**
+166. **#8 Social Mobility**
+167. **#9 Inequality**
+168. **#12 Political Parties and Coalitions**
+169. **#18 Regional Government**
+170. **#21 Succession and Constitutional Transition**
+171. **#22 Generational Leaders**
+172. **#23 Cabinets and Advisors**
+173. **#29 Voluntary Unions**
+174. **#39 Urban Form**
+175. **#40 Housing and Land Markets**
+176. **#42 Institutional Reputation**
+177. **#44 Wonders as Living Institutions**
+178. **#45 Multi-Stage Great Projects**
+179. **#47 Postwar Reconstruction**
+180. **#51 Trade Corridors**
+181. **#52 Economic Chokepoints**
+182. **#55 Corporations as Transnational Actors**
+183. **#59 Banking and Financial Crises**
+184. **#60 Currencies and Monetary Blocs**
+185. **#61 Economic Cycles**
+186. **#66 Navigable Rivers**
+187. **#72 Infrastructure as Soft Power**
+188. **#77 Competing Schools of Thought**
+189. **#78 Scientific Uncertainty**
+190. **#83 Collaborative Global Science**
+191. **#85 Schisms and Reforms**
+192. **#89 Propaganda and Counter-Narratives**
+193. **#90 Cultural Works with Provenance**
+194. **#91 World Fairs, Festivals, and International Events**
+195. **#92 Prestige Has Multiple Sources**
+196. **#95 Exploration Expeditions**
+197. **#96 Scientific Exploration**
+198. **#114 Orders as a Scarce Strategic Resource**
+199. **#115 Commanders and Institutional Military Memory**
+200. **#123 Land Use**
+
+## C Tier - Valuable, But Later or More Specialized
+
+201. **#125 Crop and Food Diversity**
+202. **#128 Ecosystem Services**
+203. **#130 Environmental Restoration**
+204. **#147 AI Can Misjudge**
+205. **#148 AI Personalities Should Change Strategy, Not Sanity**
+206. **#153 Historical Achievements Instead of Winner-Takes-All**
+207. **#154 Multiple Measures of Success**
+208. **#156 Graceful Concession**
+209. **#157 Post-Victory Sandbox**
+210. **#162 City Timelines**
+211. **#164 National Memory**
+212. **#165 Historical Reputation**
+213. **#167 Rivalries Between Historical Figures and Institutions**
+214. **#174 Orbital Infrastructure**
+215. **#175 Space as Global Infrastructure**
+216. **#177 Automation and Labor Transformation**
+217. **#178 Digital Economy**
+218. **#179 Global Commons**
+219. **#180 Future Technology Remains Branching**
+220. **#181 Searchable History**
+221. **#185 Historical Baseline Comparison**
+222. **#186 Automatic Map Annotations**
+223. **#187 Named Wars and Crises**
+224. **#190 Historical Reconciliation**
+225. **#194 Asynchronous Civilization**
+226. **#196 Shared-Civilization Co-op**
+227. **#206 Commuting and Congestion**
+228. **#207 Public Transportation**
+229. **#208 Land Value and Redevelopment**
+230. **#209 Rural Hinterlands**
+231. **#221 Technological Obsolescence**
+232. **#227 Summits and Conferences**
+233. **#231 Pilgrimage and Sacred Geography**
+234. **#234 Everyday Culture**
+235. **#235 Living Architectural Identity**
+236. **#238 Newspapers / Historical Reports**
+237. **#244 Procedural Scenario Generator**
+238. **#30 Emergent Civilization Names**
+239. **#97 Archaeology from Actual History**
+240. **#163 Artifact Provenance**
+241. **#168 Player-Defined Historical Markers**
+242. **#176 Off-World Projects**
+243. **#188 Named Infrastructure**
+244. **#189 Memorials and Commemoration**
+245. **#236 Historically Reactive Music**
+
+## Ranking Interpretation
+
+The top of the ranking is deliberately infrastructure-heavy. Population, logistics, markets, administration, automation, AI, dynamic technology, historical persistence, diplomacy, and scalable simulation make large portions of the remaining backlog possible.
+
+The key dependency pattern is:
+
+```text
+Dynamic Population
+       |
+       +-- Labor Markets
+       +-- Migration
+       +-- Politics
+       +-- Religion
+       +-- Culture
+       +-- Education
+       +-- Military manpower
+       +-- Inequality
+       `-- Urbanization
+
+Production Chains + Markets
+       |
+       +-- Trade
+       +-- Logistics
+       +-- Firms
+       +-- Employment
+       +-- Prices
+       +-- Diplomacy
+       +-- War
+       `-- Geography
+
+Attention + Automation
+       |
+       `-- makes all of the above playable
+```
+
+The ranking should therefore **not** be treated as a literal build order. A dependency-aware implementation roadmap should sequence prerequisites ahead of dependent features even when the dependent feature is ranked higher in overall importance.
+
+The experience target is to replace late-game chores such as:
+
+```text
+move 73 units
+choose production in 28 cities
+renew 14 trade routes
+dismiss 19 routine notifications
+```
+
+with strategic questions such as:
+
+```text
+Should we federalize the eastern provinces?
+Can our industrial economy survive losing access to the Southern Strait?
+Should we intervene in the collapsing neighboring empire?
+Do we sacrifice short-term growth to electrify the national rail network?
+Should we accept foreign researchers fleeing a rival?
+Can we prevent the alliance system from turning this regional dispute into a continental war?
+```
+
+That distinction should guide future reprioritization of the backlog.
