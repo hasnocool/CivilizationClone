@@ -49,25 +49,11 @@ class CommandRequest(BaseModel):
     client_timestamp: str | None = None
 
 
-class CivilizationYieldModifierResponse(BaseModel):
-    yield_type: str
-    operation: str
-    value: int
-    priority: int
-
-
 class CivilizationResponse(BaseModel):
     civilization_id: str
     name: str
     description: str
     tags: list[str]
-    starting_resources: dict[str, int]
-    yield_modifiers: list[CivilizationYieldModifierResponse]
-    research_cost_percent: int
-    attack_strength_percent: int
-    defense_strength_percent: int
-    unique_units: list[str]
-    unique_buildings: list[str]
     research_preferences: list[str]
     content_hooks: list[str]
 
