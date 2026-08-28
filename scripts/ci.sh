@@ -65,4 +65,9 @@ fi
 printf '==> tests\n'
 uv run pytest
 
+printf '==> package build\n'
+mkdir -p artifacts/ci-dist
+rm -f artifacts/ci-dist/*.whl artifacts/ci-dist/*.tar.gz
+uv build --out-dir artifacts/ci-dist
+
 printf '==> LOCAL CI PASS\n'
