@@ -1,10 +1,18 @@
 class_name CivilizationResponsiveLayout
 extends Node
 
-const NARROW_WIDTH := 900.0
-const COMPACT_WIDTH := 640.0
+const NARROW_WIDTH := 960.0
+const COMPACT_WIDTH := 700.0
+const TINY_WIDTH := 520.0
 const MAP_MIN_WIDE := Vector2(320.0, 280.0)
 const MAP_MIN_NARROW := Vector2(220.0, 200.0)
+const SECTION_TITLES := [
+	"Research",
+	"Settlement / Production",
+	"Diplomacy",
+	"Turn",
+	"Authorized Events",
+]
 
 var _installed := false
 var _split: SplitContainer
@@ -28,6 +36,7 @@ func _install() -> void:
 	_replace_horizontal_rows(root)
 	_replace_game_split(root)
 	_wrap_lobby_panel(root)
+	_group_sidebar_sections(root)
 	_collect_and_relax_controls(root)
 	get_viewport().size_changed.connect(_apply_layout)
 	_installed = true
@@ -100,6 +109,51 @@ func _wrap_lobby_panel(root: Node) -> void:
 	panel.visibility_changed.connect(func() -> void: scroll.visible = panel.visible)
 	_lobby_scroll = scroll
 
+func _group_sidebar_sections(root: Node) -> void:
+	var sidebar := _find_sidebar(root)
+	if sidebar == null or bool(sidebar.get_meta("sections_grouped", false)):
+		return
+	sidebar.set_meta("sections_grouped", true)
+	var groups: Array[Array] = []
+	var current: Array = []
+	for child in sidebar.get_children():
+		if child is Label and SECTION_TITLES.has((child as Label).text):
+			if not current.is_empty():
+				groups.append(current)
+			current = [child]
+		elif not current.is_empty():
+			current.append(child)
+	if not current.is_empty():
+		groups.append(current)
+	for group in groups:
+		if group.is_empty():
+			continue
+		var first := group[0] as Node
+		var insertion_index := first.get_index()
+		var panel := PanelContainer.new()
+		panel.name = "SidebarCard"
+		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var body := VBoxContainer.new()
+		body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		body.add_theme_constant_override("separation", 8)
+		sidebar.add_child(panel)
+		sidebar.move_child(panel, insertion_index)
+		panel.add_child(body)
+		for grouped_node in group:
+			(grouped_node as Node).reparent(body)
+
+func _find_sidebar(parent: Node) -> VBoxContainer:
+	for child in parent.get_children():
+		if child is VBoxContainer:
+			var candidate := child as VBoxContainer
+			for direct_child in candidate.get_children():
+				if direct_child is Label and SECTION_TITLES.has((direct_child as Label).text):
+					return candidate
+		var nested := _find_sidebar(child)
+		if nested != null:
+			return nested
+	return null
+
 func _find_hsplit(parent: Node) -> HSplitContainer:
 	for child in parent.get_children():
 		if child is HSplitContainer:
@@ -152,8 +206,7 @@ func _collect_controls(parent: Node) -> void:
 				control.custom_minimum_size = Vector2(0.0, 140.0)
 			if control is ScrollContainer:
 				var scroll := control as ScrollContainer
-				if scroll != _lobby_scroll:
-					scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+				scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 				scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 			if control is GridContainer:
 				_grids.append(control as GridContainer)
@@ -167,6 +220,7 @@ func _apply_layout() -> void:
 	var width := get_viewport().get_visible_rect().size.x
 	var narrow := width < NARROW_WIDTH
 	var compact := width < COMPACT_WIDTH
+	var tiny := width < TINY_WIDTH
 	if _split != null:
 		_split.vertical = narrow
 		_split.split_offset = 0
@@ -182,7 +236,7 @@ func _apply_layout() -> void:
 		if only_buttons:
 			grid.columns = 1 if compact else 2
 		else:
-			grid.columns = 2 if narrow else 4
+			grid.columns = 1 if tiny else (2 if narrow else 4)
 
 func _apply_split_ratios(narrow: bool) -> void:
 	if _split == null or _split.get_child_count() < 2:
@@ -191,5 +245,5 @@ func _apply_split_ratios(narrow: bool) -> void:
 	var secondary := _split.get_child(1) as Control
 	if primary == null or secondary == null:
 		return
-	primary.size_flags_stretch_ratio = 1.4 if narrow else 2.0
+	primary.size_flags_stretch_ratio = 1.25 if narrow else 2.0
 	secondary.size_flags_stretch_ratio = 1.0
