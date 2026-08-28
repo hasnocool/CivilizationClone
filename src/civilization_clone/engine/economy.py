@@ -21,6 +21,7 @@ from civilization_clone.domain.types import JsonValue
 from civilization_clone.engine.effects import apply_yield_modifiers
 from civilization_clone.engine.hexgrid import neighbors
 from civilization_clone.engine.research import production_is_unlocked
+from civilization_clone.rules.poc import POC_CIVILIZATIONS_BY_ID
 
 BUILDINGS: dict[str, BuildingDefinition] = {
     "granary": BuildingDefinition(
@@ -115,14 +116,18 @@ def tile_yield(tile: Tile) -> YieldBundle:
 
 
 def settlement_yield(session: GameSession, settlement: SettlementState) -> YieldBundle:
-    """Calculate settlement yields from center, worked tiles, buildings, and civic activity."""
+    """Calculate yields from tiles and generic civilization/building modifiers."""
     total = tile_yield(session.world.tile(settlement.center)).add(
         YieldBundle(science=1, culture=1)
     )
     for coord in sorted(settlement.worked_tiles):
         total = total.add(tile_yield(session.world.tile(coord)))
 
-    modifiers = []
+    modifiers: list[YieldModifier] = []
+    owner = session.players[settlement.owner_id]
+    civilization = POC_CIVILIZATIONS_BY_ID.get(owner.civilization_id)
+    if civilization is not None:
+        modifiers.extend(civilization.yield_modifiers)
     for building_id in sorted(settlement.buildings):
         definition = BUILDINGS.get(building_id)
         if definition is not None:
