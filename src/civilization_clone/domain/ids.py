@@ -10,6 +10,7 @@ EventId = NewType("EventId", str)
 UnitId = NewType("UnitId", str)
 SettlementId = NewType("SettlementId", str)
 RulesetId = NewType("RulesetId", str)
+CivilizationId = NewType("CivilizationId", str)
 
 
 def validate_id[T](value: str, constructor: Callable[[str], T]) -> T:

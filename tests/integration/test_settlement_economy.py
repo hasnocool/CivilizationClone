@@ -6,6 +6,7 @@ from civilization_clone.domain.state import RulesetRef
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.economy import settlement_yield, tile_yield
 from civilization_clone.engine.mapgen import MapGenerationConfig
+from civilization_clone.engine.research import available_technologies
 from civilization_clone.engine.session import GameEngine
 
 
@@ -44,7 +45,9 @@ def setup_engine(logger: logging.Logger | None = None) -> tuple[GameEngine, Play
 
 def found_first_settlement(engine: GameEngine, player: PlayerId, index: int = 4) -> str:
     unit = next(unit for unit in engine.session.units.values() if unit.owner_id == player)
-    result = engine.process(command(index, engine, "FoundSettlement", player, {"unit_id": unit.unit_id}))
+    result = engine.process(
+        command(index, engine, "FoundSettlement", player, {"unit_id": unit.unit_id})
+    )
     assert result.accepted
     return next(
         settlement.settlement_id
@@ -53,10 +56,26 @@ def found_first_settlement(engine: GameEngine, player: PlayerId, index: int = 4)
     )
 
 
+def _ensure_research(engine: GameEngine, player: PlayerId, index: int) -> int:
+    state = engine.session.players[player]
+    if state.research.selected is not None:
+        return index
+    options = available_technologies(state)
+    if not options:
+        return index
+    assert engine.process(
+        command(index, engine, "ChooseResearch", player, {"technology_id": options[0]})
+    ).accepted
+    return index + 1
+
+
 def advance_full_round(engine: GameEngine, p1: PlayerId, p2: PlayerId, index: int) -> int:
+    index = _ensure_research(engine, p1, index)
     assert engine.process(command(index, engine, "EndTurn", p1)).accepted
-    assert engine.process(command(index + 1, engine, "EndTurn", p2)).accepted
-    return index + 2
+    index += 1
+    index = _ensure_research(engine, p2, index)
+    assert engine.process(command(index, engine, "EndTurn", p2)).accepted
+    return index + 1
 
 
 def test_founding_consumes_founder_and_creates_controlled_territory() -> None:
@@ -80,8 +99,24 @@ def test_population_limits_worked_tiles() -> None:
         for coord in settlement.territory
         if coord != settlement.center and engine.session.world.tile(coord).passable
     )
-    first = engine.process(command(5, engine, "SetWorkedTile", p1, {"settlement_id": settlement_id, "q": candidates[0].q, "r": candidates[0].r}))
-    second = engine.process(command(6, engine, "SetWorkedTile", p1, {"settlement_id": settlement_id, "q": candidates[1].q, "r": candidates[1].r}))
+    first = engine.process(
+        command(
+            5,
+            engine,
+            "SetWorkedTile",
+            p1,
+            {"settlement_id": settlement_id, "q": candidates[0].q, "r": candidates[0].r},
+        )
+    )
+    second = engine.process(
+        command(
+            6,
+            engine,
+            "SetWorkedTile",
+            p1,
+            {"settlement_id": settlement_id, "q": candidates[1].q, "r": candidates[1].r},
+        )
+    )
     assert first.accepted
     assert not second.accepted
     assert second.feedback[0].code == "WORKED_TILE_LIMIT"
@@ -90,7 +125,15 @@ def test_population_limits_worked_tiles() -> None:
 def test_building_queue_completes_and_modifier_affects_yield() -> None:
     engine, p1, p2 = setup_engine()
     settlement_id = found_first_settlement(engine, p1)
-    assert engine.process(command(5, engine, "QueueProduction", p1, {"settlement_id": settlement_id, "kind": "building", "definition_id": "granary"})).accepted
+    assert engine.process(
+        command(
+            5,
+            engine,
+            "QueueProduction",
+            p1,
+            {"settlement_id": settlement_id, "kind": "building", "definition_id": "granary"},
+        )
+    ).accepted
     index = 10
     for _ in range(8):
         if "granary" in engine.session.settlements[settlement_id].buildings:
@@ -100,13 +143,22 @@ def test_building_queue_completes_and_modifier_affects_yield() -> None:
     assert "granary" in settlement.buildings
     assert any(event.event_type == "BuildingCompleted" for event in engine.event_log)
     base_food = tile_yield(engine.session.world.tile(settlement.center)).food
-    assert settlement_yield(engine.session, settlement).food == base_food + 1
+    # River Compact contributes +1 Food and the granary contributes another +1.
+    assert settlement_yield(engine.session, settlement).food == base_food + 2
 
 
 def test_unit_production_spawns_deterministic_unit() -> None:
     engine, p1, p2 = setup_engine()
     settlement_id = found_first_settlement(engine, p1)
-    assert engine.process(command(5, engine, "QueueProduction", p1, {"settlement_id": settlement_id, "kind": "unit", "definition_id": "scout"})).accepted
+    assert engine.process(
+        command(
+            5,
+            engine,
+            "QueueProduction",
+            p1,
+            {"settlement_id": settlement_id, "kind": "unit", "definition_id": "scout"},
+        )
+    ).accepted
     index = 10
     for _ in range(10):
         if any(unit.owner_id == p1 for unit in engine.session.units.values()):
@@ -121,7 +173,15 @@ def test_unit_production_spawns_deterministic_unit() -> None:
 def run_economy_script(logger: logging.Logger | None = None) -> GameEngine:
     engine, p1, p2 = setup_engine(logger)
     settlement_id = found_first_settlement(engine, p1)
-    engine.process(command(5, engine, "QueueProduction", p1, {"settlement_id": settlement_id, "kind": "building", "definition_id": "workshop"}))
+    engine.process(
+        command(
+            5,
+            engine,
+            "QueueProduction",
+            p1,
+            {"settlement_id": settlement_id, "kind": "building", "definition_id": "workshop"},
+        )
+    )
     index = 20
     for _ in range(4):
         index = advance_full_round(engine, p1, p2, index)

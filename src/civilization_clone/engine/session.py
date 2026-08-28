@@ -16,6 +16,7 @@ from civilization_clone.domain.gameplay import (
     UnitState,
 )
 from civilization_clone.domain.ids import (
+    CivilizationId,
     CommandId,
     EventId,
     GameId,
@@ -33,6 +34,7 @@ from civilization_clone.engine.diplomacy import (
     accept_peace,
     declare_war,
     offer_peace,
+    reject_peace,
     relationship_key,
 )
 from civilization_clone.engine.economy import production_order, resolve_player_economy
@@ -40,11 +42,16 @@ from civilization_clone.engine.event_log import EventLog
 from civilization_clone.engine.hexgrid import distance, neighbors
 from civilization_clone.engine.mapgen import MapGenerationConfig, generate_world
 from civilization_clone.engine.movement import apply_move, validate_move
-from civilization_clone.engine.research import choose_research, resolve_research
+from civilization_clone.engine.research import (
+    available_technologies,
+    choose_research,
+    resolve_research,
+)
 from civilization_clone.engine.state_hash import state_hash
 from civilization_clone.engine.turns import advance_turn
 from civilization_clone.engine.victory import check_victory, update_eliminations
 from civilization_clone.engine.visibility import update_visibility, visible_coords
+from civilization_clone.rules.poc import POC_CIVILIZATIONS_BY_ID
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,6 +146,7 @@ class GameEngine:
             "DeclareWar": self._declare_war,
             "OfferPeace": self._offer_peace,
             "AcceptPeace": self._accept_peace,
+            "RejectPeace": self._reject_peace,
             "Concede": self._concede,
             "EndTurn": self._end_turn,
         }
@@ -195,13 +203,37 @@ class GameEngine:
             controller = ControllerType(str(raw_controller))
         except ValueError:
             return self._rejected("INVALID_CONTROLLER", "Unsupported player controller type.")
-        player = PlayerState(command.player_id, raw_name.strip(), controller)
+        raw_civilization = command.payload.get("civilization_id", "river_compact")
+        if not isinstance(raw_civilization, str):
+            return self._rejected(
+                "INVALID_CIVILIZATION",
+                "civilization_id must be text.",
+            )
+        civilization_id = CivilizationId(raw_civilization)
+        civilization = POC_CIVILIZATIONS_BY_ID.get(civilization_id)
+        if civilization is None:
+            return self._rejected(
+                "INVALID_CIVILIZATION",
+                "That civilization is not available in this ruleset.",
+            )
+        player = PlayerState(
+            command.player_id,
+            raw_name.strip(),
+            controller,
+            civilization_id=civilization_id,
+            gold=civilization.starting_resources.get("gold", 0),
+            science=civilization.starting_resources.get("science", 0),
+            culture=civilization.starting_resources.get("culture", 0),
+        )
         self.session.players[command.player_id] = player
         self.session.player_order.append(command.player_id)
         self.session.state_version += 1
         event = self._emit(
             "PlayerJoined",
-            {"player_id": command.player_id},
+            {
+                "player_id": command.player_id,
+                "civilization_id": civilization_id,
+            },
             command.command_id,
         )
         self._log(command, "command accepted", event.event_id)
@@ -684,6 +716,28 @@ class GameEngine:
         )
         return CommandResult(True, self.session.state_version, (event,))
 
+    def _reject_peace(self, command: CommandEnvelope) -> CommandResult:
+        player_id = self._active_player(command)
+        target = self._target_player(command)
+        if player_id is None:
+            return self._rejected("NOT_ACTIVE_PLAYER", "Only the active player may reject peace.")
+        if target is None:
+            return self._rejected("INVALID_DIPLOMACY", "target_player_id is required.")
+        reason = reject_peace(self.session, player_id, target)
+        if reason is not None:
+            return self._rejected(
+                "DIPLOMACY_REJECTED",
+                "Peace rejection was rejected.",
+                {"reason": reason},
+            )
+        self.session.state_version += 1
+        event = self._emit(
+            "PeaceRejected",
+            {"player_id": player_id, "target_player_id": target},
+            command.command_id,
+        )
+        return CommandResult(True, self.session.state_version, (event,))
+
     def _concede(self, command: CommandEnvelope) -> CommandResult:
         player_id = command.player_id
         if self.session.status is not GameStatus.ACTIVE or player_id is None:
@@ -721,6 +775,15 @@ class GameEngine:
         ended_turn = self.session.turn
         ended_player = command.player_id
         assert ended_player is not None
+        player = self.session.players[ended_player]
+        if player.research.selected is None:
+            options = available_technologies(player)
+            if options:
+                return self._rejected(
+                    "MANDATORY_CHOICE_REQUIRED",
+                    "Choose research before ending the turn.",
+                    {"choice": "research"},
+                )
         self.session.state_version += 1
         events = [
             self._emit(
@@ -731,7 +794,7 @@ class GameEngine:
         ]
         for outcome in resolve_player_economy(self.session, ended_player):
             events.append(self._emit(outcome.event_type, outcome.payload, command.command_id))
-        for outcome in resolve_research(self.session.players[ended_player]):
+        for outcome in resolve_research(player):
             events.append(self._emit(outcome.event_type, outcome.payload, command.command_id))
         self._update_player_visibility(ended_player)
 

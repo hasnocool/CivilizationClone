@@ -7,14 +7,16 @@ from dataclasses import dataclass
 from civilization_clone.domain.gameplay import GameSession, UnitState
 from civilization_clone.domain.ids import CommandId, PlayerId, UnitId
 from civilization_clone.domain.map import TerrainType
+from civilization_clone.domain.visibility import Visibility
 from civilization_clone.engine.diplomacy import at_war
 from civilization_clone.engine.hexgrid import distance
 from civilization_clone.engine.rng import RngFactory
+from civilization_clone.rules.poc import POC_CIVILIZATIONS_BY_ID
 
 
 @dataclass(frozen=True, slots=True)
 class CombatResolution:
-    """Deterministic result of one legal combat action."""
+    """Deterministic result of one legal abstract game combat action."""
 
     attacker_damage: int
     defender_damage: int
@@ -28,19 +30,24 @@ def validate_attack(
     attacker_id: UnitId,
     defender_id: UnitId,
 ) -> str | None:
-    """Return a stable rejection reason, or None for a legal attack."""
+    """Return a stable rejection reason, or None for a legal game attack."""
     if session.current_player_id != player_id:
         return "not_active_player"
     attacker = session.units.get(attacker_id)
-    defender = session.units.get(defender_id)
-    if attacker is None or defender is None:
+    if attacker is None:
         return "unit_not_found"
     if attacker.owner_id != player_id:
         return "not_owner"
-    if defender.owner_id == player_id:
-        return "friendly_target"
     if attacker.movement_remaining <= 0:
         return "no_actions_remaining"
+
+    defender = session.units.get(defender_id)
+    if defender is None:
+        return "target_unavailable"
+    if defender.owner_id == player_id:
+        return "friendly_target"
+    if session.players[player_id].visibility.get(defender.position) is not Visibility.VISIBLE:
+        return "target_unavailable"
     if not at_war(session, attacker.owner_id, defender.owner_id):
         return "not_at_war"
     attack_range = max(1, attacker.definition.ranged_range)
@@ -55,30 +62,51 @@ def resolve_attack(
     defender_id: UnitId,
     command_id: CommandId,
 ) -> CombatResolution:
-    """Resolve one legal attack using a command-scoped deterministic RNG stream."""
+    """Resolve one legal abstract action using a command-scoped deterministic RNG stream."""
     attacker = session.units[attacker_id]
     defender = session.units[defender_id]
     rng = RngFactory(session.seed).stream(
         f"combat:{session.turn}:{attacker_id}:{defender_id}:{command_id}"
     )
 
+    attacker_strength = _modified_strength(
+        session,
+        attacker.owner_id,
+        attacker.definition.attack_strength,
+        attack=True,
+    )
+    defender_strength = _modified_strength(
+        session,
+        defender.owner_id,
+        defender.definition.defense_strength,
+        attack=False,
+    )
     defender_bonus = _terrain_defense(session, defender)
     variation = rng.randint(-3, 3)
     defender_damage = max(
         5,
-        20 + attacker.definition.attack_strength - defender.definition.defense_strength
-        - defender_bonus
-        + variation,
+        20 + attacker_strength - defender_strength - defender_bonus + variation,
     )
     defender.hit_points = max(0, defender.hit_points - defender_damage)
 
     attacker_damage = 0
     if defender.hit_points > 0 and attacker.definition.ranged_range == 0:
         counter_variation = rng.randint(-2, 2)
+        counter_attack = _modified_strength(
+            session,
+            defender.owner_id,
+            defender.definition.attack_strength,
+            attack=True,
+        )
+        attacker_defense = _modified_strength(
+            session,
+            attacker.owner_id,
+            attacker.definition.defense_strength,
+            attack=False,
+        )
         attacker_damage = max(
             3,
-            10 + defender.definition.attack_strength - attacker.definition.defense_strength
-            + counter_variation,
+            10 + counter_attack - attacker_defense + counter_variation,
         )
         attacker.hit_points = max(0, attacker.hit_points - attacker_damage)
 
@@ -96,6 +124,24 @@ def resolve_attack(
         attacker_destroyed=attacker_destroyed,
         defender_destroyed=defender_destroyed,
     )
+
+
+def _modified_strength(
+    session: GameSession,
+    player_id: PlayerId,
+    base_strength: int,
+    *,
+    attack: bool,
+) -> int:
+    civilization = POC_CIVILIZATIONS_BY_ID.get(session.players[player_id].civilization_id)
+    if civilization is None:
+        return base_strength
+    percent = (
+        civilization.attack_strength_percent
+        if attack
+        else civilization.defense_strength_percent
+    )
+    return max(0, (base_strength * (100 + percent) + 50) // 100)
 
 
 def _terrain_defense(session: GameSession, defender: UnitState) -> int:

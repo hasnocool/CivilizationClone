@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 
 from civilization_clone.domain.economy import SettlementState
-from civilization_clone.domain.ids import GameId, PlayerId, SettlementId, UnitId
+from civilization_clone.domain.ids import CivilizationId, GameId, PlayerId, SettlementId, UnitId
 from civilization_clone.domain.map import HexCoord, WorldMap
 from civilization_clone.domain.state import GamePhase, GameStatus, RulesetRef
 from civilization_clone.domain.strategy import (
@@ -31,6 +31,7 @@ class PlayerState:
     player_id: PlayerId
     name: str
     controller: ControllerType = ControllerType.HUMAN
+    civilization_id: CivilizationId = CivilizationId("river_compact")
     visibility: dict[HexCoord, Visibility] = field(default_factory=dict)
     gold: int = 0
     science: int = 0
@@ -142,6 +143,7 @@ class GameSession:
                     "player_id": player_id,
                     "name": player.name,
                     "controller": player.controller.value,
+                    "civilization_id": player.civilization_id,
                     "gold": player.gold,
                     "science": player.science,
                     "culture": player.culture,

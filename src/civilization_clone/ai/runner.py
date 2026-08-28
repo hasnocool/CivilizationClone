@@ -10,6 +10,7 @@ from civilization_clone.application.projection import project_game
 from civilization_clone.domain.ids import CommandId, GameId, PlayerId
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
+from civilization_clone.rules.poc import POC_CIVILIZATIONS
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,13 +44,18 @@ async def create_bot_match(
     )
     players = tuple(PlayerId(f"bot-{index + 1}") for index in range(player_count))
     for index, player_id in enumerate(players):
+        civilization = POC_CIVILIZATIONS[index % len(POC_CIVILIZATIONS)]
         result = await manager.process(
             CommandEnvelope.create(
                 command_id=CommandId(f"setup-join-{index + 1}"),
                 game_id=game_id,
                 command_type="JoinGame",
                 player_id=player_id,
-                payload={"name": f"Bot {index + 1}", "controller": "bot"},
+                payload={
+                    "name": f"Bot {index + 1}",
+                    "controller": "bot",
+                    "civilization_id": civilization.civilization_id,
+                },
             )
         )
         if not result.accepted:

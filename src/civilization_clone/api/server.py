@@ -6,18 +6,38 @@ import os
 from pathlib import Path
 
 import uvicorn
+from fastapi import FastAPI
 
 from civilization_clone.api.app import create_app
 from civilization_clone.application.manager import GameManager
+from civilization_clone.observability.logging import configure_logging
 from civilization_clone.persistence.sqlite_store import SqliteGameStore
 
 
-def build_app():
-    """Build the default server using durable SQLite persistence."""
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def build_app() -> FastAPI:
+    """Build the default server using durable SQLite persistence and safe diagnostics."""
     database_path = Path(
         os.environ.get("CIVILIZATION_CLONE_DB", "data/civilization_clone.sqlite3")
     )
-    return create_app(GameManager(store=SqliteGameStore(database_path)))
+    logger = configure_logging(
+        level=os.environ.get("CIVILIZATION_CLONE_LOG_LEVEL", "INFO"),
+        json_output=_env_flag("CIVILIZATION_CLONE_LOG_JSON"),
+    )
+    manager = GameManager(
+        store=SqliteGameStore(database_path),
+        logger=logger.getChild("application"),
+    )
+    return create_app(
+        manager,
+        runtime_logger=logger.getChild("api"),
+    )
 
 
 app = build_app()
@@ -27,6 +47,12 @@ def main() -> None:
     """Run the local API server."""
     host = os.environ.get("CIVILIZATION_CLONE_HOST", "127.0.0.1")
     raw_port = os.environ.get("CIVILIZATION_CLONE_PORT", "8000")
+    if host not in {"127.0.0.1", "localhost", "::1"} and not os.environ.get(
+        "CIVILIZATION_CLONE_AUTH_SECRET"
+    ):
+        raise SystemExit(
+            "CIVILIZATION_CLONE_AUTH_SECRET is required when binding beyond loopback"
+        )
     try:
         port = int(raw_port)
     except ValueError as exc:

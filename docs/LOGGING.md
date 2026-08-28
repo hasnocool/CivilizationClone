@@ -17,7 +17,7 @@ Requirements:
 - suitable for state/replay hashing;
 - no operational timestamps/host/process metadata unless explicitly modeled as game state.
 
-The initial implementation is in memory. Durable event persistence arrives in the persistence/replay milestone while keeping the same ordering contract.
+The journal begins in memory and is durably mirrored into append-only SQLite event rows without changing its deterministic ordering contract.
 
 ## 2. Runtime/debug logs
 
@@ -31,9 +31,30 @@ They may include timestamps, levels, component/logger names, exception informati
 - `turn`;
 - `state_version`;
 - `operation`;
-- `error_code`.
+- `error_code`;
+- accepted/cached command status;
+- command/event counts;
+- non-authoritative latency measurements.
 
-Changing log level, formatter, or destination must not alter game state, RNG usage, events, or hashes.
+Changing log level, formatter, or destination must not alter game state, RNG usage, events, command ordering, or hashes.
+
+### Default API/application diagnostics
+
+The runnable v1 API configures the `civilization_clone` logger and emits two safe diagnostic classes:
+
+1. HTTP completion records containing method, URL **path only**, status code, and duration;
+2. application command/save/load/replay records containing stable identifiers, outcome fields, counts, and duration where applicable.
+
+Logging work initiated from async handlers/application code crosses an explicit `asyncio.to_thread` boundary so synchronous stream/file handlers do not block the event loop.
+
+Request bodies, `Authorization` headers, bearer tokens, WebSocket credential subprotocol values, player names, and hidden player projections are deliberately not included in these records.
+
+### Runtime controls
+
+The default server recognizes:
+
+- `CIVILIZATION_CLONE_LOG_LEVEL` — standard Python logging level name; defaults to `INFO`;
+- `CIVILIZATION_CLONE_LOG_JSON` — `1`, `true`, `yes`, or `on` enables compact JSON-lines output.
 
 ### Structured JSON
 
@@ -81,6 +102,7 @@ When relevant, tests should prove:
 - journal sequence/game/state-version invariants;
 - deterministic event-journal equality/hash equality;
 - logging enabled/disabled does not change deterministic state hashes;
-- structured logs contain useful correlation context;
+- structured logs contain useful correlation and latency context;
+- HTTP/application diagnostics omit credentials and request-body private fields;
 - feedback objects are immutable and safe to render;
 - hidden/private data is filtered from user-facing channels.

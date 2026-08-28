@@ -55,7 +55,7 @@ async def _exercise_concurrent_commands() -> None:
     version = engine.session.state_version
     commands = (
         CommandEnvelope.create(
-            command_id=CommandId("concurrent-research"),
+            command_id=CommandId("concurrent-research-a"),
             game_id=game_id,
             command_type="ChooseResearch",
             player_id=first,
@@ -63,11 +63,12 @@ async def _exercise_concurrent_commands() -> None:
             payload={"technology_id": "surveying"},
         ),
         CommandEnvelope.create(
-            command_id=CommandId("concurrent-end-turn"),
+            command_id=CommandId("concurrent-research-b"),
             game_id=game_id,
-            command_type="EndTurn",
+            command_type="ChooseResearch",
             player_id=first,
             expected_state_version=version,
+            payload={"technology_id": "masonry"},
         ),
     )
     results = await asyncio.gather(*(manager.process(command) for command in commands))

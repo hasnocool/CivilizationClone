@@ -1,0 +1,66 @@
+[
+  {
+    "name": "two-player-concession",
+    "seed": 1101,
+    "player_count": 2,
+    "commands": [
+      {"type": "JoinGame", "player": "p1", "payload": {"name": "One", "civilization_id": "river_compact"}},
+      {"type": "JoinGame", "player": "p2", "payload": {"name": "Two", "civilization_id": "horizon_league"}},
+      {"type": "StartGame"},
+      {"type": "Concede", "player": "p1"}
+    ]
+  },
+  {
+    "name": "three-player-turn-handoff",
+    "seed": 2202,
+    "player_count": 3,
+    "commands": [
+      {"type": "JoinGame", "player": "p1", "payload": {"name": "One", "civilization_id": "river_compact"}},
+      {"type": "JoinGame", "player": "p2", "payload": {"name": "Two", "civilization_id": "horizon_league"}},
+      {"type": "JoinGame", "player": "p3", "payload": {"name": "Three", "civilization_id": "river_compact"}},
+      {"type": "StartGame"},
+      {"type": "Concede", "player": "p1"},
+      {"type": "ChooseResearch", "player": "p2", "payload": {"technology_id": "surveying"}},
+      {"type": "EndTurn", "player": "p2"},
+      {"type": "ChooseResearch", "player": "p3", "payload": {"technology_id": "masonry"}},
+      {"type": "EndTurn", "player": "p3"}
+    ]
+  },
+  {
+    "name": "settlement-research-economy",
+    "seed": 3303,
+    "player_count": 2,
+    "commands": [
+      {"type": "JoinGame", "player": "p1", "payload": {"name": "One", "civilization_id": "river_compact"}},
+      {"type": "JoinGame", "player": "p2", "payload": {"name": "Two", "civilization_id": "horizon_league"}},
+      {"type": "StartGame"},
+      {"type": "FoundSettlement", "player": "p1", "payload": {"unit_id": "unit-0"}},
+      {"type": "ChooseResearch", "player": "p1", "payload": {"technology_id": "surveying"}},
+      {"type": "QueueProduction", "player": "p1", "payload": {"settlement_id": "settlement-0", "kind": "unit", "definition_id": "scout"}},
+      {"type": "EndTurn", "player": "p1"},
+      {"type": "FoundSettlement", "player": "p2", "payload": {"unit_id": "unit-1"}},
+      {"type": "ChooseResearch", "player": "p2", "payload": {"technology_id": "masonry"}},
+      {"type": "EndTurn", "player": "p2"},
+      {"type": "EndTurn", "player": "p1"},
+      {"type": "EndTurn", "player": "p2"}
+    ]
+  },
+  {
+    "name": "diplomacy-peace-rejection",
+    "seed": 4404,
+    "player_count": 2,
+    "commands": [
+      {"type": "JoinGame", "player": "p1", "payload": {"name": "River", "civilization_id": "river_compact"}},
+      {"type": "JoinGame", "player": "p2", "payload": {"name": "Horizon", "civilization_id": "horizon_league"}},
+      {"type": "StartGame"},
+      {"type": "DeclareWar", "player": "p1", "payload": {"target_player_id": "p2"}},
+      {"type": "ChooseResearch", "player": "p1", "payload": {"technology_id": "surveying"}},
+      {"type": "EndTurn", "player": "p1"},
+      {"type": "OfferPeace", "player": "p2", "payload": {"target_player_id": "p1"}},
+      {"type": "ChooseResearch", "player": "p2", "payload": {"technology_id": "masonry"}},
+      {"type": "EndTurn", "player": "p2"},
+      {"type": "RejectPeace", "player": "p1", "payload": {"target_player_id": "p2"}},
+      {"type": "Concede", "player": "p1"}
+    ]
+  }
+]

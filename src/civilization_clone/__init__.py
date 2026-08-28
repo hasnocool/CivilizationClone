@@ -32,6 +32,7 @@ from civilization_clone.engine.mapgen import MapGenerationConfig, MapGenerationR
 from civilization_clone.engine.rng import DeterministicRng, RngFactory
 from civilization_clone.engine.session import CommandResult, GameEngine
 from civilization_clone.engine.state_hash import canonical_json, state_hash
+from civilization_clone.persistence.replay import ReplayReport, ReplayVerificationError, verify_replay
 from civilization_clone.persistence.sqlite_store import ReplayDivergenceError, SqliteGameStore
 from civilization_clone.rules.loader import RulesetLoader
 from civilization_clone.rules.schemas import RulesetManifest
@@ -57,6 +58,8 @@ __all__ = [
     "ProductionKind",
     "ProductionOrder",
     "ReplayDivergenceError",
+    "ReplayReport",
+    "ReplayVerificationError",
     "ResearchState",
     "ResourceType",
     "RngFactory",
@@ -79,6 +82,7 @@ __all__ = [
     "canonical_json",
     "generate_world",
     "state_hash",
+    "verify_replay",
 ]
 
-__version__ = "0.8.0"
+__version__ = "1.0.0"

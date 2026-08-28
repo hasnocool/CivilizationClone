@@ -20,8 +20,24 @@ class CreateGameRequest(BaseModel):
     resource_percent: int = Field(default=18, ge=0, le=60)
 
 
+class JoinPlayerRequest(BaseModel):
+    """Bootstrap one player identity before authenticated player commands exist."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    command_id: str = Field(min_length=1)
+    player_id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    controller: str = "human"
+    civilization_id: str = "river_compact"
+
+
 class CommandRequest(BaseModel):
-    """Transport representation of one engine command."""
+    """Transport representation of one engine command.
+
+    ``player_id`` remains optional for v0.8 client compatibility, but v1.0 derives
+    authoritative player identity from the signed credential and rejects mismatches.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -31,6 +47,29 @@ class CommandRequest(BaseModel):
     expected_state_version: int | None = Field(default=None, ge=0)
     payload: dict[str, Any] = Field(default_factory=dict)
     client_timestamp: str | None = None
+
+
+class CivilizationYieldModifierResponse(BaseModel):
+    yield_type: str
+    operation: str
+    value: int
+    priority: int
+
+
+class CivilizationResponse(BaseModel):
+    civilization_id: str
+    name: str
+    description: str
+    tags: list[str]
+    starting_resources: dict[str, int]
+    yield_modifiers: list[CivilizationYieldModifierResponse]
+    research_cost_percent: int
+    attack_strength_percent: int
+    defense_strength_percent: int
+    unique_units: list[str]
+    unique_buildings: list[str]
+    research_preferences: list[str]
+    content_hooks: list[str]
 
 
 class FeedbackResponse(BaseModel):
@@ -60,6 +99,17 @@ class GameCreatedResponse(BaseModel):
     seed: int
     state_version: int
     status: str
+    admin_token: str
+
+
+class PlayerJoinedResponse(BaseModel):
+    accepted: bool
+    state_version: int
+    player_id: str
+    civilization_id: str
+    player_token: str | None
+    events: list[EventResponse]
+    feedback: list[FeedbackResponse]
 
 
 class HealthResponse(BaseModel):
