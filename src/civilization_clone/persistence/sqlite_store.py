@@ -82,7 +82,7 @@ class SqliteGameStore:
 
         engine = engine_from_document(document)
         save_version = int(document.get("save_version", 0))
-        if save_version >= 2 and engine.state_hash() != expected_state_hash:
+        if save_version >= 3 and engine.state_hash() != expected_state_hash:
             raise ReplayDivergenceError("restored state hash diverged from durable checkpoint")
         if engine.event_hash() != expected_event_hash:
             raise ReplayDivergenceError("restored event hash diverged from durable checkpoint")
