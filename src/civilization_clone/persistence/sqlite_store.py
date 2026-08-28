@@ -10,8 +10,10 @@ from pathlib import Path
 from typing import Any
 
 from civilization_clone.domain.ids import GameId
+from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.session import GameEngine
 from civilization_clone.persistence.codec import engine_from_document, engine_to_document
+from civilization_clone.persistence.replay import command_from_data, command_to_data
 
 
 class ReplayDivergenceError(RuntimeError):
@@ -20,7 +22,7 @@ class ReplayDivergenceError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class SqliteGameStore:
-    """Durable POC save/event store that never blocks an async event loop."""
+    """Durable POC save/event/command store that never blocks an async event loop."""
 
     path: Path
 
@@ -28,8 +30,13 @@ class SqliteGameStore:
         """Create persistence tables without blocking the caller's event loop."""
         await asyncio.to_thread(self._initialize_sync)
 
-    async def save(self, engine: GameEngine) -> None:
-        """Persist one snapshot plus append-only deterministic journal entries."""
+    async def save(
+        self,
+        engine: GameEngine,
+        *,
+        accepted_commands: tuple[CommandEnvelope, ...] | None = None,
+    ) -> None:
+        """Persist one snapshot plus immutable deterministic events/commands."""
         document = engine_to_document(engine)
         payload = json.dumps(document, sort_keys=True, separators=(",", ":"))
         event_rows = [
@@ -39,6 +46,16 @@ class SqliteGameStore:
             )
             for event in document["events"]
         ]
+        command_rows = None
+        if accepted_commands is not None:
+            command_rows = [
+                (
+                    index,
+                    str(command.command_id),
+                    json.dumps(command_to_data(command), sort_keys=True, separators=(",", ":")),
+                )
+                for index, command in enumerate(accepted_commands)
+            ]
         await asyncio.to_thread(
             self._save_sync,
             str(engine.session.game_id),
@@ -46,6 +63,7 @@ class SqliteGameStore:
             str(document["state_hash"]),
             str(document["event_hash"]),
             event_rows,
+            command_rows,
         )
 
     async def load(self, game_id: GameId) -> GameEngine:
@@ -73,6 +91,19 @@ class SqliteGameStore:
                     f"durable event diverged at sequence {expected_sequence}"
                 )
         return engine
+
+    async def load_commands(self, game_id: GameId) -> tuple[CommandEnvelope, ...]:
+        """Load the immutable accepted-command transcript in deterministic order."""
+        rows = await asyncio.to_thread(self._load_commands_sync, str(game_id))
+        commands: list[CommandEnvelope] = []
+        for expected_sequence, (sequence, serialized) in enumerate(rows):
+            if sequence != expected_sequence:
+                raise ReplayDivergenceError("durable command sequence is not contiguous")
+            data = json.loads(serialized)
+            if not isinstance(data, dict):
+                raise ReplayDivergenceError("durable command payload is not an object")
+            commands.append(command_from_data(data))
+        return tuple(commands)
 
     async def event_count(self, game_id: GameId) -> int:
         """Return the number of durable events for one game."""
@@ -109,6 +140,17 @@ class SqliteGameStore:
                     FOREIGN KEY (game_id) REFERENCES game_saves(game_id)
                         ON DELETE RESTRICT
                 );
+
+                CREATE TABLE IF NOT EXISTS game_commands (
+                    game_id TEXT NOT NULL,
+                    sequence INTEGER NOT NULL,
+                    command_id TEXT NOT NULL,
+                    command_json TEXT NOT NULL,
+                    PRIMARY KEY (game_id, sequence),
+                    UNIQUE (game_id, command_id),
+                    FOREIGN KEY (game_id) REFERENCES game_saves(game_id)
+                        ON DELETE RESTRICT
+                );
                 """
             )
 
@@ -119,6 +161,7 @@ class SqliteGameStore:
         state_hash: str,
         event_hash: str,
         event_rows: list[tuple[int, str]],
+        command_rows: list[tuple[int, str, str]] | None,
     ) -> None:
         self._initialize_sync()
         with self._connect() as connection:
@@ -148,6 +191,36 @@ class SqliteGameStore:
                         f"attempted to rewrite immutable event {game_id}:{sequence}"
                     )
 
+            if command_rows is not None:
+                durable_count_row = connection.execute(
+                    "SELECT COUNT(*) FROM game_commands WHERE game_id=?",
+                    (game_id,),
+                ).fetchone()
+                durable_count = int(durable_count_row[0]) if durable_count_row is not None else 0
+                if durable_count > len(command_rows):
+                    raise ReplayDivergenceError("accepted command transcript moved backwards")
+                for sequence, command_id, command_json in command_rows:
+                    existing = connection.execute(
+                        """
+                        SELECT command_id, command_json
+                        FROM game_commands
+                        WHERE game_id=? AND sequence=?
+                        """,
+                        (game_id, sequence),
+                    ).fetchone()
+                    if existing is None:
+                        connection.execute(
+                            """
+                            INSERT INTO game_commands(game_id, sequence, command_id, command_json)
+                            VALUES (?, ?, ?, ?)
+                            """,
+                            (game_id, sequence, command_id, command_json),
+                        )
+                    elif existing[0] != command_id or existing[1] != command_json:
+                        raise ReplayDivergenceError(
+                            f"attempted to rewrite immutable command {game_id}:{sequence}"
+                        )
+
     def _load_sync(
         self,
         game_id: str,
@@ -170,6 +243,20 @@ class SqliteGameStore:
         typed_row = None if row is None else (str(row[0]), str(row[1]), str(row[2]))
         typed_events = [(int(sequence), str(event_json)) for sequence, event_json in events]
         return typed_row, typed_events
+
+    def _load_commands_sync(self, game_id: str) -> list[tuple[int, str]]:
+        self._initialize_sync()
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT sequence, command_json
+                FROM game_commands
+                WHERE game_id=?
+                ORDER BY sequence ASC
+                """,
+                (game_id,),
+            ).fetchall()
+        return [(int(sequence), str(command_json)) for sequence, command_json in rows]
 
     def _event_count_sync(self, game_id: str) -> int:
         self._initialize_sync()
