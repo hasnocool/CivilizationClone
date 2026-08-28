@@ -32,6 +32,23 @@ The server authenticates the second `Sec-WebSocket-Protocol` value and accepts `
 
 `CIVILIZATION_CLONE_AUTH_SECRET` should be stable for durable local sessions. Without it, a process-local ephemeral key is generated and credentials expire when the server restarts.
 
+## Rules discovery
+
+### Civilizations
+
+`GET /api/v1/rules/civilizations`
+
+This public endpoint returns the playable original POC civilization definitions in deterministic order. Each entry includes:
+
+- civilization id, display name, description, and tags;
+- starting Gold/Science/Culture resources;
+- generic settlement yield modifiers;
+- research-cost and abstract combat-strength percentage modifiers;
+- unique unit/building references when present;
+- research preferences and content hooks.
+
+Clients should discover these definitions rather than hard-code the available roster. The server remains authoritative for validating the selected `civilization_id` and applying its data-driven effects.
+
 ## Lifecycle
 
 ### Create game
@@ -44,7 +61,9 @@ Request fields include `game_id`, `seed`, `player_count`, map radius, water perc
 
 `POST /api/v1/games/{game_id}/players`
 
-Requires the game admin token. Request fields are `command_id`, `player_id`, `name`, and optional controller type. Enrollment is internally translated into the normal deterministic `JoinGame` command. Successful enrollment returns a player credential.
+Requires the game admin token. Request fields are `command_id`, `player_id`, `name`, optional controller type, and `civilization_id`. Enrollment is internally translated into the normal deterministic `JoinGame` command. Successful enrollment returns the selected civilization id and a player credential.
+
+For v1 compatibility, omitted `civilization_id` defaults to `river_compact`; interactive clients should still present the rules-discovery choices explicitly.
 
 ### Start game
 
@@ -66,6 +85,7 @@ POC command types:
 - `DeclareWar`
 - `OfferPeace`
 - `AcceptPeace`
+- `RejectPeace`
 - `EndTurn`
 - `Concede`
 
@@ -83,7 +103,7 @@ All normal queries require a player credential and return only that player's aut
 - `GET /api/v1/games/{game_id}/events?after_sequence=N`
 - `GET /api/v1/games/{game_id}/legal-actions`
 
-Unknown map tiles are omitted. Previously discovered but not currently visible tiles contain only persistent map knowledge. Hidden opposing units are omitted. Opponent settlement internals, production queues, and private economy details are not exposed.
+The player projection includes the viewer's selected civilization id and public civilization ids for the player roster. Unknown map tiles are omitted. Previously discovered but not currently visible tiles contain only persistent map knowledge. Hidden opposing units are omitted. Opponent settlement internals, production queues, and private economy details are not exposed.
 
 ## Event stream
 
@@ -91,7 +111,7 @@ Unknown map tiles are omitted. Previously discovered but not currently visible t
 
 The credential is supplied through the WebSocket subprotocol header as described above. The server first sends authorized historical events newer than `after_sequence`, then publishes newly appended authorized events in journal order. Command retries do not republish old events.
 
-Diplomacy proposals are bilateral rather than globally visible. Combat events include stable participant ownership in their deterministic payload so both involved players retain authorization even after a destroyed unit has been removed from current state.
+Peace offers, acceptances, and rejections are bilateral rather than globally visible. Combat events include stable participant ownership in their deterministic payload so both involved players retain authorization even after a destroyed unit has been removed from current state.
 
 ## Feedback and errors
 
@@ -101,4 +121,4 @@ Authentication/transport failures use HTTP status codes and must not expose stac
 
 ## Compatibility
 
-The v1 contract deliberately hardens the earlier v0.8 prototype by replacing trusted `player_id` query/body identity with signed credentials and a dedicated enrollment endpoint. Future incompatible public changes require a new API version or an explicit compatibility decision.
+The v1 contract deliberately hardens the earlier v0.8 prototype by replacing trusted `player_id` query/body identity with signed credentials and a dedicated enrollment endpoint. It also makes civilization identity and its generic modifiers part of authoritative state/save/replay behavior. Future incompatible public changes require a new API version or an explicit compatibility decision.
