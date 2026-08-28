@@ -6,30 +6,22 @@ Every client interacts with the same authoritative simulation through a versione
 This repository does **not** bundle proprietary Civilization game data, rules text, art, maps, UI,
 or other protected assets. The project uses original implementation and content.
 
-## Current milestone: v0.8 deterministic AI and simulation automation
+## Current milestone: v1.0 playable proof of concept
 
-The proof of concept now implements the planned engine path through v0.8:
+The planned proof-of-concept path through v1.0 is implemented in this branch:
 
-- deterministic hex maps, path validation, fog of war, turns, players, and units;
-- settlement founding, territory, worked tiles, population growth, yields, production queues, and modifiers;
-- baseline Science/Culture generation and a prerequisite technology DAG with deterministic progress;
-- technology-gated advanced production capabilities;
-- deterministic strategic conflict resolution, diplomacy state, elimination, score/conquest victory checks;
-- append-only domain events, state/event hashes, idempotent command retries, and safe typed feedback;
-- complete save-document encoding with full authoritative state, event journal, and processed-command cache;
-- async-safe SQLite persistence using worker-thread boundaries around blocking SQLite operations;
-- save/load hash verification, immutable durable event checks, and replay-divergence detection;
-- an async `GameManager` with registry locking, per-game mutation locks, persistence integration, and subscribers;
-- fog-safe player projections that omit unknown terrain and hidden opposing units;
-- versioned `/api/v1` FastAPI endpoints for game lifecycle, commands, state, events, and legal actions;
-- player-authorized WebSocket event streaming;
-- a persistent API server entry point backed by SQLite;
-- a deterministic bot policy that consumes the same authorized player projection as a normal client;
-- headless bot-match automation and deterministic simulation metrics;
-- integration coverage for strategic systems, persistence, concurrent commands, event subscriptions, API safety,
-  and repeatable bot simulations.
-
-The next planned milestones in `PLAN.md` are v0.9 (first playable client) and v1.0 (hardening/release-quality POC).
+- deterministic hex maps, fog of war, turns, players, units, settlements, economy, research, combat, diplomacy, and victory;
+- append-only deterministic domain events, state/event hashes, persisted idempotency, and safe feedback;
+- async-safe SQLite snapshots, immutable event storage, and accepted-command replay transcripts;
+- independent replay that rebuilds the engine from the generated world plus accepted commands and compares final state/event hashes;
+- serialized per-game mutation through the async application manager;
+- fog-safe player projections and authorized event filtering;
+- FastAPI `/api/v1` lifecycle, command, query, legal-action, and WebSocket surfaces;
+- HMAC-signed host/player credentials so API identity is not trusted from arbitrary payload fields;
+- deterministic projection-only bots and headless simulation automation;
+- a playable hotseat terminal client that uses only public HTTP contracts;
+- deterministic replay corpus and public-client end-to-end coverage;
+- local benchmark and release tooling with no hosted CI dependency.
 
 ## Development
 
@@ -39,60 +31,94 @@ Install the project and development tools with `uv`:
 uv sync --dev
 ```
 
-Run the canonical local verification gate (all CI is local; GitHub Actions is not used):
+Run the canonical local verification gate:
 
 ```bash
 bash scripts/ci.sh
 ```
 
-Focused test run:
-
-```bash
-uv run pytest
-```
-
-See `AGENTS.md`, `docs/WORKFLOW.md`, and `docs/LOGGING.md` for the required development, QA, and observability process.
+All CI is local. GitHub Actions is intentionally prohibited by project governance.
 
 ## Run the API
 
-The installed console entry point starts the persistent API server:
-
 ```bash
+export CIVILIZATION_CLONE_AUTH_SECRET="choose-a-local-secret"
 uv run civilization-clone-api
 ```
 
-By default it binds to `127.0.0.1:8000` and stores games in
+By default the API binds to `127.0.0.1:8000` and stores games in
 `data/civilization_clone.sqlite3`.
 
 Optional environment variables:
 
 - `CIVILIZATION_CLONE_HOST` — bind host;
 - `CIVILIZATION_CLONE_PORT` — TCP port;
-- `CIVILIZATION_CLONE_DB` — SQLite database path.
+- `CIVILIZATION_CLONE_DB` — SQLite database path;
+- `CIVILIZATION_CLONE_AUTH_SECRET` — stable HMAC secret used to sign host/player credentials.
 
-The primary routes are:
+If no auth secret is supplied, the local process uses an ephemeral secret. Existing credentials therefore stop working after that process restarts; set the environment variable for durable local sessions.
 
-- `POST /api/v1/games` — create a deterministic game;
-- `POST /api/v1/games/{game_id}/commands` — submit an authoritative command;
-- `GET /api/v1/games/{game_id}/state?player_id=...` — retrieve a fog-safe player snapshot;
-- `GET /api/v1/games/{game_id}/events?player_id=...` — retrieve authorized events;
-- `GET /api/v1/games/{game_id}/legal-actions?player_id=...` — inspect available actions/decisions;
-- `WS /api/v1/games/{game_id}/events/ws?player_id=...` — subscribe to authorized event updates.
+Primary public routes:
 
-## Persistence and determinism
+- `POST /api/v1/games` — create a game and receive its host/admin credential;
+- `POST /api/v1/games/{game_id}/players` — host-authorized player enrollment and player credential issuance;
+- `POST /api/v1/games/{game_id}/commands` — authenticated authoritative commands;
+- `GET /api/v1/games/{game_id}/state` — authenticated fog-safe player snapshot;
+- `GET /api/v1/games/{game_id}/events` — authenticated authorized event history;
+- `GET /api/v1/games/{game_id}/legal-actions` — authenticated action/mandatory-decision query;
+- `WS /api/v1/games/{game_id}/events/ws?token=...` — authorized player event stream.
 
-`SqliteGameStore` persists canonical save documents and the deterministic event journal.
-Blocking SQLite work is isolated behind `asyncio.to_thread`, so async API/application callers do not block the event loop.
-Reload verifies both state and event hashes and checks the durable event stream for contiguous, immutable content.
+See `docs/API_CONTRACT.md` for the v1 public contract.
 
-The authoritative domain journal never contains wall-clock timestamps or operational logging data.
-Runtime logs remain separate and cannot affect state, event ordering, random streams, or hashes.
+## Play the TUI
+
+With the API running:
+
+```bash
+uv run civilization-clone-tui
+```
+
+Or launch both the local persistent API and client for human-style QA:
+
+```bash
+bash scripts/playtest_tui.sh
+```
+
+The TUI supports hotseat 2–4 player setup, fog-safe map rendering, player switching, movement, settlement founding/management, production, research, diplomacy, combat, turn advancement, event inspection, and concession/victory. It never imports or mutates engine state directly.
+
+## Persistence and deterministic replay
+
+`SqliteGameStore` persists:
+
+- canonical snapshots;
+- immutable deterministic event rows;
+- immutable accepted-command transcript rows;
+- persisted command idempotency results inside the save document.
+
+All SQLite work runs through explicit worker-thread boundaries when called from async code.
+`GameManager.verify_replay()` creates a fresh engine from the immutable generated world and replays the accepted command transcript through normal command processing. A v1 replay is accepted only when both the final state hash and event-journal hash match the live game.
+
+See `docs/REPLAY.md` for the replay contract and corpus.
+
+## Local performance and release gates
+
+Run the deterministic simulation benchmark:
+
+```bash
+uv run civilization-clone-benchmark --games 10
+```
+
+Prepare a local release candidate only after the canonical CI gate succeeds:
+
+```bash
+bash scripts/release.sh
+```
+
+Build outputs and benchmark/playtest artifacts belong under ignored `artifacts/` paths. See `docs/PERFORMANCE.md` and `docs/WORKFLOW.md`.
 
 ## AI boundary
 
-The POC bot policy receives only the same player-authorized projection exposed to API clients. It does not receive
-an unrestricted `GameSession`, hidden map tiles, or hidden opposing-unit state. Bot commands travel through the same
-`CommandEnvelope` and `GameManager.process()` path as human/client commands.
+The simple bot policy receives only the same player-authorized projection exposed to normal clients. It does not receive an unrestricted `GameSession`, hidden tiles, or hidden opposing-unit state. Bot commands travel through the normal validated command/application path.
 
 ## Logging model
 
