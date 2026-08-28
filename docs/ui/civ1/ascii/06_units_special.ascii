@@ -1,0 +1,211 @@
+CIVILIZATIONCLONE - CIV1-INSPIRED UI REFERENCE
+STRICT ASCII SUPPLEMENT: UNITS, DIPLOMATS, CARAVANS, TRIBES (CIV1-UI-086..104)
+===============================================================================
+
+[CIV1-UI-086] UNIT STACK ACTIVATION
++------------------------------------------------------------+
+|                    UNITS IN THIS SQUARE                    |
++------------------------------------------------------------+
+| > Legion        Fortified                                  |
+|   Phalanx       Sentry                                     |
+|   Settlers      Active                                     |
+|                                                            |
+|                  [ ACTIVATE ] [ DONE ]                     |
++------------------------------------------------------------+
+
+[CIV1-UI-087] GO TO DESTINATION TARGETING
++=============================================================================+
+|                          SELECT DESTINATION                                 |
++=============================================================================+
+| ~ ~ . . . . . . . .                                                       |
+| . . [U] . . . . . .                                                       |
+| . . . . . . . . .                                                        |
+| . . . . . . [X] . .       X = destination cursor                           |
+|                                                                             |
+|                         [ SET ] [ CANCEL ]                                   |
++=============================================================================+
+
+[CIV1-UI-088] HOME CITY REASSIGNMENT
++------------------------------------------------------------+
+|                    CHANGE HOME CITY                        |
++------------------------------------------------------------+
+| Unit: Legion                                               |
+| Current home: Rome                                         |
+| New home: Antium                                           |
+|                                                            |
+|                  [ CHANGE ] [ CANCEL ]                     |
++------------------------------------------------------------+
+
+[CIV1-UI-089] SETTLER CONTEXT ORDERS
++--------------------------------+
+| SETTLER ORDERS                 |
++--------------------------------+
+| Found New City                 |
+| Build Road                     |
+| Build Railroad                 |
+| Irrigate                       |
+| Build Mine                     |
+| Build Fortress                 |
+| Change Terrain                 |
+| Clean Pollution                |
+| Go To                          |
+| Sentry                         |
+| Disband                        |
++--------------------------------+
+
+[CIV1-UI-090] CHANGE TERRAIN ORDER
++------------------------------------------------------------+
+|                     CHANGE TERRAIN                         |
++------------------------------------------------------------+
+| Current terrain: Jungle                                    |
+| Result: Grassland                                          |
+| Estimated work: several turns                              |
+|                                                            |
+|                  [ BEGIN ] [ CANCEL ]                      |
++------------------------------------------------------------+
+
+[CIV1-UI-091] DIPLOMAT BRIBE ENEMY UNIT OFFER
++------------------------------------------------------------+
+|                      BRIBE ENEMY UNIT                      |
++------------------------------------------------------------+
+| Enemy unit: Legion                                         |
+| Defection price: 146 gold                                  |
+| Treasury: 312 gold                                         |
+|                                                            |
+|                    [ PAY ] [ REFUSE ]                      |
++------------------------------------------------------------+
+
+[CIV1-UI-092] DIPLOMAT BRIBE RESULT
++------------------------------------------------------------+
+|                    UNIT HAS DEFECTED                       |
++------------------------------------------------------------+
+| The enemy Legion has joined your civilization.             |
+| Nearest friendly city becomes its home city.               |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-093] DIPLOMAT INCITE REVOLT PRICE
++------------------------------------------------------------+
+|                       INCITE REVOLT                        |
++------------------------------------------------------------+
+| City: Athens                                               |
+| Dissidents demand: 428 gold                                |
+| Treasury: 603 gold                                         |
+|                                                            |
+|                  [ PAY ] [ REFUSE ]                        |
++------------------------------------------------------------+
+
+[CIV1-UI-094] DIPLOMAT INCITE REVOLT RESULT
++------------------------------------------------------------+
+|                       CITY REVOLTS                         |
++------------------------------------------------------------+
+| Athens has overthrown its former rulers                    |
+| and joined your civilization.                              |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-095] DIPLOMAT ESTABLISH EMBASSY RESULT
++------------------------------------------------------------+
+|                    EMBASSY ESTABLISHED                     |
++------------------------------------------------------------+
+| An embassy has been established with the Greeks.           |
+| Intelligence reports are now available.                    |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-096] DIPLOMAT STEAL TECHNOLOGY RESULT
++------------------------------------------------------------+
+|                    TECHNOLOGY ACQUIRED                     |
++------------------------------------------------------------+
+| Your diplomat has obtained:                                |
+|                         ASTRONOMY                           |
+|                                                            |
+|                  [ DETAILS ] [ OK ]                        |
++------------------------------------------------------------+
+
+[CIV1-UI-097] DIPLOMAT INDUSTRIAL SABOTAGE RESULT
++------------------------------------------------------------+
+|                   INDUSTRIAL SABOTAGE                      |
++------------------------------------------------------------+
+| Target city: Athens                                        |
+| Result: production or an improvement was destroyed.        |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-098] ENEMY CITY INSPECTION
++=============================================================================+
+|                       INSPECTION: ATHENS                                    |
++=============================================================================+
+| CITY RESOURCE MAP                    | FOREIGN CITY INFORMATION               |
+| [F][S][T][.]                         | Population: 7                          |
+| [S][C][S][.]                         | Defenders: [PHX] [LEG]                 |
+| [T][S][F][.]                         | Production: Marketplace                |
+|                                      | Improvements: Temple, Walls            |
+|                                                                             |
+|                              [ RETURN ]                                      |
++=============================================================================+
+
+[CIV1-UI-099] CARAVAN TRADE ROUTE DELIVERY
++------------------------------------------------------------+
+|                     TRADE ROUTE OPENED                     |
++------------------------------------------------------------+
+| Caravan delivered goods from Rome to Athens.               |
+| Immediate revenue: 92 gold                                 |
+| New recurring trade route: +3 trade                        |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-100] CARAVAN WONDER CONTRIBUTION PROMPT
++------------------------------------------------------------+
+|                    CARAVAN HAS ARRIVED                     |
++------------------------------------------------------------+
+| Rome is building: THE PYRAMIDS                             |
+| Add this Caravan's resources to Wonder construction?       |
+|                                                            |
+|                  [ CONTRIBUTE ] [ KEEP ]                   |
++------------------------------------------------------------+
+
+[CIV1-UI-101] MINOR TRIBE - ANCIENT WISDOM
++------------------------------------------------------------+
+|                    ANCIENT WISDOM FOUND                    |
++------------------------------------------------------------+
+| The village shares a scroll of ancient knowledge.          |
+| Your civilization gains a technology advance.              |
+|                                                            |
+|                  [ DETAILS ] [ OK ]                        |
++------------------------------------------------------------+
+
+[CIV1-UI-102] MINOR TRIBE - JOINS AS CITY
++------------------------------------------------------------+
+|                   A NEW CITY JOINS YOU                     |
++------------------------------------------------------------+
+| The minor tribe is awed by your civilization               |
+| and establishes a new city under your rule.                |
+|                                                            |
+|                    [ VIEW CITY ] [ OK ]                     |
++------------------------------------------------------------+
+
+[CIV1-UI-103] MINOR TRIBE - BARBARIANS
++------------------------------------------------------------+
+|                        AMBUSH!                             |
++------------------------------------------------------------+
+| The village is inhabited by hostile barbarians.            |
+| Raiders appear nearby.                                     |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-104] BARBARIAN LEADER RANSOM
++------------------------------------------------------------+
+|                    BARBARIAN LEADER CAPTURED               |
++------------------------------------------------------------+
+| The captured leader has been ransomed.                     |
+| Treasury receives: 100 gold                                |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
