@@ -9,8 +9,8 @@ from civilization_clone.domain.strategy import TechnologyDefinition
 from civilization_clone.domain.types import JsonValue
 
 TECHNOLOGIES: dict[str, TechnologyDefinition] = {
-    "surveying": TechnologyDefinition("surveying", 5, unlocks=("scout",)),
-    "masonry": TechnologyDefinition("masonry", 7, unlocks=("granary",)),
+    "surveying": TechnologyDefinition("surveying", 5, unlocks=("exploration_methods",)),
+    "masonry": TechnologyDefinition("masonry", 7, unlocks=("settlement_methods",)),
     "bronze_work": TechnologyDefinition(
         "bronze_work",
         8,
@@ -21,7 +21,7 @@ TECHNOLOGIES: dict[str, TechnologyDefinition] = {
         "engineering",
         10,
         prerequisites=frozenset({"masonry"}),
-        unlocks=("workshop",),
+        unlocks=("production_methods",),
     ),
     "archery": TechnologyDefinition(
         "archery",
@@ -29,17 +29,29 @@ TECHNOLOGIES: dict[str, TechnologyDefinition] = {
         prerequisites=frozenset({"surveying"}),
         unlocks=("archer",),
     ),
-    "writing": TechnologyDefinition("writing", 8, prerequisites=frozenset({"masonry"})),
+    "writing": TechnologyDefinition(
+        "writing",
+        8,
+        prerequisites=frozenset({"masonry"}),
+        unlocks=("knowledge_archive",),
+    ),
     "mathematics": TechnologyDefinition(
         "mathematics",
         12,
         prerequisites=frozenset({"writing"}),
+        unlocks=("calculation_methods",),
     ),
     "logistics": TechnologyDefinition(
         "logistics",
         14,
         prerequisites=frozenset({"engineering", "mathematics"}),
+        unlocks=("logistics_methods",),
     ),
+}
+
+PRODUCTION_TECH_REQUIREMENTS: dict[str, str] = {
+    "warrior": "bronze_work",
+    "archer": "archery",
 }
 
 
@@ -105,6 +117,12 @@ def choose_research(player: PlayerState, technology_id: str) -> str | None:
         player.research.selected = technology_id
         player.research.progress = 0
     return None
+
+
+def production_is_unlocked(player: PlayerState, definition_id: str) -> bool:
+    """Return whether a production definition's research prerequisite is satisfied."""
+    required = PRODUCTION_TECH_REQUIREMENTS.get(definition_id)
+    return required is None or required in player.research.completed
 
 
 def resolve_research(player: PlayerState) -> tuple[ResearchOutcome, ...]:
