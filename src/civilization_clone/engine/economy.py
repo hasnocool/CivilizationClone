@@ -23,46 +23,26 @@ from civilization_clone.engine.hexgrid import neighbors
 
 BUILDINGS: dict[str, BuildingDefinition] = {
     "granary": BuildingDefinition(
-        "granary",
-        cost=6,
-        modifiers=(
-            YieldModifier("building:granary", YieldType.FOOD, ModifierOperation.FLAT, 1),
-        ),
+        "granary", cost=6,
+        modifiers=(YieldModifier("building:granary", YieldType.FOOD, ModifierOperation.FLAT, 1),),
     ),
     "workshop": BuildingDefinition(
-        "workshop",
-        cost=8,
-        modifiers=(
-            YieldModifier(
-                "building:workshop",
-                YieldType.PRODUCTION,
-                ModifierOperation.FLAT,
-                1,
-            ),
-        ),
+        "workshop", cost=8,
+        modifiers=(YieldModifier("building:workshop", YieldType.PRODUCTION, ModifierOperation.FLAT, 1),),
     ),
 }
-
 UNITS: dict[str, UnitDefinition] = {
-    "scout": UnitDefinition(
-        "scout",
-        movement=3,
-        vision_radius=1,
-        production_cost=8,
-    )
+    "scout": UnitDefinition("scout", movement=3, vision_radius=1, production_cost=8)
 }
 
 
 @dataclass(frozen=True, slots=True)
 class EconomyOutcome:
-    """One deterministic domain event description produced by economy resolution."""
-
     event_type: str
     payload: dict[str, JsonValue]
 
 
 def tile_yield(tile: Tile) -> YieldBundle:
-    """Return original POC base yields for one tile."""
     base = {
         TerrainType.WATER: YieldBundle(food=1),
         TerrainType.PLAINS: YieldBundle(food=1, production=1),
@@ -81,11 +61,9 @@ def tile_yield(tile: Tile) -> YieldBundle:
 
 
 def settlement_yield(session: GameSession, settlement: SettlementState) -> YieldBundle:
-    """Calculate settlement yields from center, worked tiles, and buildings."""
-    total = tile_yield(session.world.tile(settlement.center))
+    total = tile_yield(session.world.tile(settlement.center)).add(YieldBundle(science=1, culture=1))
     for coord in sorted(settlement.worked_tiles):
         total = total.add(tile_yield(session.world.tile(coord)))
-
     modifiers = []
     for building_id in sorted(settlement.buildings):
         definition = BUILDINGS.get(building_id)
@@ -99,31 +77,21 @@ def growth_threshold(population: int) -> int:
 
 
 def production_order(kind: str, definition_id: str) -> ProductionOrder | None:
-    """Build a validated production order from the POC definition registries."""
     try:
         production_kind = ProductionKind(kind)
     except ValueError:
         return None
     if production_kind is ProductionKind.BUILDING:
         definition = BUILDINGS.get(definition_id)
-        if definition is None:
-            return None
-        return ProductionOrder(production_kind, definition_id, definition.cost)
+        return None if definition is None else ProductionOrder(production_kind, definition_id, definition.cost)
     definition = UNITS.get(definition_id)
-    if definition is None:
-        return None
-    return ProductionOrder(production_kind, definition_id, definition.production_cost)
+    return None if definition is None else ProductionOrder(production_kind, definition_id, definition.production_cost)
 
 
 def resolve_player_economy(session: GameSession, player_id: PlayerId) -> tuple[EconomyOutcome, ...]:
-    """Resolve one player's settlements in deterministic settlement-id order."""
     outcomes: list[EconomyOutcome] = []
     player = session.players[player_id]
-    settlements = [
-        settlement
-        for _, settlement in sorted(session.settlements.items())
-        if settlement.owner_id == player_id
-    ]
+    settlements = [item for _, item in sorted(session.settlements.items()) if item.owner_id == player_id]
     for settlement in settlements:
         yields = settlement_yield(session, settlement)
         settlement.food_storage += yields.food
@@ -131,35 +99,17 @@ def resolve_player_economy(session: GameSession, player_id: PlayerId) -> tuple[E
         player.gold += yields.gold
         player.science += yields.science
         player.culture += yields.culture
-        outcomes.append(
-            EconomyOutcome(
-                "SettlementYielded",
-                {"settlement_id": settlement.settlement_id, **yields.as_dict()},
-            )
-        )
-
+        outcomes.append(EconomyOutcome("SettlementYielded", {"settlement_id": settlement.settlement_id, **yields.as_dict()}))
         while settlement.food_storage >= growth_threshold(settlement.population):
             threshold = growth_threshold(settlement.population)
             settlement.food_storage -= threshold
             settlement.population += 1
-            outcomes.append(
-                EconomyOutcome(
-                    "PopulationGrew",
-                    {
-                        "settlement_id": settlement.settlement_id,
-                        "population": settlement.population,
-                    },
-                )
-            )
-
+            outcomes.append(EconomyOutcome("PopulationGrew", {"settlement_id": settlement.settlement_id, "population": settlement.population}))
         outcomes.extend(_resolve_production(session, settlement))
     return tuple(outcomes)
 
 
-def _resolve_production(
-    session: GameSession,
-    settlement: SettlementState,
-) -> list[EconomyOutcome]:
+def _resolve_production(session: GameSession, settlement: SettlementState) -> list[EconomyOutcome]:
     outcomes: list[EconomyOutcome] = []
     while settlement.production_queue:
         order = settlement.production_queue[0]
@@ -172,44 +122,19 @@ def _resolve_production(
             definition = UNITS[order.definition_id]
             unit_id = UnitId(f"unit-{session.next_unit_index}")
             session.next_unit_index += 1
-            session.units[unit_id] = UnitState.spawn(
-                unit_id=unit_id,
-                owner_id=settlement.owner_id,
-                definition=definition,
-                position=spawn,
-            )
-            outcomes.append(
-                EconomyOutcome(
-                    "UnitProduced",
-                    {
-                        "settlement_id": settlement.settlement_id,
-                        "unit_id": unit_id,
-                        "definition_id": definition.definition_id,
-                        "q": spawn.q,
-                        "r": spawn.r,
-                    },
-                )
-            )
+            session.units[unit_id] = UnitState.spawn(unit_id=unit_id, owner_id=settlement.owner_id, definition=definition, position=spawn)
+            outcomes.append(EconomyOutcome("UnitProduced", {"settlement_id": settlement.settlement_id, "unit_id": unit_id, "definition_id": definition.definition_id, "q": spawn.q, "r": spawn.r}))
         else:
             settlement.buildings.add(order.definition_id)
-            outcomes.append(
-                EconomyOutcome(
-                    "BuildingCompleted",
-                    {
-                        "settlement_id": settlement.settlement_id,
-                        "definition_id": order.definition_id,
-                    },
-                )
-            )
+            outcomes.append(EconomyOutcome("BuildingCompleted", {"settlement_id": settlement.settlement_id, "definition_id": order.definition_id}))
         settlement.production_storage -= order.cost
         settlement.production_queue.pop(0)
     return outcomes
 
 
 def _find_unit_spawn(session: GameSession, center: HexCoord) -> HexCoord | None:
-    candidates = (center, *sorted(neighbors(center)))
     occupied = {unit.position for unit in session.units.values()}
-    for coord in candidates:
+    for coord in (center, *sorted(neighbors(center))):
         tile = session.world.tiles.get(coord)
         if tile is not None and tile.passable and coord not in occupied:
             return coord
