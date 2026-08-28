@@ -68,6 +68,9 @@ func _init() -> void:
 	if not _complete_api_surface_is_installed(main):
 		_fail("Complete v1 API controls were not installed")
 		return
+	if not _g2_content_surface_is_installed(main):
+		_fail("G2 server-driven content controls were not installed")
+		return
 
 	main.call("_rebuild_player_rows")
 	await process_frame
@@ -168,6 +171,24 @@ func _complete_api_surface_is_installed(main: Node) -> bool:
 	if _find_first(main, "LiveEventStatus") == null:
 		return false
 	if _find_first(main, "ClearSessionButton") == null:
+		return false
+	return true
+
+func _g2_content_surface_is_installed(main: Node) -> bool:
+	if _find_first(main, "ContentBrowser") == null:
+		return false
+	if _find_first(main, "ContentBrowserCard") == null:
+		return false
+	if _find_first(main, "ProductionChoiceSelect") == null:
+		return false
+	if _find_first(main, "ProductionChoiceDetail") == null:
+		return false
+	if _find_first(main, "TechnologyBrowserSelect") == null:
+		return false
+	if _find_first(main, "CivilizationBrowserSelect") == null:
+		return false
+	var raw_production := main.get("production_id_edit") as LineEdit
+	if raw_production == null or raw_production.visible:
 		return false
 	return true
 
