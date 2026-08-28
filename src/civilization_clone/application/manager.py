@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 
 from civilization_clone.domain.events import EventEnvelope
@@ -11,6 +12,7 @@ from civilization_clone.domain.state import RulesetRef
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
 from civilization_clone.engine.session import CommandResult, GameEngine
+from civilization_clone.observability.logging import log_with_context
 from civilization_clone.persistence.replay import (
     ReplayReport,
     ReplayVerificationError,
@@ -24,6 +26,7 @@ class GameManager:
     """Own running engines, mutation locks, persistence, replay, and event subscribers."""
 
     store: SqliteGameStore | None = None
+    logger: logging.Logger | None = None
     _games: dict[GameId, GameEngine] = field(default_factory=dict)
     _locks: dict[GameId, asyncio.Lock] = field(default_factory=dict)
     _subscribers: dict[GameId, set[asyncio.Queue[EventEnvelope]]] = field(
@@ -65,13 +68,23 @@ class GameManager:
                     accepted_commands=(),
                     replay_complete=True,
                 )
-            return engine
+        await self._log(
+            logging.INFO,
+            "game created",
+            {
+                "game_id": str(game_id),
+                "state_version": engine.session.state_version,
+                "operation": "CreateGame",
+            },
+        )
+        return engine
 
     async def get_engine(self, game_id: GameId) -> GameEngine:
         """Return a running game, lazily restoring it from durable storage when configured."""
         engine = self._games.get(game_id)
         if engine is not None:
             return engine
+        loaded = False
         async with self._registry_lock:
             engine = self._games.get(game_id)
             if engine is not None:
@@ -86,10 +99,22 @@ class GameManager:
             self._replay_complete[game_id] = replay_complete
             self._locks.setdefault(game_id, asyncio.Lock())
             self._subscribers.setdefault(game_id, set())
-            return engine
+            loaded = True
+        if loaded:
+            await self._log(
+                logging.INFO,
+                "game restored",
+                {
+                    "game_id": str(game_id),
+                    "state_version": engine.session.state_version,
+                    "operation": "LoadGame",
+                    "replay_complete": replay_complete,
+                },
+            )
+        return engine
 
     async def process(self, command: CommandEnvelope) -> CommandResult:
-        """Serialize one command, persist idempotency, and publish only new events."""
+        """Serialize one command, persist idempotency, publish events, and log safely."""
         engine = await self.get_engine(command.game_id)
         lock = self._locks.setdefault(command.game_id, asyncio.Lock())
         async with lock:
@@ -108,7 +133,23 @@ class GameManager:
                 )
             if new_events:
                 self._publish(command.game_id, new_events)
-            return result
+            log_context: dict[str, str | int | bool] = {
+                "game_id": str(command.game_id),
+                "command_id": str(command.command_id),
+                "operation": command.command_type,
+                "state_version": result.state_version,
+                "accepted": result.accepted,
+                "cached": already_processed,
+                "new_event_count": len(new_events),
+            }
+            if result.feedback:
+                log_context["error_code"] = result.feedback[0].code
+        await self._log(
+            logging.INFO if result.accepted else logging.WARNING,
+            "command processed",
+            log_context,
+        )
+        return result
 
     async def save(self, game_id: GameId) -> None:
         """Persist one running game using the same mutation lock as commands."""
@@ -123,6 +164,15 @@ class GameManager:
                 accepted_commands=transcript,
                 replay_complete=self._replay_complete.get(game_id, True),
             )
+        await self._log(
+            logging.INFO,
+            "game saved",
+            {
+                "game_id": str(game_id),
+                "state_version": engine.session.state_version,
+                "operation": "SaveGame",
+            },
+        )
 
     async def accepted_commands(self, game_id: GameId) -> tuple[CommandEnvelope, ...]:
         """Return an immutable accepted-command transcript for replay/debug tooling."""
@@ -139,7 +189,18 @@ class GameManager:
             )
         lock = self._locks.setdefault(game_id, asyncio.Lock())
         async with lock:
-            return verify_replay(engine, self._accepted_commands.get(game_id, ()))
+            report = verify_replay(engine, self._accepted_commands.get(game_id, ()))
+        await self._log(
+            logging.INFO,
+            "replay verified",
+            {
+                "game_id": str(game_id),
+                "operation": "VerifyReplay",
+                "command_count": report.command_count,
+                "matched": report.matched,
+            },
+        )
+        return report
 
     async def snapshot_events(self, game_id: GameId) -> tuple[EventEnvelope, ...]:
         """Return an immutable event snapshot for queries without mutating the engine."""
@@ -163,3 +224,13 @@ class GameManager:
         for queue in tuple(self._subscribers.get(game_id, ())):
             for event in events:
                 queue.put_nowait(event)
+
+    async def _log(
+        self,
+        level: int,
+        message: str,
+        context: dict[str, str | int | float | bool | None],
+    ) -> None:
+        if self.logger is None:
+            return
+        await asyncio.to_thread(log_with_context, self.logger, level, message, context)
