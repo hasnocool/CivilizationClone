@@ -42,6 +42,20 @@ BUILDINGS: dict[str, BuildingDefinition] = {
             ),
         ),
     ),
+    "market": BuildingDefinition(
+        "market",
+        cost=9,
+        modifiers=(
+            YieldModifier("building:market", YieldType.GOLD, ModifierOperation.FLAT, 1),
+        ),
+    ),
+    "archive": BuildingDefinition(
+        "archive",
+        cost=10,
+        modifiers=(
+            YieldModifier("building:archive", YieldType.SCIENCE, ModifierOperation.FLAT, 1),
+        ),
+    ),
 }
 
 UNITS: dict[str, UnitDefinition] = {
