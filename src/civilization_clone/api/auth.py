@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import hmac
 import json
@@ -72,14 +73,14 @@ class AuthManager:
         try:
             encoded, raw_signature = token.split(".", 1)
             supplied_signature = _b64decode(raw_signature)
-        except (ValueError, UnicodeError) as exc:
+        except (ValueError, UnicodeError, binascii.Error) as exc:
             raise AuthenticationError("invalid credential") from exc
         expected = hmac.new(self.secret, encoded.encode("ascii"), hashlib.sha256).digest()
         if not hmac.compare_digest(supplied_signature, expected):
             raise AuthenticationError("invalid credential")
         try:
             raw_payload = json.loads(_b64decode(encoded).decode("utf-8"))
-        except (ValueError, UnicodeError, json.JSONDecodeError) as exc:
+        except (ValueError, UnicodeError, binascii.Error, json.JSONDecodeError) as exc:
             raise AuthenticationError("invalid credential") from exc
         if not isinstance(raw_payload, dict) or not all(
             isinstance(key, str) and isinstance(value, str)
