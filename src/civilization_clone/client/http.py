@@ -108,6 +108,12 @@ class CivilizationApiClient:
     async def health(self) -> JsonObject:
         return _object(await self.transport.request("GET", "/api/v1/health"))
 
+    async def civilizations(self) -> list[JsonObject]:
+        value = await self.transport.request("GET", "/api/v1/rules/civilizations")
+        if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+            raise ApiError(0, "API returned an invalid civilization list")
+        return [dict(item) for item in value]
+
     async def create_game(
         self,
         game_id: str,
@@ -141,6 +147,7 @@ class CivilizationApiClient:
         player_id: str,
         name: str,
         controller: str = "human",
+        civilization_id: str = "river_compact",
     ) -> JsonObject:
         return _object(
             await self.transport.request(
@@ -152,6 +159,7 @@ class CivilizationApiClient:
                     "player_id": player_id,
                     "name": name,
                     "controller": controller,
+                    "civilization_id": civilization_id,
                 },
             )
         )
