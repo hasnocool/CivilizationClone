@@ -23,10 +23,12 @@ from civilization_clone.domain.strategy import (
     DiplomacyStatus,
     ResearchState,
     TechnologyDefinition,
+    TradeOffer,
     VictoryResult,
     VictoryType,
 )
 from civilization_clone.domain.visibility import Visibility
+from civilization_clone.engine.advanced import AdvancedGameEngine
 from civilization_clone.engine.event_log import EventLog, EventLogError
 from civilization_clone.engine.mapgen import MapGenerationConfig, MapGenerationResult, generate_world
 from civilization_clone.engine.rng import DeterministicRng, RngFactory
@@ -38,6 +40,7 @@ from civilization_clone.rules.loader import RulesetLoader
 from civilization_clone.rules.schemas import RulesetManifest
 
 __all__ = [
+    "AdvancedGameEngine",
     "CommandResult",
     "ControllerType",
     "CoreGameState",
@@ -70,6 +73,7 @@ __all__ = [
     "TechnologyDefinition",
     "TerrainType",
     "Tile",
+    "TradeOffer",
     "UnitDefinition",
     "UnitState",
     "VictoryResult",
@@ -85,4 +89,4 @@ __all__ = [
     "verify_replay",
 ]
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
