@@ -20,7 +20,7 @@ _HELP = """Commands:
   found UNIT                        found a settlement
   work SETTLEMENT Q R [on|off]      assign/unassign a worked tile
   produce SETTLEMENT KIND ID        queue unit/building production
-  cancel SETTLEMENT [INDEX]          cancel production queue item
+  cancel SETTLEMENT [INDEX]         cancel production queue item
   research TECHNOLOGY               select research
   war PLAYER                        declare war
   peace PLAYER                      offer peace
@@ -73,6 +73,16 @@ async def main_async(base_url: str) -> None:
 
 
 async def _new_hotseat(api: CivilizationApiClient) -> ClientSession:
+    civilizations = await api.civilizations()
+    if not civilizations:
+        raise ValueError("server exposes no playable civilizations")
+    await _write(render_civilizations(civilizations))
+    civilization_ids = {
+        str(item.get("civilization_id"))
+        for item in civilizations
+        if isinstance(item.get("civilization_id"), str)
+    }
+
     game_id = (await _read("Game id [local-game] > ")).strip() or "local-game"
     seed = _parse_int(await _read("Seed [1] > "), 1)
     player_count = _parse_int(await _read("Players 2-4 [2] > "), 2)
@@ -84,13 +94,26 @@ async def _new_hotseat(api: CivilizationApiClient) -> ClientSession:
     tokens: dict[str, str] = {}
     for index in range(player_count):
         default_id = f"p{index + 1}"
+        default_civilization = str(
+            civilizations[index % len(civilizations)].get("civilization_id", "river_compact")
+        )
         player_id = (await _read(f"Player {index + 1} id [{default_id}] > ")).strip() or default_id
         name = (await _read(f"Player {index + 1} name [{player_id}] > ")).strip() or player_id
+        civilization_id = (
+            await _read(
+                f"Player {index + 1} civilization [{default_civilization}] > "
+            )
+        ).strip() or default_civilization
+        if civilization_id not in civilization_ids:
+            raise ValueError(
+                f"unknown civilization '{civilization_id}'; choose one listed above"
+            )
         joined = await api.join_player(
             game_id,
             admin_token,
             player_id=player_id,
             name=name,
+            civilization_id=civilization_id,
         )
         if not joined.get("accepted"):
             raise ValueError(_feedback_text(joined))
@@ -234,13 +257,28 @@ def parse_player_command(parts: list[str]) -> tuple[str, dict[str, Any]]:
     raise ValueError("unknown command or wrong arguments; type 'help'")
 
 
+def render_civilizations(civilizations: list[dict[str, Any]]) -> str:
+    """Render public civilization content returned by the API."""
+    lines = ["Available civilizations:"]
+    for item in civilizations:
+        civilization_id = item.get("civilization_id", "?")
+        name = item.get("name", civilization_id)
+        description = item.get("description", "")
+        tags = ", ".join(str(tag) for tag in item.get("tags", []))
+        lines.append(f"  {civilization_id}: {name} [{tags}]")
+        if description:
+            lines.append(f"    {description}")
+    return "\n".join(lines)
+
+
 def render_state(state: dict[str, Any]) -> str:
     """Render one authorized player projection as compact terminal text."""
     viewer = _mapping(state.get("viewer", {}))
     lines = [
         "=" * 72,
         f"Game {state.get('game_id')} | turn {state.get('turn')} | {state.get('status')} | "
-        f"active={state.get('active_player_id')} | viewer={viewer.get('player_id')}",
+        f"active={state.get('active_player_id')} | viewer={viewer.get('player_id')} | "
+        f"civ={viewer.get('civilization_id', '-')}",
         f"Gold {viewer.get('gold', 0)}  Science {viewer.get('science', 0)}  "
         f"Culture {viewer.get('culture', 0)}  Research {_mapping(viewer.get('research', {})).get('selected') or '-'}",
         render_map(state),
