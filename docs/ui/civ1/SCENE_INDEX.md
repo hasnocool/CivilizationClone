@@ -2,7 +2,7 @@
 
 Stable IDs below are intended for documentation, test cases, client routing, screenshots, and issue references.
 
-For the complete navigation topology, see `SCENE_GRAPH.md`, which contains both the overall ASCII scene graph and Mermaid diagrams.
+For the complete navigation topology, see `SCENE_GRAPH.md`, which contains the overall ASCII scene graph plus high-level and detailed Mermaid diagrams.
 
 | ID | Scene | Family | Primary interaction |
 |---|---|---|---|
