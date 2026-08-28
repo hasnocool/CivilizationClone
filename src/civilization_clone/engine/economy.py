@@ -47,9 +47,28 @@ UNITS: dict[str, UnitDefinition] = {
     "scout": UnitDefinition(
         "scout",
         movement=3,
-        vision_radius=1,
+        vision_radius=2,
         production_cost=8,
-    )
+        attack_strength=3,
+        defense_strength=3,
+    ),
+    "warrior": UnitDefinition(
+        "warrior",
+        movement=2,
+        vision_radius=1,
+        production_cost=10,
+        attack_strength=7,
+        defense_strength=6,
+    ),
+    "archer": UnitDefinition(
+        "archer",
+        movement=2,
+        vision_radius=1,
+        production_cost=12,
+        attack_strength=6,
+        defense_strength=3,
+        ranged_range=2,
+    ),
 }
 
 
@@ -115,7 +134,10 @@ def production_order(kind: str, definition_id: str) -> ProductionOrder | None:
     return ProductionOrder(production_kind, definition_id, definition.production_cost)
 
 
-def resolve_player_economy(session: GameSession, player_id: PlayerId) -> tuple[EconomyOutcome, ...]:
+def resolve_player_economy(
+    session: GameSession,
+    player_id: PlayerId,
+) -> tuple[EconomyOutcome, ...]:
     """Resolve one player's settlements in deterministic settlement-id order."""
     outcomes: list[EconomyOutcome] = []
     player = session.players[player_id]
@@ -178,6 +200,7 @@ def _resolve_production(
                 definition=definition,
                 position=spawn,
             )
+            session.players[settlement.owner_id].ever_had_presence = True
             outcomes.append(
                 EconomyOutcome(
                     "UnitProduced",
