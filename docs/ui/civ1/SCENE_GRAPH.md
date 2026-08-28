@@ -6,6 +6,8 @@ It is intentionally a **client navigation contract**, not a game-rules state mac
 
 Stable scene IDs correspond to `SCENE_INDEX.md`.
 
+> Validation note: the high-level Mermaid graph in this document was rendered successfully with Mermaid syntax validation when this documentation was authored.
+
 ## Overall ASCII scene graph
 
 ```text
