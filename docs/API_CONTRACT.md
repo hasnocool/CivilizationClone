@@ -21,7 +21,14 @@ HTTP bearer credentials use:
 Authorization: Bearer <token>
 ```
 
-WebSocket connections use `?token=<player_token>` because browser WebSocket APIs cannot consistently set arbitrary authorization headers.
+WebSocket connections deliberately keep credentials out of URLs. Browser clients open the socket with two requested subprotocols:
+
+```text
+civilization.v1
+<player_token>
+```
+
+The server authenticates the second `Sec-WebSocket-Protocol` value and accepts `civilization.v1` as the negotiated subprotocol. Only non-secret resume information such as `after_sequence` belongs in the WebSocket query string. This prevents ordinary access logs from capturing credentials embedded in URLs.
 
 `CIVILIZATION_CLONE_AUTH_SECRET` should be stable for durable local sessions. Without it, a process-local ephemeral key is generated and credentials expire when the server restarts.
 
@@ -64,7 +71,9 @@ POC command types:
 
 `JoinGame` is intentionally unavailable on the generic command route; use the player-enrollment endpoint so credential issuance cannot be bypassed.
 
-Every command carries a unique `command_id`. `expected_state_version` is optional optimistic concurrency control. Retrying an already-processed command id reuses the original deterministic result rather than mutating twice.
+Every command carries a unique `command_id`. `expected_state_version` is optional optimistic concurrency control. Retrying an already-processed command id reuses the original deterministic result rather than mutating twice. Accepted and rejected command results are persisted so idempotency survives process restart.
+
+`EndTurn` is rejected with `MANDATORY_CHOICE_REQUIRED` while a selectable research decision is unresolved. The `legal-actions` query reports the same mandatory research options before the client attempts the command.
 
 ## Queries
 
@@ -78,9 +87,9 @@ Unknown map tiles are omitted. Previously discovered but not currently visible t
 
 ## Event stream
 
-`WS /api/v1/games/{game_id}/events/ws?token=...&after_sequence=N`
+`WS /api/v1/games/{game_id}/events/ws?after_sequence=N`
 
-The server first sends authorized historical events newer than `after_sequence`, then publishes newly appended authorized events in journal order. Command retries do not republish old events.
+The credential is supplied through the WebSocket subprotocol header as described above. The server first sends authorized historical events newer than `after_sequence`, then publishes newly appended authorized events in journal order. Command retries do not republish old events.
 
 Diplomacy proposals are bilateral rather than globally visible. Combat events include stable participant ownership in their deterministic payload so both involved players retain authorization even after a destroyed unit has been removed from current state.
 
