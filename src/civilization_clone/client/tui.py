@@ -26,6 +26,10 @@ _HELP = """Commands:
   peace PLAYER                      offer peace
   accept PLAYER                     accept that player's peace offer
   reject PLAYER                     reject that player's peace offer
+  trade PLAYER OFFER REQUEST        propose a gold-for-gold trade
+  accept-trade PLAYER               accept that player's trade offer
+  reject-trade PLAYER               reject that player's trade offer
+  cancel-trade PLAYER               withdraw your trade offer to that player
   end                               end the active player's turn
   concede                           concede the current player
   refresh                           redraw current authorized state
@@ -271,6 +275,18 @@ def parse_player_command(parts: list[str]) -> tuple[str, dict[str, Any]]:
         return "AcceptPeace", {"target_player_id": parts[1]}
     if verb == "reject" and len(parts) == 2:
         return "RejectPeace", {"target_player_id": parts[1]}
+    if verb == "trade" and len(parts) == 4:
+        return "OfferTrade", {
+            "target_player_id": parts[1],
+            "offered_gold": int(parts[2]),
+            "requested_gold": int(parts[3]),
+        }
+    if verb == "accept-trade" and len(parts) == 2:
+        return "AcceptTrade", {"target_player_id": parts[1]}
+    if verb == "reject-trade" and len(parts) == 2:
+        return "RejectTrade", {"target_player_id": parts[1]}
+    if verb == "cancel-trade" and len(parts) == 2:
+        return "CancelTrade", {"target_player_id": parts[1]}
     if verb in {"end", "endturn"} and len(parts) == 1:
         return "EndTurn", {}
     if verb == "concede" and len(parts) == 1:
@@ -359,6 +375,9 @@ def render_state(state: dict[str, Any]) -> str:
                 for item in settlements
             )
         )
+    diplomacy = [_mapping(item) for item in state.get("diplomacy", [])]
+    if diplomacy:
+        lines.append("Diplomacy: " + "; ".join(_diplomacy_text(item) for item in diplomacy))
     victory = state.get("victory")
     if isinstance(victory, dict):
         lines.append(
@@ -366,6 +385,20 @@ def render_state(state: dict[str, Any]) -> str:
             f"score={victory.get('score')}"
         )
     return "\n".join(lines)
+
+
+def _diplomacy_text(relation: dict[str, Any]) -> str:
+    text = f"{relation.get('other_player_id')}={relation.get('status')}"
+    pending = relation.get("pending_trade")
+    if isinstance(pending, dict):
+        text += (
+            f" trade[{pending.get('proposer_id')} offers {pending.get('offered_gold', 0)}g "
+            f"for {pending.get('requested_gold', 0)}g]"
+        )
+    completed = int(relation.get("completed_trades", 0))
+    if completed:
+        text += f" completed={completed}"
+    return text
 
 
 def render_map(state: dict[str, Any]) -> str:
