@@ -1,4 +1,3 @@
-# tests/unit/test_logging.py
 import io
 import json
 import logging
@@ -6,7 +5,11 @@ import logging
 from civilization_clone.domain.ids import GameId, RulesetId
 from civilization_clone.domain.state import CoreGameState, RulesetRef
 from civilization_clone.engine.state_hash import state_hash
-from civilization_clone.observability.logging import configure_logging, log_with_context
+from civilization_clone.observability.logging import (
+    configure_logging,
+    log_with_context,
+    safe_log_with_context,
+)
 
 
 def build_state_hash() -> str:
@@ -49,3 +52,17 @@ def test_logging_configuration_does_not_change_state_hash() -> None:
     after = build_state_hash()
 
     assert before == after
+
+
+def test_safe_logging_contains_custom_handler_failure() -> None:
+    class ExplodingHandler(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            raise RuntimeError("broken diagnostic sink")
+
+    logger = logging.getLogger("civilization_clone.test.safe_logging")
+    logger.handlers.clear()
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+    logger.addHandler(ExplodingHandler())
+
+    safe_log_with_context(logger, logging.INFO, "diagnostic", {"game_id": "game-1"})
