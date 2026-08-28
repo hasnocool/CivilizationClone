@@ -20,6 +20,7 @@ from civilization_clone.domain.map import HexCoord, ResourceType, TerrainType, T
 from civilization_clone.domain.types import JsonValue
 from civilization_clone.engine.effects import apply_yield_modifiers
 from civilization_clone.engine.hexgrid import neighbors
+from civilization_clone.engine.research import production_is_unlocked
 
 BUILDINGS: dict[str, BuildingDefinition] = {
     "granary": BuildingDefinition(
@@ -47,9 +48,28 @@ UNITS: dict[str, UnitDefinition] = {
     "scout": UnitDefinition(
         "scout",
         movement=3,
-        vision_radius=1,
+        vision_radius=2,
         production_cost=8,
-    )
+        attack_strength=3,
+        defense_strength=3,
+    ),
+    "warrior": UnitDefinition(
+        "warrior",
+        movement=2,
+        vision_radius=1,
+        production_cost=10,
+        attack_strength=7,
+        defense_strength=6,
+    ),
+    "archer": UnitDefinition(
+        "archer",
+        movement=2,
+        vision_radius=1,
+        production_cost=12,
+        attack_strength=6,
+        defense_strength=3,
+        ranged_range=2,
+    ),
 }
 
 
@@ -81,8 +101,10 @@ def tile_yield(tile: Tile) -> YieldBundle:
 
 
 def settlement_yield(session: GameSession, settlement: SettlementState) -> YieldBundle:
-    """Calculate settlement yields from center, worked tiles, and buildings."""
-    total = tile_yield(session.world.tile(settlement.center))
+    """Calculate settlement yields from center, worked tiles, buildings, and civic activity."""
+    total = tile_yield(session.world.tile(settlement.center)).add(
+        YieldBundle(science=1, culture=1)
+    )
     for coord in sorted(settlement.worked_tiles):
         total = total.add(tile_yield(session.world.tile(coord)))
 
@@ -115,7 +137,10 @@ def production_order(kind: str, definition_id: str) -> ProductionOrder | None:
     return ProductionOrder(production_kind, definition_id, definition.production_cost)
 
 
-def resolve_player_economy(session: GameSession, player_id: PlayerId) -> tuple[EconomyOutcome, ...]:
+def resolve_player_economy(
+    session: GameSession,
+    player_id: PlayerId,
+) -> tuple[EconomyOutcome, ...]:
     """Resolve one player's settlements in deterministic settlement-id order."""
     outcomes: list[EconomyOutcome] = []
     player = session.players[player_id]
@@ -163,6 +188,9 @@ def _resolve_production(
     outcomes: list[EconomyOutcome] = []
     while settlement.production_queue:
         order = settlement.production_queue[0]
+        owner = session.players[settlement.owner_id]
+        if not production_is_unlocked(owner, order.definition_id):
+            break
         if settlement.production_storage < order.cost:
             break
         if order.kind is ProductionKind.UNIT:
@@ -178,6 +206,7 @@ def _resolve_production(
                 definition=definition,
                 position=spawn,
             )
+            session.players[settlement.owner_id].ever_had_presence = True
             outcomes.append(
                 EconomyOutcome(
                     "UnitProduced",
