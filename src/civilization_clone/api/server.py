@@ -10,15 +10,34 @@ from fastapi import FastAPI
 
 from civilization_clone.api.app import create_app
 from civilization_clone.application.manager import GameManager
+from civilization_clone.observability.logging import configure_logging
 from civilization_clone.persistence.sqlite_store import SqliteGameStore
 
 
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def build_app() -> FastAPI:
-    """Build the default server using durable SQLite persistence."""
+    """Build the default server using durable SQLite persistence and safe diagnostics."""
     database_path = Path(
         os.environ.get("CIVILIZATION_CLONE_DB", "data/civilization_clone.sqlite3")
     )
-    return create_app(GameManager(store=SqliteGameStore(database_path)))
+    logger = configure_logging(
+        level=os.environ.get("CIVILIZATION_CLONE_LOG_LEVEL", "INFO"),
+        json_output=_env_flag("CIVILIZATION_CLONE_LOG_JSON"),
+    )
+    manager = GameManager(
+        store=SqliteGameStore(database_path),
+        logger=logger.getChild("application"),
+    )
+    return create_app(
+        manager,
+        runtime_logger=logger.getChild("api"),
+    )
 
 
 app = build_app()
