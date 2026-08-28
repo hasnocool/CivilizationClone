@@ -163,14 +163,17 @@ def project_event(
         "PlayerJoined",
         "PlayerEndedTurn",
         "WarDeclared",
-        "PeaceOffered",
-        "PeaceAccepted",
         "PlayerConceded",
         "PlayerEliminated",
         "VictoryAchieved",
     }
     if event_type in globally_safe:
         return _event_projection(event, payload)
+
+    if event_type in {"PeaceOffered", "PeaceAccepted"}:
+        if viewer_id in _diplomacy_participants(session, payload):
+            return _event_projection(event, payload)
+        return None
 
     owner = _event_owner(session, payload)
     if owner == viewer_id:
@@ -219,9 +222,26 @@ def _event_owner(session: GameSession, payload: Mapping[str, Any]) -> PlayerId |
 def _event_coord(payload: Mapping[str, Any]) -> HexCoord | None:
     q = payload.get("q", payload.get("to_q"))
     r = payload.get("r", payload.get("to_r"))
-    if isinstance(q, int) and not isinstance(q, bool) and isinstance(r, int) and not isinstance(r, bool):
+    if (
+        isinstance(q, int)
+        and not isinstance(q, bool)
+        and isinstance(r, int)
+        and not isinstance(r, bool)
+    ):
         return HexCoord(q, r)
     return None
+
+
+def _diplomacy_participants(
+    session: GameSession,
+    payload: Mapping[str, Any],
+) -> set[PlayerId]:
+    participants: set[PlayerId] = set()
+    for key in ("player_id", "target_player_id"):
+        raw = payload.get(key)
+        if isinstance(raw, str) and raw in session.players:
+            participants.add(PlayerId(raw))
+    return participants
 
 
 def _combat_involved_players(
