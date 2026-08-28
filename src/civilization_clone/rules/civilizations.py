@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any
@@ -40,7 +40,9 @@ class CivilizationDefinition:
     name: str
     description: str
     tags: tuple[str, ...] = ()
-    starting_resources: Mapping[str, int] = MappingProxyType({})
+    starting_resources: Mapping[str, int] = field(
+        default_factory=lambda: MappingProxyType({})
+    )
     yield_modifiers: tuple[YieldModifier, ...] = ()
     research_cost_percent: int = 0
     attack_strength_percent: int = 0
