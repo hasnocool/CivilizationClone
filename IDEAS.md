@@ -1,109 +1,182 @@
 # CivilizationClone Ideas Backlog
 
-This document captures ambitious mechanics and design directions that could push CivilizationClone beyond a conventional Civilization-style 4X game and toward a deterministic, emergent civilization and world-history simulator.
+This document is a long-term design laboratory for ideas that could push CivilizationClone beyond a conventional Civilization-style 4X game and toward a deterministic, emergent civilization and world-history simulator.
 
-The intent is not to implement everything immediately. These are candidate systems for later milestones and expansions. Each idea should remain optional, modular, deterministic, API-visible, testable, and usable by any client.
+The intent is not to implement everything. Ideas should compete for inclusion through prototyping, playtesting, simulation cost, explainability, and whether they create meaningful decisions rather than additional chores.
 
-## Design Thesis
-
-The largest opportunity is not simply adding more units, leaders, wonders, civilizations, or victory conditions. The deeper opportunity is to simulate the internal forces that cause civilizations to grow, change, cooperate, fracture, migrate, innovate, and disappear.
-
-The guiding principle should be:
+The central design thesis is:
 
 > Civilizations should not be the entire simulation. Civilizations should emerge from the simulation.
 
-A long-term architecture could resemble:
+And the central player-experience goal is:
 
-```text
-                         WORLD
-                           |
-        +------------------+------------------+
-        |                  |                  |
-    Environment        Population          Economy
-        |                  |                  |
-        +----------+-------+--------+---------+
-                   |                |
-                Cities           Markets
-                   |                |
-            Cultures/Religion   Resources
-                   |                |
-                   +-------+--------+
-                           |
-                     Institutions
-                           |
-                      Governments
-                           |
-                    Civilizations
-                           |
-        +------------------+------------------+
-        |                  |                  |
-    Diplomacy          Technology          Military
-        |                  |                  |
-        +------------------+------------------+
-                           |
-                        HISTORY
-```
+> Increase depth faster than we increase required player input.
+
+A larger empire should create harder strategic problems, not simply more clicks.
 
 ---
 
-# Highest-Priority Ideas
+# Research-Informed Design Conclusions
 
-| Priority | System | Core Goal |
+This backlog was expanded after reviewing Firaxis' own Civilization VII design rationale, Civilization VII reviews and community criticism, CivFanatics discussions about late-game play, and systems used successfully by Old World, Victoria 3, Crusader Kings III, Distant Worlds 2, Stellaris, Endless Legend, Frostpunk, Terra Invicta, and related strategy/simulation games.
+
+The most important findings are below.
+
+## 1. The late game is the genre's central unsolved problem
+
+Firaxis explicitly identified three root causes when designing Civilization VII:
+
+- snowballing makes later decisions irrelevant;
+- required actions grow with empire size until decisions become chores;
+- civilization bonuses often matter only during a narrow historical window.
+
+The answer should not simply be a hard reset between eras. A better solution is to preserve the consequences of earlier decisions while changing the *kind* of strategic problems the player faces.
+
+## 2. More systems are useful only when they interact
+
+Victoria 3 is instructive because population, employment, prices, political power, interest groups, laws, migration, and industry interact. A factory is not merely a production modifier; it changes employment, wages, demand, politics, urbanization, and trade.
+
+CivilizationClone should prefer systems that produce consequences in several other systems.
+
+## 3. Deep simulation requires aggressive delegation
+
+Old World's Orders mechanic demonstrates that limiting available actions can make a strategy game more interesting because the player must decide what deserves attention.
+
+Distant Worlds 2 demonstrates the complementary principle: complex simulated systems can remain manageable when the player may automate, advise, supervise, or directly control each domain.
+
+CivilizationClone should therefore have first-class automation, governors, policy rules, alerts, and exceptions rather than treating automation as an accessibility afterthought.
+
+## 4. Players need continuity and historical scars
+
+A common criticism of hard age transitions is that accomplishments can feel erased. Good history simulation should instead create layers:
+
+- old roads remain under modern highways;
+- former capitals remain culturally important;
+- obsolete industries leave cities with identities and political interests;
+- old wars influence diplomatic memory;
+- vanished states leave minorities, borders, claims, monuments, institutions, and diasporas;
+- institutions may survive the civilization that founded them.
+
+History should accumulate rather than periodically disappear.
+
+## 5. Diplomacy should be a game, not a menu
+
+Civilization VII reviews criticized diplomacy for feeling thin and transactional. Other strategy games show useful alternatives:
+
+- negotiated demands and diplomatic plays;
+- favors and leverage;
+- multilateral institutions;
+- foreign investment;
+- subject autonomy;
+- domestic political lobbies;
+- federations and blocs;
+- long-term reputation.
+
+Diplomacy should be capable of changing borders, economies, laws, alliances, institutions, and spheres of influence without requiring war.
+
+## 6. Crises should create strategies, not merely penalties
+
+Endless Legend's winter design discussion contains an important general lesson: a global event is boring if it simply makes everyone slower. A crisis becomes interesting when it changes incentives and creates new opportunities for some strategies while threatening others.
+
+Every crisis should therefore answer:
+
+- What new strategy becomes possible?
+- Who benefits?
+- Who is exposed?
+- What permanent historical consequence can result?
+
+## 7. Factions should differ in rules, not merely percentages
+
+Endless Legend's strongest factions change fundamental rules of play. CivilizationClone should move toward systemic asymmetry:
+
+- different administration models;
+- different settlement structures;
+- different knowledge pathways;
+- different military organization;
+- different economic institutions;
+- different diplomatic tools;
+- different relationships between central and local government.
+
+Nationality-specific technology trees should be part of this larger principle rather than the only differentiator.
+
+## 8. The world should remain interesting even when the player is not acting
+
+Distant Worlds 2's private economy and Crusader Kings III's character simulation make their worlds feel alive because autonomous actors continue pursuing goals.
+
+CivilizationClone should contain actors that have their own incentives:
+
+- households;
+- firms;
+- institutions;
+- governors;
+- political factions;
+- religious organizations;
+- universities;
+- military commands;
+- cities;
+- regional governments;
+- diasporas;
+- minor powers.
+
+The player should steer a civilization rather than personally perform every action undertaken by everyone in it.
+
+---
+
+# Design Guardrails
+
+Every major feature should satisfy most of these rules.
+
+1. **Deterministic core.** The same seed, commands, and ruleset produce the same authoritative result.
+2. **Headless first.** Every mechanic must work through the engine/API without depending on a particular UI.
+3. **Explainable outcomes.** The API should expose why a price changed, a rebellion formed, a technology spread, or an AI chose an action.
+4. **No mandatory click inflation.** Empire scale must not linearly increase required player actions.
+5. **Delegatable.** Repetitive operational decisions should support policies, governors, queues, rules, or automation.
+6. **Consequential.** Important choices should affect more than one system and remain visible later.
+7. **Recoverable.** Losing territory, a war, an election, or even an empire should create a new strategic situation rather than automatically ending meaningful play.
+8. **Asymmetric where valuable.** Civilizations should sometimes have different rules, not just different modifiers.
+9. **Emergent before scripted.** Prefer simulations that generate stories, with authored content layered over them.
+10. **Historically inspired, not historically predetermined.** Geography and institutions should make historical outcomes plausible without forcing them.
+11. **No omniscient player by default.** Knowledge, intelligence, maps, forecasts, and statistics may have uncertainty.
+12. **Scale abstraction with era.** The player should not be assigning individual workers in a continent-spanning industrial state unless they explicitly choose to.
+
+---
+
+# GOAT-Level Design Bets
+
+If only a small fraction of this file can be built, these are the highest-value bets.
+
+| Priority | System | Why it could transform the genre |
 |---|---|---|
-| 1 | Dynamic population | Replace abstract citizens with meaningful population groups |
-| 2 | Internal politics | Model political factions and competing interests inside a civilization |
-| 3 | Logistics | Make supply and infrastructure strategically meaningful |
-| 4 | Dynamic technology | Let discoveries reflect what a civilization actually does |
-| 5 | Migration | Let population move in response to opportunity, danger, policy, and environment |
-| 6 | Dynamic culture | Let culture spread geographically and socially instead of only generating points |
-| 7 | Rise, fall, and fragmentation | Allow states to split, merge, reform, federalize, collapse, and reunify |
-| 8 | Living economy | Model production chains, markets, prices, corporations, and scarcity |
-| 9 | Clause-based diplomacy | Build treaties from composable diplomatic clauses |
-| 10 | Information and espionage | Replace omniscient information with intelligence, uncertainty, and information warfare |
-| 11 | Infrastructure networks | Treat roads, rail, power, water, ports, and communications as connected systems |
-| 12 | Strategic geography | Make rivers, mountains, coastlines, climate, and terrain transformative |
-| 13 | Institutions | Model universities, courts, banks, guilds, religions, militaries, and companies as persistent entities |
-| 14 | Emergent objectives | Reward historical achievements, not only a single predetermined victory condition |
-| 15 | Historical memory | Persist wars, treaties, betrayals, discoveries, disasters, institutions, and cultural milestones |
+| 1 | Player attention + delegation | Solves late-game micromanagement without removing depth |
+| 2 | Population + autonomous actors | Makes the civilization feel inhabited rather than spreadsheet-like |
+| 3 | Persistent historical layers | Makes a 6,000-year campaign feel like one continuous history |
+| 4 | Emergent rise/fall/successor states | Turns setbacks into stories instead of reload prompts |
+| 5 | Living economy + logistics | Makes geography, trade, infrastructure, and war interdependent |
+| 6 | Deep diplomacy + world order | Gives peaceful players a strategic game as rich as warfare |
+| 7 | Dynamic technology + knowledge diffusion | Makes development reflect what societies actually do |
+| 8 | Internal politics + legitimacy | Makes governing an empire strategically different from acquiring one |
+| 9 | Fog of knowledge | Makes exploration, intelligence, diplomacy, and science matter for the entire game |
+| 10 | Dynamic crises | Keeps every era strategically fresh without erasing prior accomplishments |
+| 11 | Systemic faction asymmetry | Makes civilizations genuinely replayable |
+| 12 | World-history ledger | Turns each completed campaign into a unique historical artifact |
+| 13 | Limited wars + negotiated peace | Makes conflict politically meaningful rather than total conquest by default |
+| 14 | Private economy | Adds life and complexity without requiring the player to control every transaction |
+| 15 | Institutions that outlive states | Creates continuity deeper than leaders or bonuses |
+| 16 | Cities with identities | Makes places memorable across thousands of years |
+| 17 | Diasporas and migration networks | Creates soft power, cross-border ties, and consequences of war/economics |
+| 18 | Adaptive era transitions | Makes history change because the world changed, not because a timer expired |
+| 19 | Play-after-collapse | Makes losing interesting and enables extraordinary comeback stories |
+| 20 | Strategic late-game world systems | Replaces victory-button waiting with genuinely new decisions |
 
 ---
 
-# 1. Dynamic Population
+# I. People, Society, and Identity
 
-Cities should contain real demographic structure rather than only an integer population value.
+## 1. Dynamic Population
 
-Example:
+Cities should contain demographic cohorts instead of only an integer population value.
 
-```text
-Rome
-Population: 486,000
-
-Culture
-  Roman       71%
-  Etruscan    12%
-  Greek        9%
-  Other        8%
-
-Religion
-  State faith 58%
-  Local faith 27%
-  Unaffiliated15%
-
-Occupation
-  Farmers     39%
-  Laborers    21%
-  Merchants   14%
-  Artisans    12%
-  Scholars     7%
-  Officials    7%
-
-Literacy:            31%
-Urbanization:        62%
-Prosperity:          54%
-Government support:  67%
-```
-
-Population cohorts could track:
+Cohorts may track:
 
 - culture;
 - language;
@@ -111,1701 +184,1835 @@ Population cohorts could track:
 - occupation;
 - wealth;
 - education;
+- age distribution;
 - political preferences;
 - loyalty;
 - health;
 - fertility;
-- age distribution;
 - migration tendency;
-- military eligibility;
 - social mobility;
 - urban/rural status.
 
-This makes conquest, assimilation, migration, taxation, education, and culture substantially more meaningful.
+Conquest should change political control immediately but population identity only gradually, if at all.
 
-A captured city should not instantly become culturally identical to its conqueror.
+## 2. Migration
 
----
+People should move in response to opportunity and pressure.
 
-# 2. Migration
+Drivers can include wages, housing, food, safety, taxation, political rights, education, family ties, war, climate, infrastructure, discrimination, disasters, and cultural affinity.
 
-Population should move voluntarily or under pressure.
+Migration can create booming frontier cities, shrinking industrial regions, refugee destinations, multicultural capitals, and political backlash without requiring bespoke scripts.
 
-Migration factors could include:
+## 3. Diasporas
 
-- employment;
-- wages;
-- land availability;
-- food availability;
-- housing;
-- safety;
-- war;
-- famine;
-- disasters;
-- religious tolerance;
-- taxation;
-- political freedom;
-- public services;
-- education;
-- infrastructure;
-- climate;
-- cultural ties;
-- family connections;
-- trade links.
+Migrants should not lose all connection to their places of origin.
 
-Migration should work locally, regionally, and internationally.
+Diasporas can create:
 
-Example:
-
-```text
-Kingdom A
-  high taxation
-  unemployment
-        |
-        v
-  population leaves
-        |
-        v
-Republic B
-  labor grows
-  cities expand
-  new cultural minority appears
-  new political faction emerges
-```
-
-A peaceful strategy could be to build such an attractive society that neighboring populations voluntarily migrate into it.
-
----
-
-# 3. Dynamic Culture
-
-Culture should exist spatially and socially rather than only as a numeric yield.
-
-A tile, city, or population group could have overlapping cultural influence:
-
-```text
-Roman influence      62%
-Greek influence      24%
-Egyptian influence   14%
-```
-
-Culture could spread through:
-
-- population movement;
-- trade;
-- roads;
-- ports;
-- religion;
-- language;
-- education;
-- art;
-- literature;
-- media;
-- tourism;
-- occupation;
-- diplomacy;
-- institutions;
-- shared history.
-
-Possible consequences:
-
-- culturally mixed cities;
-- borderlands;
-- peaceful assimilation;
-- separatism;
-- cultural revival;
-- hybrid cultures;
-- culturally aligned foreign populations;
-- changing city names;
-- soft-power strategies.
-
----
-
-# 4. Rise, Fall, Fragmentation, and Reunification
-
-Large empires should gain advantages but also structural risks.
-
-Possible stability pressures:
-
-- distance from the capital;
-- administrative capacity;
-- local autonomy;
-- cultural differences;
-- religious differences;
-- economic inequality;
-- taxation;
-- infrastructure quality;
-- military occupation;
-- legitimacy;
-- food security;
-- succession disputes;
-- corruption;
-- external interference;
-- regional identity.
-
-Possible outcomes:
-
-```text
-Empire
- |- Core provinces
- |- Autonomous province
- |- Colonial territory
- |- Separatist region
-```
-
-The simulation should support:
-
-- decentralization;
-- federalization;
-- autonomy;
-- peaceful independence;
-- revolution;
-- secession;
-- civil conflict;
-- dynastic succession;
-- regime change;
-- state collapse;
-- successor states;
-- reunification;
-- confederation;
-- annexation;
-- voluntary union.
-
-New civilizations should be able to emerge during a campaign.
-
----
-
-# 5. Internal Politics
-
-Civilizations should have internal political actors rather than only an external diplomatic identity.
-
-Possible factions:
-
-```text
-Industrialists      27%
-Farmers             21%
-Military            18%
-Religious groups    14%
-Intellectuals       12%
-Labor groups         8%
-```
-
-Other possible interest groups:
-
-- merchants;
-- nobility;
-- landowners;
-- urban poor;
-- rural communities;
-- scientists;
-- environmental groups;
-- colonial interests;
-- regional parties;
-- ethnic organizations;
-- religious institutions;
-- corporations.
-
-Policies should create tradeoffs.
-
-Example:
-
-```text
-Industrial Subsidies
-
-+15% industrial production
-+8 industrialist support
--12 farmer support
--6 environmental stability
-+4 urban migration pressure
-```
-
-Internal politics should influence stability, elections, appointments, revolutions, reform, and foreign policy.
-
----
-
-# 6. Persistent Institutions
-
-A university should be more than a building providing a science modifier.
-
-Institutions should be persistent simulated entities.
-
-Example:
-
-```text
-University of Alexandria
-Founded: 318 BC
-
-Fields
-  Philosophy
-  Mathematics
-  Medicine
-
-Funding
-  Government  55%
-  Private     25%
-  Religious   20%
-
-Researchers: 3,420
-Prestige: 78
-```
-
-Candidate institutions:
-
-- universities;
-- academies;
-- libraries;
-- banks;
-- guilds;
-- courts;
-- military academies;
-- religious orders;
-- scientific societies;
-- corporations;
-- labor organizations;
-- newspapers;
-- broadcasters;
-- museums;
-- hospitals;
-- charities;
-- political parties;
-- intelligence agencies.
-
-Institutions can outlive leaders, governments, and even civilizations.
-
----
-
-# 7. Dynamic Technology Discovery
-
-Technology should not always be a fixed universal ladder.
-
-Instead, technology should combine prerequisites with discovery pressure.
-
-Example:
-
-```text
-Steam Power
-
-Requirements
-  metallurgy >= 4
-  mechanical engineering >= 5
-
-Discovery pressure
-  + coal mining
-  + factories
-  + engineering institutions
-  + water pumps
-  + industrial demand
-```
-
-A maritime civilization could naturally accelerate:
-
-- navigation;
-- cartography;
-- astronomy;
-- shipbuilding;
-- naval logistics.
-
-An agricultural civilization could accelerate:
-
-- irrigation;
-- crop rotation;
-- animal husbandry;
-- food preservation;
-- soil management.
-
-This is especially valuable for nationality-specific technology trees because national differences can emerge from incentives, geography, institutions, and behavior instead of only flat bonuses.
-
----
-
-# 8. Competing Technologies and Alternative Paths
-
-There should not always be one universally superior technological answer.
-
-Example:
-
-```text
-Naval Propulsion
-
-        Sail
-       /    \
- Lateen    Square Rig
-       \    /
-      Hybrid Rigs
-           |
-         Steam
-```
-
-Alternative technological paths could remain viable depending on:
-
-- geography;
-- resources;
-- doctrine;
-- institutions;
-- economy;
-- climate;
-- trading partners;
-- cultural preference.
-
-This could support divergent development even among civilizations in the same era.
-
----
-
-# 9. Knowledge Diffusion
-
-Knowledge should spread through contact rather than remaining completely isolated until independently researched.
-
-Possible transmission channels:
-
-- trade;
-- migration;
-- universities;
-- travelers;
-- diplomats;
-- espionage;
-- conquest;
-- religious networks;
-- alliances;
-- captured equipment;
-- scientific cooperation;
-- translated texts.
-
-Example:
-
-```text
-Discovery
-   |
-trade routes
-   |
-neighboring regions
-   |
-scholarly institutions
-   |
-foreign adoption
-```
-
-A civilization could attempt to accelerate diffusion, restrict it, steal it, license it, or dominate the institutions through which it spreads.
-
----
-
-# 10. Production Chains
-
-Strategic resources should flow through production systems.
-
-Example:
-
-```text
-Iron Mine
-   |
-Iron Ore
-   |
-Smelter
-   |
-Iron
-   |
-Workshop
-   |
-Tools / Weapons / Machinery
-```
-
-Later:
-
-```text
-Oil
- |
-Refinery
- |
-Fuel
- |- transport
- |- industry
- |- military
- `- electricity
-```
-
-Candidate production chains:
-
-- grain -> flour -> food;
-- timber -> lumber -> construction;
-- wool -> textiles -> clothing;
-- iron ore -> iron -> tools;
-- coal -> coke -> steel;
-- oil -> fuel / plastics / chemicals;
-- silicon -> electronics -> computers;
-- uranium -> enriched fuel -> nuclear power.
-
-The goal is strategic depth without requiring factory-level micromanagement.
-
----
-
-# 11. Markets and Dynamic Prices
-
-Goods should respond to supply and demand.
-
-Example:
-
-```text
-Iron
-World supply: 4,200
-World demand: 7,600
-Price: rising
-```
-
-Market behavior could respond to:
-
-- shortages;
-- surpluses;
-- war;
-- blockades;
-- embargoes;
-- new technology;
-- new mines;
-- trade routes;
-- infrastructure;
-- population growth;
-- disasters;
-- industrialization.
-
-Technologies should be able to create and destroy industries.
-
-Example:
-
-```text
-Whale oil economy
-      |
-petroleum expands
-      |
-whale oil demand collapses
-```
-
----
-
-# 12. Corporations and Economic Actors
-
-Corporations should be able to emerge and operate across borders.
-
-Example:
-
-```text
-Hudson Trading Company
-HQ: London
-
-Industries
-  Fur
-  Shipping
-
-Operations
-  England
-  France
-  Canada
-
-Employees: 182,000
-Political influence: High
-```
-
-Governments could:
-
-- subsidize;
-- tax;
-- regulate;
-- nationalize;
-- privatize;
-- sanction;
-- break up;
-- charter;
-- grant monopolies;
-- impose labor standards.
-
-Corporations may become geopolitical actors in their own right.
-
----
-
-# 13. Logistics and Supply Networks
-
-Military units should not have unlimited operational reach simply because they belong to the player.
-
-Abstract supply requirements could include:
-
-- food;
-- equipment;
-- fuel;
-- ammunition;
-- replacement personnel;
-- medical supply;
-- transport capacity.
-
-Supply should move through logistics networks.
-
-```text
-Capital
-  |
-Railway
-  |
-Depot
-  |
-Road
-  |
-Army
-```
-
-Disrupting roads, railways, ports, depots, or shipping could reduce combat effectiveness without requiring tedious individual supply inventories.
-
----
-
-# 14. Rivers as Major Strategic Systems
-
-Rivers should be among the most important geographic features in the game.
-
-They can provide:
-
-- transport;
-- food;
-- irrigation;
-- trade;
-- boundaries;
-- defense;
-- industry;
-- hydropower;
-- fertility;
-- settlement attraction.
-
-River improvements could include:
-
-- river ports;
-- canals;
-- dams;
-- locks;
-- irrigation;
-- flood control;
-- bridges;
-- hydroelectric generation;
-- industrial waterways.
-
----
-
-# 15. Navigable Rivers
-
-Major rivers should allow appropriate vessels to travel inland.
-
-Example:
-
-```text
-Ocean
-  |
-Major river
-  |
-Inland port city
-  |
-Tributary
-  |
-Frontier settlement
-```
-
-This would make river mouths, chokepoints, bridges, inland ports, and canals strategically important.
-
----
-
-# 16. Infrastructure Networks
-
-Infrastructure should be modeled as connected networks rather than only independent tile improvements.
-
-Transportation:
-
-- trails;
-- roads;
-- highways;
-- railways;
-- ports;
-- airports;
-- canals.
-
-Utilities:
-
-- electricity;
-- water;
-- sewage;
-- communications;
-- fuel pipelines;
-- data networks.
-
-Network quality should influence:
-
-- trade;
-- migration;
-- public health;
-- military logistics;
-- administration;
-- industrial output;
-- research;
-- regional integration.
-
----
-
-# 17. Electricity as a Resource
-
-Electricity should be generated, transmitted, and consumed.
-
-Example:
-
-```text
-Generation
-  Hydro   460 MW
-  Coal    320 MW
-  Solar   180 MW
-
-Demand
-  Residential 240 MW
-  Industry    370 MW
-  Transport    90 MW
-  Military     40 MW
-```
-
-Potential systems:
-
-- local grids;
-- regional grids;
-- interconnects;
-- generation mix;
-- fuel constraints;
-- storage;
-- blackouts;
-- grid reliability;
-- transmission losses;
-- energy imports;
-- strategic energy independence.
-
----
-
-# 18. Communication Networks and Administrative Delay
-
-Information should not always travel instantly.
-
-Example progression:
-
-```text
-Ancient frontier dispatch: several turns
-Postal network:           reduced delay
-Telegraph:                near-instant
-Radio:                    instant regional communication
-Internet:                 instant global communication
-```
-
-Communication technology could affect:
-
-- administration;
-- diplomacy;
-- military coordination;
-- trade information;
-- rebellion response;
-- market efficiency;
-- propaganda;
-- scientific collaboration.
-
-This gives communication technologies transformative mechanical value.
-
----
-
-# 19. Clause-Based Diplomacy
-
-Treaties should be assembled from modular clauses.
-
-Possible clauses:
-
-```text
-Treaty
- |- border agreement
- |- defensive pact
- |- trade agreement
- |- tariff terms
- |- technology exchange
- |- research agreement
- |- resource access
- |- navigation rights
- |- military access
- |- migration agreement
- |- infrastructure cooperation
- |- non-aggression
- |- sanctions
- |- territorial recognition
- `- duration
-```
-
-This would allow much richer negotiated outcomes than a small list of fixed deal types.
-
----
-
-# 20. Multilateral Organizations
-
-Players and AI civilizations should be able to create international organizations.
-
-Example:
-
-```text
-Continental Trade League
-
-Members
-  France
-  Spain
-  Portugal
-  Morocco
-
-Rules
-  reduced tariffs
-  shared infrastructure
-  mutual navigation rights
-```
-
-Possible organizations:
-
-- trade blocs;
-- military alliances;
-- research alliances;
-- religious leagues;
-- international courts;
-- banking unions;
-- development organizations;
-- environmental organizations;
-- global institutions.
-
-Organizations can evolve, expand, fracture, and change rules over time.
-
----
-
-# 21. Historical Diplomatic Memory
-
-Diplomatic attitudes should derive from actual history.
-
-Example:
-
-```text
-France remembers
-+ fought together against Rome
-+ 84 years of peaceful trade
-+ received famine assistance
-- current border dispute
-- treaty broken 220 years ago
-```
-
-Historical memory could decay at different rates depending on severity, ideology, culture, leadership, and institutional memory.
-
----
-
-# 22. Generational Leaders
-
-Leaders should not necessarily rule for thousands of years.
-
-A civilization can persist while leadership changes.
-
-```text
-Civilization
-   |
-Leader
-   |
-Successor
-   |
-Dynasty
-   |
-Republic
-   |
-New administration
-```
-
-Leader changes could occur through:
-
-- succession;
-- election;
-- death;
-- abdication;
-- revolution;
-- coup;
-- appointment;
-- constitutional transition.
-
-Leaders can provide temporary priorities and modifiers without replacing the identity of the civilization itself.
-
----
-
-# 23. Emergent Historical Characters
-
-Important characters should emerge from the simulation instead of only from predefined lists.
-
-Possible character types:
-
-- scientists;
-- artists;
-- politicians;
-- explorers;
-- generals;
-- merchants;
-- engineers;
-- religious figures;
-- philosophers;
-- reformers;
-- inventors.
-
-Example:
-
-```text
-Ada
-Born: Paris
-Occupation: Engineer
-
-Achievements
-  improved steam turbine
-  founded National Engineering Institute
-```
-
-Characters can accumulate biographies that become part of the world's history.
-
----
-
-# 24. Emergent City Identity
-
-Cities should develop identities from their history and economy.
-
-Example:
-
-```text
-Alexandria
-Population: 1.8 million
-
-Identity
-  Scholarly
-  Maritime
-  Cosmopolitan
-
-Major institutions
-  University of Alexandria
-  Mediterranean Exchange
-
-Industries
-  Shipping
-  Finance
-  Education
-```
-
-Possible emergent city archetypes:
-
-- industrial;
-- financial;
-- religious;
-- military;
-- agricultural;
-- scientific;
-- administrative;
-- cultural;
-- port;
-- mining;
-- frontier;
-- tourist.
-
-These should emerge from gameplay rather than simply being selected from a menu.
-
----
-
-# 25. Settlement Evolution
-
-Settlements should grow through stages rather than instantly appearing as mature cities.
-
-```text
-Camp
-  |
-Village
-  |
-Town
-  |
-City
-  |
-Metropolis
-```
-
-Growth could depend on:
-
-- population;
-- food;
-- trade;
-- transport;
-- employment;
-- safety;
-- institutions;
-- administrative status;
-- geography.
-
-Some settlements may remain small for centuries while others rapidly grow after gaining a port, railway, mine, university, or trade route.
-
----
-
-# 26. Dynamic and Disputed Borders
-
-Borders should derive from multiple forms of control.
-
-Potential variables:
-
-- administrative control;
-- population loyalty;
+- trade links;
+- remittances;
 - cultural influence;
-- military presence;
-- treaties;
-- settlement proximity;
-- infrastructure;
-- geography.
+- diplomatic pressure;
+- migration chains;
+- lobbying;
+- knowledge transfer;
+- claims of protection;
+- reconciliation opportunities.
 
-Example:
+A civilization can remain influential after losing territory if its people and institutions are spread across the world.
 
-```text
-Political control
-  France 55%
+## 4. Dynamic Culture
 
-Cultural influence
-  Germany 64%
+Culture should be spatial, social, and multi-layered rather than a single yield.
 
-Population
-  French 41%
-  German 52%
-  Other   7%
-```
+Culture spreads through population, trade, education, religion, media, migration, institutions, tourism, prestige, conquest, and shared history.
 
-Possible states:
+Cities and regions can become culturally mixed, hybridize, assimilate, revive older identities, or influence foreign populations.
 
-- undisputed territory;
-- disputed territory;
-- occupied territory;
-- demilitarized zone;
-- autonomous region;
-- jointly administered region;
-- colonial territory;
-- unclaimed frontier.
+## 5. Hybrid Cultures
 
----
+Long-term contact should sometimes create new cultures rather than forcing one side to replace the other.
 
-# 27. Fog of Knowledge
+Hybrid cultures can inherit:
 
-Exploration should reveal information gradually rather than giving perfect knowledge once a tile is seen.
-
-The player may know:
-
-```text
-"There is a large kingdom east of Persia."
-```
-
-without knowing:
-
-- exact borders;
-- leader;
-- government;
-- capital;
-- military strength;
-- technology;
-- population;
-- resources;
-- diplomatic relationships.
-
-Information sources could include:
-
-- scouts;
-- merchants;
-- diplomats;
-- spies;
-- maps;
-- travelers;
-- satellites;
-- intercepted communications.
-
----
-
-# 28. Maps Should Age
-
-Maps should represent what a civilization believes about the world.
-
-Early maps may contain:
-
-- approximate coastlines;
-- uncertain mountains;
-- rumored cities;
-- missing rivers;
-- outdated borders.
-
-Later technologies improve precision.
-
-Old intelligence should become stale unless refreshed.
-
-This enables:
-
-- cartography gameplay;
-- map trading;
-- misinformation;
-- reconnaissance;
-- strategic deception;
-- satellite-era transformation.
-
----
-
-# 29. Long-Term Climate and Ecology
-
-The environment should evolve over long time scales.
-
-Candidate variables:
-
-- temperature;
-- rainfall;
-- river flow;
-- sea level;
-- soil fertility;
-- forest cover;
-- desertification;
-- biodiversity;
-- pollution;
-- groundwater;
-- coastal erosion.
-
-Human actions can alter the environment.
-
-Example:
-
-```text
-Forest
-  |
-Logging
-  |
-Farmland
-  |
-Soil exhaustion
-  |
-Grassland
-  |
-Overuse
-  |
-Semi-arid region
-```
-
-Environmental management becomes a strategic system rather than only a late-game modifier.
-
----
-
-# 30. Agriculture and Food Systems
-
-Food should be one of the most important strategic systems.
-
-Agriculture could include:
-
-- crop suitability;
-- rainfall;
-- irrigation;
-- fertility;
-- soil depletion;
-- livestock;
-- mechanization;
-- fertilizer;
-- food storage;
-- refrigeration;
-- transportation;
-- trade;
-- famine reserves.
-
-Large cities should depend on productive hinterlands and/or reliable food imports.
-
----
-
-# 31. Disease and Public Health
-
-Public health can be modeled at a societal level.
-
-Disease pressure could depend on:
-
-- population density;
-- sanitation;
-- water quality;
-- trade connectivity;
-- climate;
-- medicine;
-- nutrition;
-- housing;
-- public health infrastructure.
-
-Technology and institutions can unlock:
-
-- sanitation;
-- clean water;
-- hospitals;
-- epidemiology;
-- vaccination;
-- modern medicine;
-- disease surveillance.
-
-This makes public health one of the major transformations of civilization development.
-
----
-
-# 32. Composable Government
-
-Government should be constructed from institutions and constitutional components rather than selected as one monolithic label.
-
-Example:
-
-```text
-Executive
-  elected president
-
-Legislature
-  bicameral
-
-Economy
-  mixed market
-
-Regional authority
-  federal
-
-Voting
-  universal
-
-Judiciary
-  independent
-```
-
-Potential dimensions:
-
-- executive selection;
-- legislative structure;
-- judicial independence;
-- regional autonomy;
-- franchise;
-- property rights;
-- economic model;
-- religious policy;
-- military authority;
-- civil service;
-- succession;
-- citizenship.
-
-This can generate many distinct political systems from reusable components.
-
----
-
-# 33. Governments Should Evolve
-
-Political systems should transform through social pressure instead of being instantly unlocked by research.
-
-Drivers could include:
-
-- education;
-- urbanization;
-- economic structure;
-- factions;
-- inequality;
+- language traits;
+- architectural styles;
 - institutions;
+- cuisine/trade preferences;
+- military traditions;
+- civic traditions;
+- technologies.
+
+These should be named and recorded by the history system.
+
+## 6. Languages
+
+Languages should spread through trade, education, administration, migration, literature, religion, science, and media.
+
+A language might become a regional lingua franca, diplomatic language, scientific language, or global commercial language.
+
+Translation capacity can influence knowledge diffusion and diplomacy.
+
+## 7. Demographic Transition
+
+Population growth should change with development.
+
+Agrarian societies, early industrial cities, mature industrial societies, and wealthy modern societies should not all follow the same population-growth formula.
+
+Age structure can affect labor supply, military manpower, education costs, pensions, housing demand, and politics.
+
+## 8. Social Mobility
+
+Education, wealth, law, institutions, and economic structure should affect movement between occupations and social classes.
+
+A society can become rich but politically unstable if opportunity remains concentrated.
+
+## 9. Inequality
+
+Track distribution, not only average prosperity.
+
+Two civilizations with identical GDP-equivalent output may feel very different if one has broad prosperity and the other has extreme concentration.
+
+Inequality can influence consumption, migration, political factions, crime/corruption pressure, social mobility, and legitimacy.
+
+## 10. Household Needs
+
+Population demand should create economic pressure without requiring individual household simulation.
+
+Needs can evolve from subsistence food and shelter toward manufactured goods, education, transport, electricity, healthcare, communications, leisure, and other services.
+
+This makes economic development change *what the economy is for*.
+
+---
+
+# II. Politics, Government, and Legitimacy
+
+## 11. Internal Political Factions
+
+Population groups should empower political factions based on material interests, culture, institutions, and ideology.
+
+Examples include landowners, merchants, labor, military institutions, religious organizations, rural interests, industrialists, scientists, environmental interests, and regional movements.
+
+Policies should create winners and losers rather than being pure bonuses.
+
+## 12. Political Parties and Coalitions
+
+Where government type supports them, political parties can emerge as coalitions of interest groups.
+
+A coalition may agree on some questions while containing serious internal contradictions.
+
+## 13. Composable Governments
+
+Government should be assembled from institutions rather than selected from a single dropdown.
+
+Components may include:
+
+- executive structure;
+- legislature;
+- judiciary;
+- succession/election method;
+- regional authority;
+- voting franchise;
+- civil service;
+- economic constitution;
+- military control;
+- religious settlement.
+
+## 14. Governments Evolve Instead of Unlocking
+
+A civilization should not research a government and instantly transform.
+
+Institutional change should depend on education, technology, political pressure, economic structure, legitimacy, factions, crises, and previous reforms.
+
+## 15. Legitimacy
+
+Separate raw state capacity from public or elite acceptance of rule.
+
+Legitimacy may come from:
+
+- tradition;
+- elections;
+- religion;
+- prosperity;
+- military success;
+- law;
+- nationalism;
+- dynastic continuity;
+- ideology;
+- effective administration.
+
+Different regimes can depend on different legitimacy sources.
+
+## 16. Public Mandates and Promises
+
+Borrow a lesson from Frostpunk: the government can make explicit promises.
+
+Examples:
+
+- complete a railway;
+- defend an ally;
+- avoid a war;
+- reduce a shortage;
+- fund education;
+- recover a region;
+- reform a law.
+
+Keeping or breaking promises affects trust and political capital. This gives narrative weight to ordinary strategic choices.
+
+## 17. Administrative Capacity
+
+Large empires should require administration.
+
+Administrative capacity depends on bureaucracy, communication, literacy, transport, institutions, law, local cooperation, and technology.
+
+Overextension should create concrete tradeoffs rather than a generic empire-size penalty.
+
+## 18. Regional Government
+
+Large states can organize territory into provinces, states, departments, colonies, autonomous regions, or other administrative units.
+
+The player can choose how much authority to delegate.
+
+## 19. Local Governors as Autonomous Actors
+
+Governors should have goals, competence, loyalty, political support, and local relationships.
+
+They can manage routine decisions automatically while occasionally creating political problems or unexpected successes.
+
+This turns delegation into gameplay rather than merely an automation checkbox.
+
+## 20. Federalism and Autonomy
+
+Regions may negotiate powers over taxation, language, education, policing, trade, infrastructure, or local law.
+
+Autonomy can reduce administrative burden and separatism while limiting central control.
+
+## 21. Succession and Constitutional Transition
+
+Leadership change should matter without turning the game into a character simulator exclusively.
+
+Different systems may experience:
+
+- hereditary succession;
+- elections;
+- appointments;
+- coups;
+- regencies;
+- coalition changes;
+- constitutional crises.
+
+Leadership turnover should interact with institutions so a mature state is not entirely dependent on one person.
+
+## 22. Generational Leaders
+
+Leaders should not live for 6,000 years.
+
+Civilizations persist while leaders, dynasties, administrations, parties, and ruling coalitions change.
+
+A leader's legacy should remain in laws, institutions, cities, wars, infrastructure, and historical memory.
+
+## 23. Cabinets and Advisors
+
+Key offices can be filled by simulated people or institutional representatives.
+
+Advisors can improve domains, propose policies, disagree with the player, represent factions, and become historical characters.
+
+## 24. Political Capital
+
+Major reforms should consume political capacity rather than being free instant switches.
+
+This creates opportunity cost between domestic reform, foreign policy, emergency actions, and institutional projects.
+
+## 25. Revolutions with Negotiated Outcomes
+
+Internal crises should not always be binary rebellion/no rebellion.
+
+Possible outcomes include reform, autonomy, coalition change, constitutional convention, secession, restoration, negotiated settlement, or civil conflict.
+
+---
+
+# III. Rise, Fall, and Civilizational Continuity
+
+## 26. Rise, Fall, Fragmentation, and Reunification
+
+Large empires should gain power but also accumulate structural stresses such as administrative distance, inequality, regional identity, legitimacy problems, fiscal strain, succession disputes, and external pressure.
+
+States can federalize, decentralize, fracture, reform, collapse, reunify, merge, or produce successor states.
+
+## 27. Successor States
+
+When a civilization fractures, successor states inherit different mixtures of:
+
+- institutions;
+- territory;
+- military formations;
+- debts;
+- diplomatic commitments;
+- cultural identity;
+- claims;
 - technology;
-- war;
-- legitimacy;
-- political movements;
-- neighboring governments;
-- historical events.
+- leaders;
+- historical legitimacy.
 
-Transformation may occur gradually through reform or rapidly through crisis.
+This makes collapse a transformation of the world rather than deletion.
 
----
+## 28. Play After Collapse
 
-# 34. Technology Should Create New Problems
+One of the boldest features: losing the central state should not necessarily end the campaign.
 
-Technology should not be universally beneficial.
+The player might continue as:
 
-Example:
+- a successor state;
+- government-in-exile;
+- surviving region;
+- federation partner;
+- restored dynasty;
+- diaspora-backed movement.
 
-```text
-Industrialization
-+ production
-+ transportation
-+ manufactured goods
-- air quality
-+ urbanization pressure
-+ energy demand
-+ labor conflict
-```
+A spectacular recovery could become more memorable than a conventional victory.
 
-```text
-Internet
-+ research
-+ commerce
-+ communication
-+ education
-+ foreign cultural exposure
-+ cybersecurity risk
-+ misinformation pressure
-```
+## 29. Voluntary Unions
 
-Progress should create new systems to manage, not only larger numeric bonuses.
+Civilizations can merge through diplomacy.
 
----
+Possible structures include federations, dynastic unions, confederations, commonwealths, customs unions, and full political unions.
 
-# 35. A More Dynamic Endgame
+The resulting state should inherit history from all participants rather than pretending one simply conquered the others.
 
-The late game should continue to generate meaningful strategic problems instead of becoming a long confirmation of an already-certain victory.
+## 30. Emergent Civilization Names
 
-Potential world-stage pressures:
+Names can respond to dynasty, government, geography, dominant culture, capital, religion, revolution, federation, union, or restoration.
 
-```text
-Antiquity
-  regional survival and expansion
+Historical aliases should remain searchable in the API and chronicle.
 
-Medieval
-  religion, trade networks, state consolidation
+## 31. Historical Claims
 
-Early Modern
-  exploration, colonial competition, global trade
+Claims should emerge from previous control, treaties, settlement patterns, dynastic inheritance, cultural ties, and international recognition.
 
-Industrial
-  industrialization, nationalism, mass logistics
+Claims can fade, strengthen, be renounced, transferred, disputed, or internationally arbitrated.
 
-Modern
-  ideological blocs, global institutions, mass media
+## 32. Persistent Historical Layers
 
-Information Age
-  cyber systems, energy, climate, global markets
+The world should remember prior eras physically and institutionally.
 
-Future
-  automation, advanced energy, space, planetary systems
-```
+Examples:
 
-Each stage can introduce new constraints, opportunities, and strategic objectives without completely resetting the world.
+- ancient roads become modern corridors;
+- former borders influence regions;
+- old capitals retain prestige;
+- ruins become archaeological sites;
+- closed mines leave industrial towns;
+- old universities retain research traditions;
+- past migration creates minorities;
+- war damage affects urban form;
+- ancient irrigation remains useful centuries later.
 
----
+## 33. Age Transitions Triggered by the World
 
-# 36. Historical Achievements Instead of Only One Winner
+Do not rely only on a global turn counter.
 
-A completed game should evaluate civilizations across many dimensions.
+An era can emerge from thresholds such as communication speed, trade integration, energy use, military organization, scientific capability, urbanization, exploration, or institutional change.
 
-Possible achievements:
+Different regions may enter transformations at different times.
 
-- largest empire;
-- longest continuous state;
-- greatest scientific contribution;
-- highest living standard;
-- greatest cultural influence;
-- largest trading network;
-- longest peace;
-- most stable government;
-- greatest exploration;
-- most sustainable civilization;
-- most influential language;
-- strongest educational system;
-- greatest military power;
-- most important institutions.
+## 34. No Hard Historical Reset
 
-Example end-of-game history:
+Era change should introduce new strategic layers while preserving consequences.
 
-```text
-WORLD HISTORY
+Obsolete systems should decay, transform, or become automated rather than vanish arbitrarily.
 
-Egypt
-2800 BC-1750 AD
-Greatest architectural civilization
+## 35. Adaptive Crises
 
-Rome
-800 BC-1880 AD
-Largest territorial empire
+Crises should emerge from actual conditions.
 
-Japan
-500 BC-present
-Highest technological development
+Examples:
 
-Mali
-400 AD-present
-Greatest trading civilization
-```
+- fiscal crisis from debt;
+- legitimacy crisis from political exclusion;
+- food crisis from crop failure plus weak trade;
+- industrial crisis from energy shortage;
+- alliance crisis from incompatible commitments;
+- ecological crisis from accumulated land use;
+- succession crisis from weak institutions.
 
-This lets multiple civilizations be historically significant even if only one satisfies a formal victory condition.
+The crisis should feel like the world responding to the player's history.
+
+## 36. Crises Create Opportunities
+
+Every crisis should unlock strategies as well as penalties.
+
+A trade disruption may encourage domestic industry. A political crisis may enable constitutional reform. A climate shock may make new regions valuable. A collapsing rival may create diplomatic openings.
 
 ---
 
-# 37. Emergent Civilization Names
+# IV. Cities, Settlements, and Institutions
 
-State names should be able to evolve with history.
+## 37. Settlements Evolve Naturally
 
-Example:
+Replace the instant Settler -> City transformation with development stages such as camp, village, town, city, metropolis, or specialized settlement.
 
-```text
-Kingdom of Francia
-       |
-French Kingdom
-       |
-French Republic
-       |
-French Federation
-```
+Some settlements may never become large cities and can still matter strategically.
 
-Names could respond to:
+## 38. Cities Develop Identities
 
-- government;
-- dynasty;
-- capital;
-- religion;
-- geography;
-- culture;
-- revolution;
-- union;
-- fragmentation;
-- ideology.
+City roles should emerge from geography and history.
 
-Generated names should remain deterministic for replayability.
+Examples:
 
----
+- port city;
+- financial center;
+- university city;
+- pilgrimage center;
+- administrative capital;
+- industrial region;
+- military frontier;
+- artistic center;
+- agricultural market town.
 
-# 38. Civilizations Can Merge
+Identity influences migration, politics, institutions, and investment.
 
-Political unions should be possible without conquest.
+## 39. Urban Form
 
-Historical-style example:
+Cities should physically change as transportation and industry change.
 
-```text
-Scotland + England
-       |
-United Kingdom
-```
+Dense pre-industrial cores, industrial belts, suburbs, port districts, rail corridors, civic centers, and high-density modern areas can emerge from rules rather than being static district puzzles.
 
-Emergent example:
+## 40. Housing and Land Markets
 
-```text
-Venice + Croatia + Greece
-       |
-Adriatic Federation
-```
+Population growth should require land and housing.
 
-Union mechanisms could include:
+High demand can raise costs, encourage expansion, increase density, push migration, and create political pressure.
 
-- dynastic union;
-- federation;
-- confederation;
-- referendum;
-- diplomatic integration;
-- defensive union;
-- economic union evolving into political union.
+## 41. Persistent Institutions
 
----
+Universities, banks, courts, guilds, religious orders, corporations, hospitals, newspapers, museums, military academies, laboratories, and political organizations should be entities with their own histories.
 
-# 39. Languages and Lingua Franca
+Institutions can outlive rulers and even states.
 
-Languages should spread independently from political borders.
+## 42. Institutional Reputation
 
-Potential transmission channels:
+Prestigious institutions attract talent, capital, students, pilgrims, tourists, or political support.
 
-- trade;
-- migration;
-- administration;
-- empire;
-- religion;
-- education;
-- science;
-- diplomacy;
-- literature;
-- media.
+Reputation should be slow to build and possible to damage.
 
-Languages could become:
+## 43. Institutional Networks
 
-- local languages;
-- regional languages;
-- administrative languages;
-- trade languages;
-- scientific languages;
-- diplomatic languages;
-- global lingua francas.
+Institutions should collaborate across cities and borders.
 
-Language can influence diplomacy, education, integration, culture, knowledge diffusion, and soft power.
+Examples include university networks, religious hierarchies, banking systems, research societies, merchant guilds, and international NGOs.
+
+## 44. Wonders as Living Institutions
+
+A wonder should not become a dead tile after construction.
+
+Its purpose can evolve:
+
+- temple -> heritage site;
+- fortress -> museum;
+- palace -> parliament;
+- industrial landmark -> cultural site.
+
+Its historical meaning may become more valuable than its original function.
+
+## 45. Multi-Stage Great Projects
+
+Great projects should involve planning, funding, materials, engineering, politics, and sometimes multiple civilizations.
+
+Examples can include canal systems, continental rail networks, global scientific projects, major restoration projects, or large infrastructure programs.
+
+## 46. Maintenance and Decay
+
+Infrastructure and buildings should require maintenance at an aggregated level.
+
+Neglect creates deterioration rather than instant disappearance.
+
+Maintenance policy can be delegated by region and priority.
+
+## 47. Postwar Reconstruction
+
+War should create a strategic reconstruction phase rather than an instant return to full productivity.
+
+Players can choose what to restore, redesign, abandon, memorialize, or modernize.
 
 ---
 
-# 40. World History Ledger
+# V. Economy, Trade, Finance, and Autonomous Actors
 
-Every significant event should become part of a persistent historical ledger.
+## 48. Production Chains
 
-Example:
-
-```text
-1274 BC - Egypt founded Memphis.
-842 BC  - Rome and Carthage signed the Treaty of Syracuse.
-318 BC  - The Great Library of Athens was founded.
-42 BC   - A volcanic eruption devastated Sicily.
-622 AD  - The Persian Empire fragmented into three states.
-1498 AD - Portuguese explorers crossed the Southern Ocean.
-```
-
-The history system should support generation of:
-
-- world timelines;
-- civilization histories;
-- leader biographies;
-- city histories;
-- war histories;
-- treaty histories;
-- institution histories;
-- technology histories;
-- cultural histories;
-- dynastic histories;
-- historical maps;
-- statistics and records.
-
-A completed campaign could therefore become a procedurally generated history book.
-
----
-
-# Additional Feature Directions
-
-The systems above naturally enable several additional mechanics.
-
-## Information Warfare
-
-Possible systems:
-
-- espionage;
-- counterintelligence;
-- propaganda;
-- censorship;
-- foreign influence;
-- disinformation;
-- codebreaking;
-- reconnaissance;
-- communications interception;
-- diplomatic leaks;
-- intelligence confidence ratings.
-
-Information should be represented with uncertainty rather than always as exact truth.
-
-## Strategic Resource Security
-
-Civilizations should care about:
-
-- domestic supply;
-- imports;
-- reserves;
-- alternative suppliers;
-- transport chokepoints;
-- embargo vulnerability;
-- substitution technologies;
-- recycling;
-- strategic stockpiles.
-
-## Regional Administration
-
-Large civilizations could use administrative divisions such as:
-
-- provinces;
-- states;
-- territories;
-- colonies;
-- autonomous regions;
-- protectorates.
-
-Administrative structures can reduce micromanagement while making empire scale meaningful.
-
-## Shared Infrastructure Projects
-
-Multiple civilizations could cooperate on:
-
-- canals;
-- bridges;
-- rail corridors;
-- pipelines;
-- power interconnects;
-- research facilities;
-- international ports;
-- climate projects;
-- space infrastructure.
-
-## Historical Continuity
-
-Systems should avoid arbitrary resets between eras. Technologies, institutions, cities, grudges, trade routes, languages, and population groups should retain historical continuity unless world events actually change them.
-
----
-
-# Suggested Long-Term Milestone Progression
-
-The following is a possible post-POC design sequence. Exact version numbers can change to match the real project roadmap.
-
-```text
-Current POC
-   |
-   v
-v1.0 Core Civilization Simulation
-  population
-  demographics
-  settlements
-  resources
-  production
-  culture
-  government
-   |
-   v
-v1.1 Dynamic Population
-  migration
-  occupations
-  education
-  prosperity
-  cultural identity
-  religion
-   |
-   v
-v1.2 Living Economy
-  commodities
-  production chains
-  markets
-  prices
-  trade networks
-   |
-   v
-v1.3 Infrastructure + Logistics
-  roads
-  rail
-  rivers
-  ports
-  electricity
-  communications
-  supply networks
-   |
-   v
-v1.4 Institutions
-  universities
-  companies
-  religions
-  banks
-  guilds
-  political organizations
-   |
-   v
-v1.5 Dynamic Politics
-  factions
-  laws
-  governments
-  legitimacy
-  elections/succession
-  regional autonomy
-   |
-   v
-v1.6 Dynamic Civilizations
-  cultural evolution
-  unions
-  fragmentation
-  independence
-  successor states
-  emergent names
-   |
-   v
-v1.7 Knowledge Simulation
-  discoveries
-  technology diffusion
-  competing technology paths
-  nationality-specific innovations
-   |
-   v
-v1.8 Advanced Diplomacy
-  clause-based treaties
-  diplomatic blocs
-  international institutions
-  reputation
-  historical relationships
-   |
-   v
-v1.9 World History
-  event ledger
-  timelines
-  historical maps
-  biographies
-  civilization chronicles
-   |
-   v
-v2.0 Emergent History Simulator
-```
-
----
-
-# Implementation Principles
-
-Any future implementation derived from this backlog should preserve the following properties.
-
-## Deterministic
-
-Given the same initial state, seed, ruleset, and command sequence, the engine should reproduce the same outcome.
-
-## Headless
-
-All mechanics should exist in the engine and API rather than being hidden in a specific client.
-
-## Data-Driven
-
-Civilizations, technologies, governments, resources, cultures, institutions, policies, and events should be represented through structured content definitions wherever practical.
-
-## Modular
-
-Large systems should be independently enableable for scenarios and testing.
-
-## Client-Agnostic
-
-The same systems should work for terminal, web, desktop, Godot, AI, automated test, and future clients.
-
-## Testable
-
-Every mechanic should expose deterministic scenarios and assertions suitable for local CI and automated human-style playtesting.
-
-## Explainable
-
-The engine should be able to explain why an outcome occurred.
+Resources should move through meaningful production chains.
 
 Examples:
 
 ```text
-Why did this city lose population?
-- food prices increased 18%
-- neighboring city wages were 22% higher
-- war risk increased
-- rail connection reduced migration cost
+Iron Ore -> Iron -> Tools -> Machinery
+Grain -> Flour -> Food
+Coal + Iron -> Steel -> Rail / Machinery
+Oil -> Fuel / Chemicals / Plastics
+Silicon -> Electronics -> Computers
 ```
+
+The engine should aggregate routine flows so the player manages networks and policy rather than individual shipments.
+
+## 49. Dynamic Markets
+
+Prices respond to supply, demand, transport cost, stockpiles, war, embargoes, technology, disasters, population needs, and market access.
+
+Economic shocks should propagate through trade networks.
+
+## 50. Transport Costs
+
+Goods should not teleport.
+
+Distance, roads, rivers, ports, rail, shipping capacity, terrain, borders, tariffs, and security affect delivered prices.
+
+This makes geography economically meaningful throughout the game.
+
+## 51. Trade Corridors
+
+Persistent high-volume trade routes should become strategic corridors.
+
+Corridors can attract cities, infrastructure, diplomacy, piracy/security pressure, cultural exchange, and political competition.
+
+## 52. Economic Chokepoints
+
+Straits, canals, river mouths, rail junctions, mountain passes, pipelines, data links, and major ports can become economic chokepoints.
+
+Control matters because networks use them, not because the tile has an arbitrary bonus.
+
+## 53. Private Economy
+
+Inspired by Distant Worlds 2, much routine economic activity should occur autonomously.
+
+Private actors may build firms, move goods, invest, migrate, and respond to prices while the player shapes taxes, law, infrastructure, subsidies, regulation, trade access, and strategic priorities.
+
+## 54. Firms and Entrepreneurship
+
+Companies can emerge where market conditions support them.
+
+Firms may:
+
+- expand;
+- merge;
+- fail;
+- innovate;
+- lobby;
+- relocate;
+- invest abroad;
+- become national champions;
+- form monopolies.
+
+## 55. Corporations as Transnational Actors
+
+Large corporations can operate across borders and create political relationships between states.
+
+Governments can regulate, tax, subsidize, charter, nationalize, privatize, sanction, or break them up.
+
+## 56. Foreign Investment
+
+Civilizations can gain influence and returns by investing in infrastructure, industry, resources, institutions, or development abroad.
+
+Foreign ownership can create both interdependence and domestic political tension.
+
+## 57. Public Finance
+
+States should have revenue sources and expenditures beyond a single gold balance.
+
+At a strategic level track:
+
+- taxation;
+- tariffs;
+- state enterprises;
+- debt service;
+- administration;
+- military spending;
+- infrastructure;
+- education;
+- social services;
+- subsidies.
+
+## 58. Debt and Credit
+
+Governments, institutions, and firms can borrow.
+
+Creditworthiness depends on fiscal history, institutions, stability, economic output, and currency confidence.
+
+Debt enables extraordinary projects but creates future constraints.
+
+## 59. Banking and Financial Crises
+
+Banks can allocate capital and amplify economic growth.
+
+Poor regulation, asset concentration, war, or defaults can create crises that spread through financial networks.
+
+This should be abstract enough to remain strategic rather than accounting-heavy.
+
+## 60. Currencies and Monetary Blocs
+
+Later eras can support currencies, exchange-rate regimes, monetary unions, reserve currencies, and financial influence.
+
+A civilization may wield monetary power without territorial conquest.
+
+## 61. Economic Cycles
+
+Investment booms, shortages, technological disruption, debt, and demand shifts can generate expansion and contraction.
+
+Players should respond through policy rather than receive random recession events detached from the simulation.
+
+## 62. Strategic Reserves
+
+States can maintain reserves of food, fuel, currency, or critical materials.
+
+Reserves trade efficiency for resilience and become important during crises.
+
+---
+
+# VI. Infrastructure, Logistics, Energy, and Geography
+
+## 63. Logistics Networks
+
+Military and economic systems should depend on supply networks.
+
+Supply can abstract food, equipment, fuel, replacement capacity, and transport throughput rather than requiring manual inventories for every unit.
+
+## 64. Infrastructure Networks
+
+Roads, rail, ports, canals, airports, power, water, sewage, pipelines, and communications should form connected networks.
+
+A disconnected improvement should not function identically to one integrated into a major system.
+
+## 65. Rivers as Major Systems
+
+Rivers should support transport, irrigation, fertility, industry, settlement, boundaries, defense, hydropower, and trade.
+
+## 66. Navigable Rivers
+
+Major rivers should permit appropriate inland transport and make river ports, bridges, mouths, and canals strategically important.
+
+## 67. Hydrology
+
+Rivers and lakes should derive from world geography.
+
+Dams, irrigation, deforestation, drought, floods, and climate can alter water availability and downstream conditions.
+
+## 68. Electricity as a Resource
+
+Electricity should be generated, transmitted, and consumed.
+
+Grid reliability, generation mix, fuel supply, storage, and interconnection become strategic in industrial and modern eras.
+
+## 69. Energy Transitions
+
+Civilizations should experience transitions among biomass, animal power, water/wind, coal, oil, electricity, nuclear, and renewables based on technology, geography, price, and policy.
+
+Old infrastructure creates path dependence.
+
+## 70. Communication Networks
+
+Administrative and military coordination should improve as information moves faster.
+
+Postal systems, printing, telegraph, radio, telephone, satellites, and digital networks can transform governance and markets.
+
+## 71. Standards and Interoperability
+
+Technological systems should sometimes require standards.
+
+Examples:
+
+- rail gauges;
+- electrical standards;
+- measurement systems;
+- currencies;
+- shipping containers;
+- communications protocols.
+
+Shared standards increase trade and network effects while creating lock-in and geopolitical influence.
+
+## 72. Infrastructure as Soft Power
+
+Financing a neighbor's railway, port, grid, or communications system can integrate their economy with yours and generate influence without annexation.
+
+---
+
+# VII. Science, Technology, Education, and Knowledge
+
+## 73. Dynamic Technology Discovery
+
+Technology should combine prerequisites with discovery pressure generated by actual activity.
+
+A maritime civilization naturally accelerates navigation and shipbuilding. A mining-industrial state accelerates metallurgy and mechanical engineering. A dense scholarly network accelerates abstract science.
+
+## 74. Competing Technology Paths
+
+There should not always be a single universally superior sequence.
+
+Different resource bases, institutions, geography, and doctrines can sustain different technological solutions for long periods.
+
+## 75. Knowledge Diffusion
+
+Technologies spread through trade, migration, education, books, institutions, diplomacy, espionage, conquest, scientific exchange, reverse engineering, and shared language.
+
+A civilization can lead research without permanently monopolizing knowledge.
+
+## 76. Research Ecosystems
+
+Universities, firms, governments, military institutions, and independent inventors can pursue different kinds of research.
+
+Breakthroughs may require combinations of theoretical knowledge, engineering capacity, funding, and practical demand.
+
+## 77. Competing Schools of Thought
+
+Scientific and intellectual fields can contain rival schools.
+
+One approach may dominate because of evidence, institutional prestige, politics, or resource availability and later be displaced.
+
+## 78. Scientific Uncertainty
+
+Research should occasionally reveal uncertainty rather than a guaranteed next node.
+
+The player can choose between safer incremental work and higher-risk research programs.
+
+## 79. Engineering vs. Science
+
+Knowing a principle and being able to deploy it at scale should be different achievements.
+
+A civilization might understand electricity before possessing the industry, standards, workforce, or grid required to transform society with it.
+
+## 80. Open Knowledge, Patents, and Secrecy
+
+Later institutions can choose different innovation regimes.
+
+Open research accelerates diffusion and collaboration; proprietary or secret systems may preserve temporary advantage but reduce spillovers.
+
+## 81. Education Systems
+
+Education should convert resources and institutions into literacy, skills, research capacity, social mobility, political participation, and economic productivity.
+
+The structure of education matters, not merely total spending.
+
+## 82. Brain Drain and Brain Gain
+
+Talented populations and researchers should migrate toward safe, wealthy, prestigious, tolerant, well-funded institutions.
+
+A civilization can become a scientific power partly by attracting people rather than only generating science points internally.
+
+## 83. Collaborative Global Science
+
+Late-game scientific projects can require multinational institutions, shared funding, and data.
+
+Competition and cooperation can coexist.
+
+---
+
+# VIII. Religion, Ideology, Media, and Soft Power
+
+## 84. Dynamic Religion
+
+Religions should contain doctrines, institutions, holy places, clergy structures, reform movements, and regional practices rather than operate only as colored pressure.
+
+## 85. Schisms and Reforms
+
+Religious disagreement can create branches, reform movements, syncretic traditions, councils, and reconciliations.
+
+Changes should be driven by politics, geography, institutions, interpretation, and cultural contact.
+
+## 86. Ideologies Emerge from Conditions
+
+Political ideologies should arise from combinations of technology, class structure, institutions, inequality, war, education, and previous political traditions.
+
+They should not simply unlock from a civic node.
+
+## 87. Public Sphere and Media
+
+Printing, newspapers, radio, television, and digital media change how quickly ideas spread and how governments communicate with citizens.
+
+Media organizations can become institutions with ownership, credibility, audience, and political alignment.
+
+## 88. Information Reliability
+
+Not every report should be equally trustworthy.
+
+Players can receive rumors, estimates, intelligence assessments, official statistics, merchant reports, diplomatic reports, and scientific surveys with different confidence levels.
+
+## 89. Propaganda and Counter-Narratives
+
+Information campaigns can influence legitimacy, diplomacy, recruitment, culture, or foreign opinion, but effectiveness depends on credibility and media access rather than a guaranteed button effect.
+
+## 90. Cultural Works with Provenance
+
+Great works should have creators, locations, ownership history, cultural context, and movement across the world.
+
+They can be sold, gifted, inherited, displaced, repatriated, stolen in historical events, restored, or displayed.
+
+## 91. World Fairs, Festivals, and International Events
+
+Civilizations can compete for prestige through recurring international events rather than only one-time wonders.
+
+Hosting requires infrastructure and investment but can accelerate tourism, diplomacy, technology exchange, and urban development.
+
+## 92. Prestige Has Multiple Sources
+
+Prestige should come from science, culture, institutions, diplomacy, wealth, military reputation, humanitarian action, exploration, sport, architecture, and historical achievements.
+
+Different societies can become globally influential for different reasons.
+
+---
+
+# IX. Exploration, Maps, and Information
+
+## 93. Fog of Knowledge
+
+The player should not automatically know exact foreign population, production, armies, technology, diplomacy, or resources.
+
+Information comes from observation, trade, diplomacy, spies, institutions, satellites, and public statistics.
+
+## 94. Maps Can Be Wrong or Outdated
+
+Early maps can have approximate coastlines, uncertain routes, rumored cities, incomplete borders, and stale information.
+
+Cartography, surveying, printing, aerial photography, and satellites progressively improve accuracy.
+
+## 95. Exploration Expeditions
+
+Exploration should involve decisions about goals, supplies, specialists, risk, route, and sponsorship rather than moving a disposable unit through fog.
+
+Expeditions can produce maps, scientific observations, diplomatic contacts, artifacts, trade routes, or prestige.
+
+## 96. Scientific Exploration
+
+Exploration should continue after the map is geographically revealed.
+
+Later expeditions can survey geology, ecology, oceans, poles, deep sea, atmosphere, and space.
+
+## 97. Archaeology from Actual History
+
+Archaeological sites should be generated from prior events in the current campaign.
+
+A battlefield, abandoned capital, destroyed temple, ancient road, shipwreck, or lost settlement can become a later archaeological discovery.
+
+This closes a powerful loop between simulation and historical storytelling.
+
+## 98. Intelligence Networks
+
+Espionage should depend on persistent networks, access, agents, institutions, diaspora links, trade ties, communications, and counterintelligence.
+
+The interesting decision becomes where to build access and what information to trust, not repeatedly assigning identical spy missions.
+
+---
+
+# X. Diplomacy, International Order, and Minor Powers
+
+## 99. Clause-Based Diplomacy
+
+Treaties should be assembled from reusable clauses such as borders, navigation, trade, tariffs, migration, research, mutual defense, military access, sanctions, investment, resources, autonomy, recognition, and dispute resolution.
+
+## 100. Diplomatic Leverage
+
+Diplomacy should use trust, favors, obligations, economic dependence, domestic lobbies, military credibility, prestige, and shared institutions.
+
+Influence becomes relational rather than a generic currency alone.
+
+## 101. Negotiated Diplomatic Plays
+
+Before conflict, states can make demands, recruit supporters, offer concessions, call in obligations, threaten sanctions, or propose arbitration.
+
+A dispute may reshape the world without becoming a war.
+
+## 102. Limited Wars and Explicit War Goals
+
+Wars should usually begin with political objectives.
+
+Possible goals include territory, recognition, independence, treaty revision, reparations, access, regime support, or defense of an ally.
+
+Achieving the goal should create pressure to negotiate rather than automatically incentivize total conquest.
+
+## 103. Peace Conferences
+
+Peace should be negotiated among relevant participants.
+
+Settlements can include borders, autonomy, guarantees, reparations, demilitarized arrangements, recognition, prisoners, access, sanctions, and international supervision.
+
+## 104. Long-Term Diplomatic Memory
+
+AI and populations should remember:
+
+- fulfilled treaties;
+- betrayals;
+- aid during crises;
+- shared wars;
+- border settlements;
+- investment;
+- historical rivalry;
+- reconciliation;
+- cultural ties.
+
+Memory should decay and be reinterpreted rather than being an eternal modifier.
+
+## 105. Domestic Foreign-Policy Lobbies
+
+Interest groups may care about particular foreign relationships because of trade, ideology, religion, diaspora, security, or investment.
+
+Foreign policy can therefore create domestic consequences.
+
+## 106. Spheres of Influence
+
+States can create influence through trade, finance, infrastructure, institutions, military guarantees, culture, diplomacy, and investment.
+
+A sphere is an emergent network of dependence rather than a simple ownership flag.
+
+## 107. Federations and Power Blocs
+
+Civilizations can construct international organizations with customizable rules.
+
+Possible competencies include defense, trade, migration, research, currency, infrastructure, environment, courts, and foreign policy.
+
+## 108. World Institutions
+
+Late-game institutions should be politically important rather than decorative.
+
+Members can propose rules, negotiate coalitions, trade favors, establish standards, coordinate crises, impose sanctions, fund projects, and create courts or agencies.
+
+## 109. International Law
+
+Treaties and institutions can gradually create norms.
+
+States may comply because of reputation, reciprocity, domestic law, economic dependence, or institutional enforcement rather than because a game rule makes violation impossible.
+
+## 110. Minor Powers with Agency
+
+Minor states should have goals, factions, economies, territory, diplomacy, and survival strategies.
+
+They should not exist merely as bonus dispensers for major civilizations.
+
+## 111. Non-State Actors
+
+Merchant leagues, religious orders, corporations, universities, liberation movements, international organizations, and other actors can influence diplomacy without owning conventional territory.
+
+## 112. Protectorates, Subjects, and Autonomy
+
+Subject relationships should have negotiated rights and obligations.
+
+Autonomy can evolve over time, and a subject can become a partner, federation member, independent ally, or adversary.
+
+---
+
+# XI. Warfare Without Late-Game Unit Chore
+
+## 113. Strategic Command Layer
+
+As armies grow, the player should shift from moving every individual unit toward commanding formations, fronts, theaters, objectives, and priorities.
+
+Direct tactical control can remain available for players who want it.
+
+## 114. Orders as a Scarce Strategic Resource
+
+Borrow the best lesson from Old World without copying it literally: leadership attention should be limited.
+
+A civilization can theoretically do many things, but the central government can actively prioritize only some of them each turn or planning cycle.
+
+This makes *not acting everywhere* a valid strategic choice.
+
+## 115. Commanders and Institutional Military Memory
+
+Commanders, units, and military institutions can accumulate experience, doctrine, traditions, and reputation.
+
+Knowledge should persist partly after individuals retire.
+
+## 116. Doctrine
+
+Military effectiveness should reflect organizational doctrine, logistics, training, communications, terrain expertise, and industrial support rather than only unit-era strength.
+
+## 117. Mobilization Has Economic Consequences
+
+Large wars should pull labor, transport, finance, industrial capacity, and political attention away from civilian society.
+
+Peace and war therefore become different economic states.
+
+## 118. War Weariness Is Social
+
+War exhaustion should emerge from casualties, duration, legitimacy, shortages, disrupted trade, political factions, enemy actions, and whether the population believes the war aims are justified or achievable.
+
+## 119. Occupation Is Governance
+
+Holding captured territory requires administration, security, local cooperation, supply, and political policy.
+
+Occupation should not instantly convert a region into a normal productive province.
+
+## 120. Resistance and Collaboration Are Political
+
+Local behavior depends on legitimacy, culture, institutions, occupation policy, living conditions, war aims, and expectations about the future.
+
+Use aggregate political systems rather than repetitive unit whack-a-mole.
+
+## 121. Reconstruction and Reintegration
+
+Post-conflict regions may require reconstruction, reconciliation, legal integration, autonomy agreements, or institutional reform.
+
+Winning a war can create decades of strategic consequences.
+
+---
+
+# XII. Environment, Agriculture, Health, and Resilience
+
+## 122. Dynamic Climate
+
+Track temperature, rainfall, drought risk, sea level, storm patterns, snow cover, and other broad climate conditions.
+
+Human activity can influence later-era climate while natural variability matters throughout history.
+
+## 123. Land Use
+
+Tiles can transition among forest, pasture, farmland, urban land, wetland, degraded land, restored ecosystem, and other uses.
+
+Land-use history should affect fertility, runoff, biodiversity, carbon, and settlement.
+
+## 124. Soil and Agriculture
+
+Food production depends on soil, water, crops, climate, labor, tools, fertilizer, mechanization, storage, transport, and institutions.
+
+Agricultural development should be one of the foundational technologies of civilization rather than simply a tile yield.
+
+## 125. Crop and Food Diversity
+
+Different regions can support different crops and food systems.
+
+Trade and migration spread crops, cuisines, techniques, and resilience.
+
+## 126. Food Storage and Famine Resilience
+
+Food crises should depend not only on production but also reserves, trade, transport, inequality, governance, and conflict.
+
+A rich state with poor distribution can still suffer serious shortages.
+
+## 127. Public Health
+
+Disease pressure can be modeled at a societal level through population density, clean water, sanitation, nutrition, trade connectivity, public health institutions, and medicine.
+
+Avoid repetitive random plague buttons; outbreaks should emerge from conditions and spread through networks.
+
+## 128. Ecosystem Services
+
+Forests, wetlands, fisheries, soils, and biodiversity provide services such as water regulation, food, materials, resilience, and tourism.
+
+Destroying natural systems can create delayed economic costs.
+
+## 129. Pollution
+
+Industrial activity produces local and regional externalities.
+
+Pollution can affect health, agriculture, migration, politics, and international relations.
+
+## 130. Environmental Restoration
+
+Later societies can restore rivers, forests, wetlands, soils, and former industrial sites.
+
+Environmental gameplay should include recovery, not only irreversible decline.
+
+## 131. Disaster Recovery
+
+Disasters should damage networks and communities unevenly.
+
+Preparedness, institutions, wealth, infrastructure, insurance/reserves, and governance determine recovery speed.
+
+A disaster can redirect migration and urban history for centuries.
+
+---
+
+# XIII. Player Attention, Delegation, and Anti-Micromanagement
+
+## 132. Attention Budget
+
+This may be the single most important usability mechanic in the entire design.
+
+The player should have limited high-level attention, represented explicitly or implicitly.
+
+The result: the empire can become more complex without requiring the player to manually touch every subsystem each turn.
+
+## 133. Domain-Level Automation
+
+Every major domain should support:
 
 ```text
-Why did this technology become available?
-- metallurgy prerequisite met
-- engineering institution reached level 4
-- coal industry generated discovery pressure
+Manual
+Advise
+Supervise
+Automate with policy
+Full automate
 ```
 
-## Scalable Abstraction
+Domains can include city production, infrastructure, trade, research, exploration, military posture, diplomacy, taxation, and development.
 
-Deep simulation should avoid unnecessary per-person or per-item micromanagement. Population cohorts, aggregated goods, regional flows, and network models should provide strategic depth while remaining computationally practical.
+## 134. Policy-Driven Automation
 
-## Historical Plausibility Without Predetermined History
+Automation should follow rules the player defines.
 
-Historical geography, technologies, cultures, and institutions can inspire mechanics, but the simulation should allow alternate outcomes to emerge naturally.
+Examples:
+
+```text
+Maintain food reserve >= 20 turns
+Never demolish historical buildings
+Prioritize rail links to ports
+Avoid debt above configured threshold
+Do not settle low-water regions
+Auto-upgrade infrastructure only if ROI threshold is met
+```
+
+This turns automation into strategy.
+
+## 135. Governors Execute Intent
+
+Instead of telling a city exactly what to build forever, the player can assign intent:
+
+- research center;
+- industrial hub;
+- defensive frontier;
+- trade port;
+- cultural capital;
+- balanced growth;
+- ecological restoration.
+
+Governors translate intent into operational decisions.
+
+## 136. Exception-Based Management
+
+The game should notify the player when a system leaves an acceptable range rather than asking for routine confirmation.
+
+Examples:
+
+- reserve falls below threshold;
+- governor wants to override policy;
+- strategic corridor is congested;
+- ally requests treaty revision;
+- major institution is failing;
+- regional legitimacy is collapsing.
+
+## 137. Empire-Wide Queues and Templates
+
+Players should be able to create reusable infrastructure, city, military, and development templates.
+
+## 138. Batch Decisions
+
+If ten cities face the same problem, the player should be able to make one policy decision rather than ten identical clicks.
+
+## 139. Strategic Planning Mode
+
+Allow the player to sketch multi-turn intent:
+
+- infrastructure corridors;
+- settlement priorities;
+- development zones;
+- military fronts;
+- conservation areas;
+- research programs.
+
+The simulation then executes within constraints and reports deviations.
+
+## 140. Advisor Recommendations with Reasons
+
+Advisors should provide recommendations plus causal explanations and expected tradeoffs.
+
+Example:
+
+```text
+Recommend: expand North River rail capacity
+Why:
+  82% utilization
+  steel exports delayed 2.4 turns average
+  three cities depend on corridor
+Expected effect:
+  +11% regional market access
+  -420 treasury now
+Risks:
+  increases debt ratio to 43%
+```
+
+## 141. Automation Must Be Deterministic
+
+Automated decisions should use deterministic policies and expose their inputs so local agents and test harnesses can reproduce them.
 
 ---
 
-# Recommended First Experiments
+# XIV. AI That Feels Like Other Civilizations
 
-Before committing to the entire long-term architecture, prototype the following systems independently:
+## 142. Difficulty Through Better Decisions, Not Huge Cheats
 
-1. population cohorts with culture, occupation, and loyalty;
-2. inter-city migration based on weighted incentives;
-3. tile/city cultural influence diffusion;
-4. resource production chains with supply and demand;
-5. road/river/port logistics connectivity;
-6. clause-based treaty representation;
-7. dynamic technology discovery pressure;
-8. persistent world-history event ledger;
-9. city identity derived from simulation history;
-10. civilization fragmentation into deterministic successor states.
+Difficulty should primarily modify planning depth, information mistakes, risk tolerance, coordination, and strategic competence.
 
-These prototypes would reveal which ideas provide the highest gameplay value before deeper implementation.
+Resource bonuses can remain optional but should not be the core solution.
+
+## 143. AI Strategic Identity
+
+AI civilizations should pursue coherent long-term strategies derived from geography, institutions, resources, threats, leaders, and political constraints.
+
+## 144. AI Has the Same Institutional Constraints
+
+AI should generally operate through the same logistics, diplomacy, population, economy, administration, and information systems as the player.
+
+## 145. AI Explainability
+
+For debugging and player trust, expose why the AI:
+
+- declared war;
+- rejected a treaty;
+- invested in a region;
+- changed policy;
+- prioritized technology;
+- allied with a rival;
+- accepted peace.
+
+## 146. AI Memory
+
+AI relationships should use structured historical memory rather than arbitrary hidden mood swings.
+
+## 147. AI Can Misjudge
+
+Because information is imperfect, even strong AI should sometimes make reasonable mistakes based on outdated or incorrect information.
+
+This is preferable to making AI omniscient.
+
+## 148. AI Personalities Should Change Strategy, Not Sanity
+
+Leader personality can alter risk tolerance, diplomatic style, priorities, and values, but should not force obviously irrational behavior merely to make a character colorful.
+
+## 149. AI Uses Delegation Too
+
+The AI should use the same governor, policy, automation, and planning abstractions exposed to players. This improves testability and keeps the game systems coherent.
 
 ---
 
-# North-Star Experience
+# XV. Dynamic Objectives, Loss, Victory, and the Late Game
 
-A successful late-stage CivilizationClone campaign should produce a world where the player can look back and understand not only who won, but what happened.
+## 150. No Single Predetermined Endgame Loop
 
-The player should be able to answer questions such as:
+The late game should introduce new strategic layers rather than ask the player to repeat early-game actions at larger scale.
 
-- Why did this city become the world's financial center?
-- Why did this empire fragment?
-- Why did a minority culture become dominant?
-- Why did one civilization industrialize before another?
-- Why did this language become internationally important?
-- Why did these countries become allies?
-- Why did this region remain poor despite abundant resources?
-- Why did a small university become the birthplace of several technologies?
-- Why did a major migration wave occur?
-- Why did a once-dominant trade route disappear?
+Candidate late-game systems include:
 
-The resulting game should feel less like moving pieces through a predetermined technology ladder and more like creating a unique, inspectable, replayable history of a simulated world.
+- global institutions;
+- ideological competition;
+- mass media;
+- multinational firms;
+- energy transitions;
+- global infrastructure;
+- climate coordination;
+- financial systems;
+- orbital infrastructure;
+- international scientific projects;
+- information networks.
+
+## 151. Dynamic Historical Objectives
+
+Goals should partly emerge from the world.
+
+Examples:
+
+- reunify a fractured cultural region;
+- secure an endangered trade corridor;
+- lead a scientific institution;
+- modernize without losing political stability;
+- preserve a federation;
+- rebuild after collapse;
+- create a monetary union;
+- restore an ecological region.
+
+## 152. Civilization Ambitions
+
+Borrowing the useful part of Old World's ambitions, civilizations can adopt medium-term national projects that give direction without becoming rigid victory paths.
+
+Ambitions should be generated from current history and opportunities.
+
+## 153. Historical Achievements Instead of Winner-Takes-All
+
+Track accomplishments such as:
+
+- longest continuous state;
+- greatest trading network;
+- highest living standard;
+- largest scientific contribution;
+- greatest cultural influence;
+- most resilient recovery;
+- most influential language;
+- most durable alliance;
+- largest infrastructure network;
+- strongest environmental recovery;
+- greatest institutional legacy.
+
+## 154. Multiple Measures of Success
+
+A civilization can be militarily weak yet culturally dominant, territorially small yet financially central, politically fragmented yet scientifically influential.
+
+The final chronicle should reflect these distinctions.
+
+## 155. Make Losing Fun
+
+Loss should create new goals, not only a defeat screen.
+
+A reduced civilization may focus on survival, diplomacy, modernization, cultural preservation, independence, or eventual restoration.
+
+## 156. Graceful Concession
+
+If a player's position is mathematically or strategically decided, the game can offer a meaningful historical wrap-up rather than forcing dozens of ceremonial turns.
+
+The player may continue if desired.
+
+## 157. Post-Victory Sandbox
+
+Victory should not require the simulation to stop.
+
+Players can continue the world, disable score/victory checks, or hand control to AI and observe history.
+
+## 158. World-Order Endgame
+
+Instead of a final technology automatically ending the game, mature civilizations compete to shape the rules of the world:
+
+- trade order;
+- security architecture;
+- scientific institutions;
+- environmental agreements;
+- monetary systems;
+- communications standards;
+- orbital governance.
+
+The late game becomes about *what kind of world was created*.
+
+---
+
+# XVI. History, Narrative, and Memory
+
+## 159. World-History Ledger
+
+Every significant event should be recorded in a queryable event ledger.
+
+Examples:
+
+```text
+318 BC  University of Alexandria founded
+42 BC   Sicily earthquake damaged three cities
+622 AD  Persian Empire fragmented into three successor states
+1498    First trans-oceanic trade corridor established
+1843    Northern Railway connected six industrial cities
+```
+
+## 160. Procedural Chronicle
+
+The game should generate readable histories from authoritative events rather than inventing unsupported narrative.
+
+Possible outputs:
+
+- civilization history;
+- city history;
+- dynasty/leader history;
+- war history;
+- economic history;
+- technology history;
+- institutional history;
+- diplomatic history.
+
+## 161. Historical Maps
+
+Allow the player to view the world at any past turn with known borders, population, cultures, infrastructure, trade, and environment.
+
+## 162. City Timelines
+
+Every important city should have a timeline of founding, conquest, migration, major construction, population peaks, institutions, disasters, and political changes.
+
+## 163. Artifact Provenance
+
+Important works, artifacts, documents, and monuments should retain creation and ownership history.
+
+## 164. National Memory
+
+States and populations can remember foundational events differently.
+
+A former war can become a shared victory, tragedy, grievance, liberation story, or reconciliation milestone depending on later institutions and politics.
+
+## 165. Historical Reputation
+
+A civilization's international identity emerges from repeated behavior over centuries: reliable treaty partner, commercial hub, scientific center, aggressive expansionist, mediator, protector, cultural exporter, and so on.
+
+## 166. Great People Emerge from the Simulation
+
+Scientists, artists, engineers, explorers, merchants, politicians, diplomats, and commanders should arise from population and institutions.
+
+Their achievements become part of world history rather than appearing only from a fixed prewritten list.
+
+## 167. Rivalries Between Historical Figures and Institutions
+
+Important people can belong to competing schools, parties, courts, companies, universities, or artistic movements.
+
+This produces stories without requiring every citizen to be simulated individually.
+
+## 168. Player-Defined Historical Markers
+
+Allow players to bookmark events, cities, borders, wars, projects, or people as personally significant. These markers can appear in the final chronicle.
+
+---
+
+# XVII. Systemic Asymmetry and Nationality Design
+
+## 169. Nationalities Change Rules, Not Just Yields
+
+Each nationality should have at least one system-level difference where historically and mechanically justified.
+
+Possible dimensions:
+
+- administration;
+- settlement;
+- trade;
+- military organization;
+- diplomacy;
+- knowledge;
+- religion;
+- infrastructure;
+- succession;
+- regional autonomy;
+- institutions.
+
+## 170. Nationality-Specific Technology Ecosystems
+
+Existing nationality technology trees should integrate with dynamic discovery.
+
+A nationality may have unique:
+
+- research pressures;
+- institutions;
+- alternative prerequisites;
+- specialized applications;
+- diffusion bonuses;
+- historically plausible dead ends;
+- synthesis technologies.
+
+## 171. Geography Can Reshape National Identity
+
+A nationality placed in a radically different geography should adapt.
+
+A historically maritime culture forced inland might develop new institutions over centuries rather than being permanently trapped by bonuses designed for coasts.
+
+## 172. Traditions Persist Through Transformation
+
+When civilizations merge, split, reform, or change identity, some traditions can persist as institutional or cultural legacies.
+
+## 173. Asymmetry Must Remain Legible
+
+Systemic differences should be explained in terms of changed rules and incentives, not hidden modifiers.
+
+---
+
+# XVIII. Future and Post-Industrial Era
+
+## 174. Orbital Infrastructure
+
+The space age should add a limited strategic orbital layer for satellites, communications, navigation, science, observation, and later larger projects.
+
+It should extend existing infrastructure systems rather than become an unrelated minigame.
+
+## 175. Space as Global Infrastructure
+
+Satellites can improve weather forecasting, maps, communications, agriculture, logistics, disaster response, and intelligence.
+
+This makes space relevant even before off-world settlement.
+
+## 176. Off-World Projects
+
+Late projects may include lunar research, resource experiments, planetary science, and international missions.
+
+Keep these expensive and institutionally demanding so they emerge from the existing economy and science systems.
+
+## 177. Automation and Labor Transformation
+
+Advanced automation changes labor demand, productivity, education needs, inequality, and politics rather than simply granting +X production.
+
+## 178. Digital Economy
+
+Data networks, software, services, digital trade, and cybersecurity can emerge from communications, education, institutions, and energy infrastructure.
+
+## 179. Global Commons
+
+Climate, oceans, orbital space, scientific knowledge, and major communications systems can require international governance.
+
+## 180. Future Technology Remains Branching
+
+Avoid a single deterministic speculative-tech ladder.
+
+Future development should depend on resource constraints, institutions, political choices, environmental pressures, and prior research ecosystems.
+
+---
+
+# XIX. Small Features With Outsized Impact
+
+## 181. Searchable History
+
+Every event, city, treaty, institution, leader, technology, and war should be searchable through the API/client.
+
+## 182. Causal Tooltips
+
+Every important number should answer "why?"
+
+Example:
+
+```text
+Food price +18%
+  +9% drought in Western Basin
+  +6% railway disruption
+  +4% population growth
+  -1% strategic reserve release
+```
+
+## 183. Future Projection
+
+For systems with understandable trends, show conditional forecasts:
+
+```text
+If current policy continues:
+  reserve depletion in ~7 turns
+  housing shortage worsens
+  debt ratio rises to 61%
+```
+
+Forecasts should include confidence and assumptions.
+
+## 184. Compare Policies Before Enacting
+
+Players should be able to preview likely winners, losers, costs, risks, and affected systems before major reforms.
+
+## 185. Historical Baseline Comparison
+
+Show how a city, institution, or civilization changed over 10, 50, 100, or 500 turns.
+
+## 186. Automatic Map Annotations
+
+The engine can label major corridors, contested frontiers, cultural regions, economic basins, industrial belts, and metropolitan areas based on simulation data.
+
+## 187. Named Wars and Crises
+
+Major conflicts and crises receive emergent names derived from participants, regions, causes, or later historical interpretation.
+
+## 188. Named Infrastructure
+
+Important bridges, railways, canals, ports, dams, research programs, and expeditions can receive persistent names and histories.
+
+## 189. Memorials and Commemoration
+
+Societies can choose to commemorate major events, changing culture, tourism, legitimacy, reconciliation, or diplomatic relationships.
+
+## 190. Historical Reconciliation
+
+Longstanding rivals can undertake deliberate reconciliation through treaties, memorials, exchanges, institutional cooperation, border settlements, or shared projects.
+
+A rivalry does not have to be mechanically permanent.
+
+---
+
+# XX. Features Civilization Should Have Used to Solve Its Own Core Problems
+
+This section turns the research into direct answers to recurring Civilization weaknesses.
+
+## Problem: Early game is magical, late game is chores
+
+Use:
+
+- attention budget;
+- governors;
+- automation policies;
+- army/front command;
+- batch decisions;
+- exception-driven alerts;
+- world institutions;
+- finance;
+- global projects;
+- dynamic crises;
+- new late-game strategic layers.
+
+## Problem: Snowballing decides the game too early
+
+Use:
+
+- logistics constraints;
+- administrative capacity;
+- internal politics;
+- debt;
+- maintenance;
+- regional autonomy;
+- diplomatic balancing;
+- technological diffusion;
+- dynamic crises;
+- coalition formation;
+- succession and institutional stress.
+
+These systems should create *new decisions* for strong empires rather than arbitrary rubber-banding.
+
+## Problem: Catch-up systems erase accomplishments
+
+Use:
+
+- diffusion rather than reset;
+- successor states;
+- preserved institutions;
+- adaptive crises;
+- changing strategic layers;
+- diminishing relevance of obsolete advantages;
+- world reaction to dominant powers;
+- new technologies that shift comparative advantage.
+
+## Problem: Diplomacy is shallow
+
+Use:
+
+- treaty clauses;
+- diplomatic plays;
+- favors/obligations;
+- lobbies;
+- foreign investment;
+- blocs;
+- world institutions;
+- subjects/autonomy;
+- negotiated peace;
+- historical reputation.
+
+## Problem: Religion becomes repetitive unit pushing
+
+Use:
+
+- institutions;
+- doctrine;
+- reform;
+- schisms;
+- demographic adherence;
+- education;
+- diplomacy;
+- culture;
+- charitable/educational networks;
+- political relationships.
+
+## Problem: Espionage is repetitive missions
+
+Use:
+
+- access networks;
+- information confidence;
+- institutional infiltration;
+- counterintelligence;
+- diplomatic consequences;
+- media;
+- economic intelligence;
+- strategic reporting.
+
+## Problem: Minor states become bonus vendors
+
+Use:
+
+- internal goals;
+- economies;
+- factions;
+- diplomacy;
+- federations;
+- protectorates;
+- trade roles;
+- regional institutions;
+- survival strategies.
+
+## Problem: Every civilization eventually plays similarly
+
+Use:
+
+- systemic asymmetry;
+- path-dependent institutions;
+- dynamic technology;
+- geography-driven adaptation;
+- political structures;
+- unique administration;
+- unique economic organization;
+- unique diplomacy;
+- persistent historical traditions.
+
+## Problem: Difficulty is mostly AI bonuses
+
+Use:
+
+- better planning;
+- shared constraints;
+- explainable AI;
+- imperfect information;
+- coherent strategic identity;
+- stronger delegation;
+- realistic coalition behavior.
+
+---
+
+# Suggested Prototype Sequence
+
+Do not try to build the entire simulation at once. The best path is to prototype the systems that create the greatest number of later interactions.
+
+## Prototype A: Attention + Delegation
+
+Implement first because every later deep system depends on controlling micromanagement.
+
+Test:
+
+- manual/advised/automated domains;
+- governor intent;
+- thresholds;
+- exception alerts;
+- deterministic policy rules;
+- batch actions.
+
+Success metric: a player controlling 30 settlements should not need roughly 30x the operational input of a player controlling one settlement.
+
+## Prototype B: Population + Migration
+
+Add cohorts, employment, culture, migration, and basic needs.
+
+Success metric: city growth and decline should produce understandable stories without scripted events.
+
+## Prototype C: Logistics + Markets
+
+Connect production, transport, prices, reserves, infrastructure, and trade.
+
+Success metric: geography should change economic strategy even if resource yields remain identical.
+
+## Prototype D: Internal Politics + Legitimacy
+
+Connect population outcomes to factions, policy support, and regional stability.
+
+Success metric: two equally wealthy civilizations with different economic structures should develop different politics.
+
+## Prototype E: Dynamic Knowledge
+
+Connect practical activity, institutions, research, education, and diffusion.
+
+Success metric: civilizations should develop recognizably different technology portfolios from different histories.
+
+## Prototype F: Successor States + Historical Layers
+
+Make collapse, secession, union, and reform preserve institutions and history.
+
+Success metric: a fragmented empire should create a playable and historically understandable new world rather than merely smaller colored regions.
+
+## Prototype G: Diplomacy + World Order
+
+Add treaty clauses, interests, obligations, negotiated disputes, blocs, and institutions.
+
+Success metric: a player should be able to change the balance of power dramatically without territorial conquest.
+
+## Prototype H: World Chronicle
+
+Generate histories from authoritative events.
+
+Success metric: reading a campaign chronicle should reveal why the world looks the way it does.
+
+---
+
+# Kill Criteria
+
+Ambitious ideas should be removed or redesigned when they fail these tests.
+
+Reject or simplify a feature if:
+
+- optimal play requires repetitive clicking;
+- it produces information but no meaningful decision;
+- it has no interaction with other systems;
+- it requires omniscient knowledge to use competently;
+- the AI cannot reason about it using the same rules;
+- it cannot explain its outcomes;
+- it creates unavoidable snowballing;
+- it makes the early game richer but the late game slower;
+- it exists mainly because another strategy game has it;
+- it is historically flavorful but strategically irrelevant;
+- it is strategically important but invisible to the player;
+- it cannot be tested deterministically.
+
+---
+
+# Research References
+
+These references informed the design conclusions above. They are inspiration and comparative design research, not specifications to copy.
+
+## Civilization
+
+- Firaxis / Civilization VII Dev Diary #1: Ages and the late-game problems of snowballing, micromanagement, and civilization relevance: https://civilization.2k.com/civ-vii/game-guide/dev-diary/ages/
+- PC Gamer, Civilization VII review, particularly discussion of thin diplomacy, late-game systems, government, religion, espionage, and the missing World Congress: https://www.pcgamer.com/games/strategy/civilization-7-review/
+- CivFanatics discussions about late-game micromanagement, governors, automation, and meaningful decisions: https://forums.civfanatics.com/
+
+## Old World
+
+- Old World review discussion of the Orders/Legitimacy system and the value of prioritizing actions: https://www.pcgamer.com/old-world-review/
+
+## Victoria 3
+
+- Paradox developer diary describing Pops, industries, political strength, interest groups, laws, and interconnected economic/political simulation: https://www.paradoxinteractive.com/games/victoria-3/news/dev-diary-57-the-journey-so-far
+- Victoria 3 diplomacy and strategic interests design: https://www.paradoxinteractive.com/games/victoria-3/news/dev-diary-58-interest-revisions
+- Sphere of Influence systems including foreign investment, subjects, lobbies, and power blocs: https://www.paradoxinteractive.com/games/victoria-3/add-ons/victoria-3-sphere-of-influence
+
+## Distant Worlds 2
+
+- Private/state economy and automated civilian logistics: https://www.matrixgames.com/news/distant-worlds-2-dev-diary-6
+- Flexible manual/advisor/automation design: https://www.matrixgames.com/news/distant-worlds-2-dev-diary-1
+- Guided automation philosophy: https://www.matrixgames.com/news/distant-worlds-2-feature-stellar-update
+
+## Crusader Kings III
+
+- Character, dynasty, inheritance, realm, and long-form emergent storytelling concepts: https://www.paradoxinteractive.com/games/crusader-kings-iii/about
+
+## Stellaris
+
+- Federations and Galactic Community as examples of customizable multilateral institutions and resolutions: https://www.paradoxinteractive.com/games/stellaris/add-ons/stellaris-federations
+
+## Endless Legend
+
+- Asymmetric faction rules and alternatives to standard 4X play: https://www.pcgamer.com/endless-legend-review/
+- Enhanced Winter design notes illustrating the principle that world events should alter strategy rather than simply slow everyone: https://community.amplitude-studios.com/amplitude-studios/endless-legend/blogs/417-shifters-focus-on-the-enhanced-winter
+
+## Frostpunk
+
+- Society, law, promises, and crisis decisions as sources of political consequence: https://www.pcgamer.com/frostpunk-review/
+
+## Terra Invicta
+
+- Factions, councilors, organizations, ideology, and influence operating across conventional nation boundaries: https://wiki.hoodedhorse.com/Terra_Invicta/Factions
+
+---
+
+# Long-Term Vision
+
+The target is not merely a larger Civilization ruleset.
+
+The target is a game where this can happen naturally:
+
+```text
+A river creates a trade corridor.
+        |
+A trading town grows into a city.
+        |
+Merchants establish institutions.
+        |
+Those institutions finance industry.
+        |
+Industry attracts migrants.
+        |
+Migration changes politics and culture.
+        |
+Political reform creates regional autonomy.
+        |
+A university network accelerates engineering.
+        |
+Railways integrate distant regions.
+        |
+The state becomes too centralized for its new scale.
+        |
+A fiscal and legitimacy crisis forces federal reform.
+        |
+A neighboring state joins the federation voluntarily.
+        |
+The new union becomes a global standards-setter.
+        |
+Its language and universities spread worldwide.
+        |
+Centuries later the original river city is no longer
+its capital, but remains its cultural and financial heart.
+```
+
+No designer had to script that exact story.
+
+The simulation created it from geography, people, institutions, economics, politics, technology, diplomacy, and historical memory.
+
+That is the standard CivilizationClone should aim for: not merely "one more turn," but **one more chapter in a world whose history the player actually understands and helped create.**
