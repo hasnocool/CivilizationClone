@@ -40,6 +40,20 @@ def _setup_engine() -> tuple[GameEngine, PlayerId, PlayerId]:
     return engine, first, second
 
 
+def test_end_turn_requires_mandatory_research_choice() -> None:
+    engine, first, _ = _setup_engine()
+    before_hash = engine.state_hash()
+    before_events = len(engine.event_log)
+
+    result = engine.process(_command(4, engine, "EndTurn", first))
+
+    assert not result.accepted
+    assert result.feedback[0].code == "MANDATORY_CHOICE_REQUIRED"
+    assert result.feedback[0].context["choice"] == "research"
+    assert engine.state_hash() == before_hash
+    assert len(engine.event_log) == before_events
+
+
 def test_research_completes_from_accumulated_science() -> None:
     engine, first, _ = _setup_engine()
     selected = engine.process(
@@ -64,10 +78,16 @@ def test_war_peace_round_trip_uses_bilateral_relationship() -> None:
     relationship = engine.session.diplomacy[relationship_key(first, second)]
     assert relationship.status is DiplomacyStatus.WAR
 
-    assert engine.process(_command(5, engine, "EndTurn", first)).accepted
-    assert engine.process(_command(6, engine, "OfferPeace", second, target_first)).accepted
-    assert engine.process(_command(7, engine, "EndTurn", second)).accepted
-    assert engine.process(_command(8, engine, "AcceptPeace", first, target_second)).accepted
+    assert engine.process(
+        _command(5, engine, "ChooseResearch", first, {"technology_id": "surveying"})
+    ).accepted
+    assert engine.process(_command(6, engine, "EndTurn", first)).accepted
+    assert engine.process(_command(7, engine, "OfferPeace", second, target_first)).accepted
+    assert engine.process(
+        _command(8, engine, "ChooseResearch", second, {"technology_id": "masonry"})
+    ).accepted
+    assert engine.process(_command(9, engine, "EndTurn", second)).accepted
+    assert engine.process(_command(10, engine, "AcceptPeace", first, target_second)).accepted
     assert relationship.status is DiplomacyStatus.PEACE
 
 
