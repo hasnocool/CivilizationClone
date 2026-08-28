@@ -7,6 +7,7 @@ import json
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
@@ -101,6 +102,7 @@ class CivilizationApiClient:
     """Typed-enough convenience wrapper around the stable public v1 API."""
 
     transport: JsonTransport = field(default_factory=UrllibJsonTransport)
+    _client_id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
     _command_number: int = 0
 
     async def health(self) -> JsonObject:
@@ -228,7 +230,7 @@ class CivilizationApiClient:
 
     def _next_command_id(self, prefix: str) -> str:
         self._command_number += 1
-        return f"client-{prefix}-{self._command_number}"
+        return f"client-{self._client_id}-{prefix}-{self._command_number}"
 
 
 def _object(value: JsonValue) -> JsonObject:
