@@ -55,6 +55,7 @@ def test_research_options_expose_effective_viewer_costs_and_states() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["player_id"] == "p1"
+    assert body["is_active_player"] is True
     options = {item["technology_id"]: item for item in body["options"]}
 
     assert options["masonry"]["base_cost"] == 7
@@ -69,10 +70,12 @@ def test_research_options_expose_effective_viewer_costs_and_states() -> None:
         headers={"Authorization": f"Bearer {p2}"},
     )
     assert river_response.status_code == 200
-    river_options = {
-        item["technology_id"]: item for item in river_response.json()["options"]
-    }
+    river_body = river_response.json()
+    assert river_body["is_active_player"] is False
+    river_options = {item["technology_id"]: item for item in river_body["options"]}
     assert river_options["masonry"]["effective_cost"] == 7
+    assert river_options["masonry"]["selectable"] is False
+    assert river_options["masonry"]["blockers"] == ["not_active_player"]
 
     missing_auth = client.get("/api/v1/games/research-options/research-options")
     assert missing_auth.status_code == 401
