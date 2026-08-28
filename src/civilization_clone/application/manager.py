@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from civilization_clone.domain.events import EventEnvelope
 from civilization_clone.domain.ids import GameId, RulesetId
 from civilization_clone.domain.state import RulesetRef
+from civilization_clone.engine.advanced import AdvancedGameEngine
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
 from civilization_clone.engine.session import CommandResult, GameEngine
@@ -52,7 +53,7 @@ class GameManager:
             if self.store is not None and game_id in await self.store.list_games():
                 raise ValueError(f"game already exists: {game_id}")
             resolved_ruleset = ruleset or RulesetRef(RulesetId("poc-core"), "1.0.0")
-            engine = GameEngine.create(
+            engine = AdvancedGameEngine.create(
                 game_id=game_id,
                 seed=seed,
                 ruleset=resolved_ruleset,
