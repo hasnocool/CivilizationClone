@@ -10,6 +10,7 @@ from __future__ import annotations
 from civilization_clone.domain.events import EventEnvelope
 from civilization_clone.domain.ids import CommandId, PlayerId
 from civilization_clone.domain.strategy import TradeOffer
+from civilization_clone.domain.types import JsonValue
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.diplomacy import (
     accept_trade,
@@ -267,7 +268,7 @@ class AdvancedGameEngine(GameEngine):
         actor: PlayerId,
         target: PlayerId,
         offer: TradeOffer,
-    ) -> dict[str, object]:
+    ) -> dict[str, JsonValue]:
         return {
             "player_id": actor,
             "target_player_id": target,
