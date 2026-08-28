@@ -19,6 +19,18 @@ const RESOLUTIONS := [
 ]
 const UI_SCALES := [0.75, 0.85, 1.0, 1.1, 1.25, 1.5, 1.75]
 
+const ACTION_BG := Color("2563eb")
+const ACTION_HOVER := Color("3b82f6")
+const ACTION_PRESSED := Color("1d4ed8")
+const FIELD_BG := Color("0f172a")
+const FIELD_BORDER := Color("475569")
+const FIELD_FOCUS := Color("60a5fa")
+const TITLE_TEXT := Color("f8fafc")
+const SECTION_TEXT := Color("dbeafe")
+const FIELD_LABEL_TEXT := Color("cbd5e1")
+const DESCRIPTION_TEXT := Color("94a3b8")
+const CONTROL_TEXT := Color("f8fafc")
+
 var mode_select: OptionButton
 var resolution_select: OptionButton
 var ui_scale_select: OptionButton
@@ -95,6 +107,7 @@ func _build_screen() -> void:
 	var title := Label.new()
 	title.text = "Display & Interface Settings"
 	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_color_override("font_color", TITLE_TEXT)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
@@ -104,7 +117,8 @@ func _build_screen() -> void:
 
 	current_display_label = Label.new()
 	current_display_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	current_display_label.modulate = Color("aeb8c4")
+	current_display_label.add_theme_color_override("font_color", DESCRIPTION_TEXT)
+	current_display_label.add_theme_font_size_override("font_size", 13)
 	shell.add_child(current_display_label)
 
 	settings_scroll = ScrollContainer.new()
@@ -155,7 +169,8 @@ func _build_screen() -> void:
 
 	feedback_label = Label.new()
 	feedback_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	feedback_label.modulate = Color("9fc5e8")
+	feedback_label.add_theme_color_override("font_color", Color("93c5fd"))
+	feedback_label.add_theme_font_size_override("font_size", 13)
 	content.add_child(feedback_label)
 
 	var actions := HFlowContainer.new()
@@ -183,6 +198,7 @@ func _setting_row(label_text: String, control: Control) -> Control:
 	var label := Label.new()
 	label.text = label_text
 	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", FIELD_LABEL_TEXT)
 	row.add_child(label)
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(control)
@@ -192,8 +208,18 @@ func _dropdown() -> OptionButton:
 	var option := OptionButton.new()
 	option.fit_to_longest_item = false
 	option.clip_text = true
+	option.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	option.custom_minimum_size = Vector2(0, 38)
 	option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	option.add_theme_stylebox_override("normal", _control_box(FIELD_BG, FIELD_BORDER, 1))
+	option.add_theme_stylebox_override("hover", _control_box(Color("172033"), Color("64748b"), 1))
+	option.add_theme_stylebox_override("pressed", _control_box(Color("111827"), FIELD_FOCUS, 1))
+	option.add_theme_stylebox_override("focus", _control_box(FIELD_BG, FIELD_FOCUS, 2))
+	option.add_theme_color_override("font_color", CONTROL_TEXT)
+	option.add_theme_color_override("font_hover_color", CONTROL_TEXT)
+	option.add_theme_color_override("font_pressed_color", CONTROL_TEXT)
+	option.add_theme_color_override("font_focus_color", CONTROL_TEXT)
+	option.add_theme_font_size_override("font_size", 14)
 	var popup := option.get_popup()
 	popup.search_bar_enabled = true
 	popup.search_bar_min_item_count = 8
@@ -206,19 +232,30 @@ func _button(text: String) -> Button:
 	button.clip_text = true
 	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	button.custom_minimum_size.y = 38
+	button.add_theme_stylebox_override("normal", _action_box(ACTION_BG, Color("60a5fa"), 1))
+	button.add_theme_stylebox_override("hover", _action_box(ACTION_HOVER, Color("93c5fd"), 1))
+	button.add_theme_stylebox_override("pressed", _action_box(ACTION_PRESSED, Color("bfdbfe"), 1))
+	button.add_theme_stylebox_override("focus", _action_box(ACTION_BG, Color("dbeafe"), 2))
+	button.add_theme_color_override("font_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_hover_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_pressed_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_focus_color", CONTROL_TEXT)
+	button.add_theme_font_size_override("font_size", 14)
 	return button
 
 func _section_label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_color_override("font_color", SECTION_TEXT)
 	return label
 
 func _help_text(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.modulate = Color("aeb8c4")
+	label.add_theme_color_override("font_color", DESCRIPTION_TEXT)
+	label.add_theme_font_size_override("font_size", 13)
 	return label
 
 func _panel_style() -> StyleBoxFlat:
@@ -231,6 +268,30 @@ func _panel_style() -> StyleBoxFlat:
 	style.content_margin_right = 14
 	style.content_margin_top = 12
 	style.content_margin_bottom = 12
+	return style
+
+func _control_box(background: Color, border: Color, border_width: int) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(border_width)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	return style
+
+func _action_box(background: Color, border: Color, border_width: int) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(border_width)
+	style.set_corner_radius_all(7)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 7
+	style.content_margin_bottom = 7
 	return style
 
 func _load_settings() -> void:
