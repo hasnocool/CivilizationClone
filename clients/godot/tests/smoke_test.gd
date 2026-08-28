@@ -48,6 +48,9 @@ func _init() -> void:
 	if _contains_hbox(main):
 		_fail("Fixed horizontal row remained after responsive installation")
 		return
+	if _count_named(main, "SidebarCard") < 5:
+		_fail("Gameplay sidebar sections were not grouped into visible cards")
+		return
 	var map := _find_map(main)
 	if map == null:
 		_fail("Hex map was not created")
@@ -72,6 +75,12 @@ func _find_first(parent: Node, target_name: String) -> Node:
 		if found != null:
 			return found
 	return null
+
+func _count_named(parent: Node, target_name: String) -> int:
+	var count := 1 if parent.name == target_name else 0
+	for child in parent.get_children():
+		count += _count_named(child, target_name)
+	return count
 
 func _contains_hsplit(parent: Node) -> bool:
 	for child in parent.get_children():
