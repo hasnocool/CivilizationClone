@@ -72,7 +72,7 @@ def create_app(
     """Create the public API adapter around application and identity services."""
     app = FastAPI(
         title="CivilizationClone API",
-        version="1.0.0",
+        version="1.1.0",
         description="Client-agnostic deterministic 4X engine API.",
     )
     game_manager = manager or GameManager()
@@ -360,6 +360,10 @@ def create_app(
                     "OfferPeace",
                     "AcceptPeace",
                     "RejectPeace",
+                    "OfferTrade",
+                    "AcceptTrade",
+                    "RejectTrade",
+                    "CancelTrade",
                     "EndTurn",
                 ]
             )
