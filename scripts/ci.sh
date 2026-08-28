@@ -10,10 +10,16 @@ required_files=(
   "PLAN.md"
   "AGENTS.md"
   "docs/WORKFLOW.md"
+  "docs/LOGGING.md"
   ".opencode/agents/local-qa.md"
   ".opencode/agents/implementer.md"
   ".opencode/agents/reviewer.md"
 )
+
+if [[ -d ".github/workflows" ]] && find .github/workflows -type f -print -quit | grep -q .; then
+  printf 'GitHub Actions workflows are prohibited; run CI locally via scripts/ci.sh\n' >&2
+  exit 1
+fi
 
 for path in "${required_files[@]}"; do
   if [[ ! -f "$path" ]]; then
@@ -22,9 +28,6 @@ for path in "${required_files[@]}"; do
   fi
 done
 
-# The repository begins documentation-first. Once pyproject.toml exists, the
-# same script automatically becomes the Python quality/test gate used locally
-# and in GitHub Actions.
 if [[ ! -f "pyproject.toml" ]]; then
   printf '==> no pyproject.toml yet; Python checks are not applicable\n'
   printf '==> CI PASS\n'
@@ -32,7 +35,7 @@ if [[ ! -f "pyproject.toml" ]]; then
 fi
 
 if ! command -v uv >/dev/null 2>&1; then
-  printf 'uv is required to run Python CI checks\n' >&2
+  printf 'uv is required to run Python CI checks locally\n' >&2
   exit 1
 fi
 
@@ -62,4 +65,4 @@ fi
 printf '==> tests\n'
 uv run pytest
 
-printf '==> CI PASS\n'
+printf '==> LOCAL CI PASS\n'
