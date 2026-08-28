@@ -11,7 +11,11 @@ from civilization_clone.domain.state import RulesetRef
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
 from civilization_clone.engine.session import CommandResult, GameEngine
-from civilization_clone.persistence.replay import ReplayReport, verify_replay
+from civilization_clone.persistence.replay import (
+    ReplayReport,
+    ReplayVerificationError,
+    verify_replay,
+)
 from civilization_clone.persistence.sqlite_store import SqliteGameStore
 
 
@@ -26,6 +30,7 @@ class GameManager:
         default_factory=dict
     )
     _accepted_commands: dict[GameId, list[CommandEnvelope]] = field(default_factory=dict)
+    _replay_complete: dict[GameId, bool] = field(default_factory=dict)
     _registry_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     async def create_game(
@@ -53,6 +58,7 @@ class GameManager:
             self._locks[game_id] = asyncio.Lock()
             self._subscribers.setdefault(game_id, set())
             self._accepted_commands[game_id] = []
+            self._replay_complete[game_id] = True
             if self.store is not None:
                 await self.store.save(engine, accepted_commands=())
             return engine
@@ -72,6 +78,7 @@ class GameManager:
             commands = list(await self.store.load_commands(game_id))
             self._games[game_id] = engine
             self._accepted_commands[game_id] = commands
+            self._replay_complete[game_id] = bool(commands) or engine.session.state_version == 0
             self._locks.setdefault(game_id, asyncio.Lock())
             self._subscribers.setdefault(game_id, set())
             return engine
@@ -111,6 +118,11 @@ class GameManager:
     async def verify_replay(self, game_id: GameId) -> ReplayReport:
         """Independently rebuild one running game from its accepted command transcript."""
         engine = await self.get_engine(game_id)
+        if not self._replay_complete.get(game_id, False):
+            raise ReplayVerificationError(
+                "durable save predates the accepted-command replay transcript; "
+                "start a new v1 game for full replay verification"
+            )
         lock = self._locks.setdefault(game_id, asyncio.Lock())
         async with lock:
             return verify_replay(engine, self._accepted_commands.get(game_id, ()))
