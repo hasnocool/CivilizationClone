@@ -34,6 +34,7 @@ from civilization_clone.engine.diplomacy import (
     accept_peace,
     declare_war,
     offer_peace,
+    reject_peace,
     relationship_key,
 )
 from civilization_clone.engine.economy import production_order, resolve_player_economy
@@ -145,6 +146,7 @@ class GameEngine:
             "DeclareWar": self._declare_war,
             "OfferPeace": self._offer_peace,
             "AcceptPeace": self._accept_peace,
+            "RejectPeace": self._reject_peace,
             "Concede": self._concede,
             "EndTurn": self._end_turn,
         }
@@ -208,7 +210,8 @@ class GameEngine:
                 "civilization_id must be text.",
             )
         civilization_id = CivilizationId(raw_civilization)
-        if civilization_id not in POC_CIVILIZATIONS_BY_ID:
+        civilization = POC_CIVILIZATIONS_BY_ID.get(civilization_id)
+        if civilization is None:
             return self._rejected(
                 "INVALID_CIVILIZATION",
                 "That civilization is not available in this ruleset.",
@@ -218,6 +221,9 @@ class GameEngine:
             raw_name.strip(),
             controller,
             civilization_id=civilization_id,
+            gold=civilization.starting_resources.get("gold", 0),
+            science=civilization.starting_resources.get("science", 0),
+            culture=civilization.starting_resources.get("culture", 0),
         )
         self.session.players[command.player_id] = player
         self.session.player_order.append(command.player_id)
@@ -705,6 +711,28 @@ class GameEngine:
         self.session.state_version += 1
         event = self._emit(
             "PeaceAccepted",
+            {"player_id": player_id, "target_player_id": target},
+            command.command_id,
+        )
+        return CommandResult(True, self.session.state_version, (event,))
+
+    def _reject_peace(self, command: CommandEnvelope) -> CommandResult:
+        player_id = self._active_player(command)
+        target = self._target_player(command)
+        if player_id is None:
+            return self._rejected("NOT_ACTIVE_PLAYER", "Only the active player may reject peace.")
+        if target is None:
+            return self._rejected("INVALID_DIPLOMACY", "target_player_id is required.")
+        reason = reject_peace(self.session, player_id, target)
+        if reason is not None:
+            return self._rejected(
+                "DIPLOMACY_REJECTED",
+                "Peace rejection was rejected.",
+                {"reason": reason},
+            )
+        self.session.state_version += 1
+        event = self._emit(
+            "PeaceRejected",
             {"player_id": player_id, "target_player_id": target},
             command.command_id,
         )
