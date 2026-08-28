@@ -10,7 +10,7 @@ Build the project described in `PLAN.md`: a headless, deterministic, API-first 4
 
 Read these before changing code:
 
-1. `PLAN.md` — product architecture, scope, roadmap, and design boundaries.
+1. `PLAN.md` — product architecture, scope, roadmap, logging model, and design boundaries.
 2. `docs/WORKFLOW.md` — required Git/GitHub development workflow.
 3. This `AGENTS.md` — mandatory agent behavior and verification policy.
 
@@ -18,16 +18,41 @@ When these documents disagree, stop expanding scope and prefer the narrowest int
 
 ## Mandatory workflow for every agent
 
-1. Inspect the current branch, repository state, relevant files, tests, and active roadmap phase before editing.
+1. Inspect the current branch, repository state, relevant files, tests, logs, and active roadmap phase before editing.
 2. Work on a feature/fix/chore branch. Do not develop directly on `main`.
 3. Keep changes scoped to one coherent milestone or problem.
 4. Preserve deterministic simulation behavior. Randomness must use the engine RNG abstraction and seeded state.
 5. Keep domain rules out of API/UI/client adapters.
 6. Add or update automated tests for behavior changes.
-7. Before claiming completion, hand verification to the local QA/playtest role described below.
-8. Fix failures found by QA, then have QA rerun the affected checks.
-9. Open a pull request only after local verification is green, except when explicitly opening a draft PR to expose known unfinished work.
-10. GitHub CI is a deterministic second gate; it must never be treated as a replacement for local verification.
+7. Add useful event/runtime logging at important boundaries without leaking hidden/private data.
+8. Before claiming completion, hand verification to the local QA/playtest role described below.
+9. Fix failures found by QA, then have QA rerun the affected checks.
+10. Open a pull request only after local verification is green, except when explicitly opening a draft PR to expose known unfinished work.
+11. Record the exact local CI/QA evidence in the pull request.
+
+## No GitHub Actions / no hosted CI
+
+**GitHub Actions must never be used in this repository.** This is a permanent project constraint because hosted CI has cost/usage implications we do not want.
+
+Do not create, restore, enable, recommend, or depend on `.github/workflows/*` for CI, testing, release validation, automation, or merge gates.
+
+GitHub is used for:
+
+- source control;
+- pull requests;
+- code review;
+- issues/milestones;
+- releases/metadata when needed.
+
+All CI is local and agent-operated.
+
+The canonical deterministic local gate is:
+
+```bash
+bash scripts/ci.sh
+```
+
+Agents must run applicable local checks themselves or delegate them to `local-qa`. A missing hosted CI check is expected and is never a blocker by itself.
 
 ## Local QA is the testing authority
 
@@ -39,16 +64,18 @@ When another agent harness is used and cannot invoke the OpenCode agent, that ag
 
 ### What local QA owns
 
-Local QA performs all applicable verification:
+Local QA performs all applicable verification locally:
 
+- dependency/environment validation;
 - formatting and linting;
 - static type checking;
 - unit tests;
 - integration tests;
 - API contract tests;
-- deterministic replay/state-hash tests;
+- deterministic replay/state-hash/event-journal tests;
 - save/load round-trip tests;
 - simulation invariants/property tests;
+- logging and feedback-safety tests;
 - end-to-end tests;
 - client smoke tests;
 - human-style interactive playtesting when a playable client exists.
@@ -57,95 +84,81 @@ Local QA performs all applicable verification:
 
 Interactive acceptance testing must exercise the client the way a person would whenever tooling permits it.
 
-For GUI/web/desktop clients, QA should:
+For GUI/web/desktop clients, QA should launch the real client, inspect rendered output, and use normal keyboard/pointer interactions. Prefer semantic/accessibility targets when available and screen coordinates when necessary. Verify visible feedback after important actions.
 
-- launch the real client/application;
-- inspect the rendered screen rather than reading hidden internal state as a substitute for acceptance testing;
-- navigate with normal keyboard and pointer input;
-- use visible labels/locations/accessibility targets when available;
-- use screen coordinates when target-based selection is unavailable;
-- click, select, type, scroll, drag, zoom, pan, open menus, and confirm dialogs through the user-facing interface;
-- verify visible feedback after each important action;
-- capture the action sequence and observed result in the QA report;
-- repeat important paths from a clean game/session when practical.
-
-For terminal/TUI clients, QA should:
-
-- launch the real interactive program;
-- send actual keystrokes as a user would;
-- navigate menus, prompts, maps, and commands through the displayed interface;
-- verify the screen/output after each important action.
+For terminal/TUI clients, launch the real interactive program, send actual keystrokes, navigate displayed menus/maps/prompts, and inspect resulting output.
 
 Acceptance testing must not bypass the user interface by directly mutating game state, calling private methods, editing save files, or using internal database writes. API-level tests remain appropriate for validating the API itself, but they do not replace client playtesting.
 
 ### Minimum playable-game QA scenario
 
-Once enough functionality exists, the local QA agent should be able to play a small match from creation to victory/termination and verify at least:
+As capabilities appear, grow toward this complete smoke playthrough:
 
 1. create/start game;
 2. inspect map and fog of war;
 3. select and move a unit;
 4. explore at least one hidden tile;
-5. found or manage a settlement;
+5. found/manage a settlement;
 6. choose production;
 7. choose research;
 8. end multiple turns;
 9. interact with another player/AI;
 10. execute combat when available;
 11. save and reload when available;
-12. finish or validate a configured victory condition;
-13. confirm no hidden information leaks through the client.
+12. verify deterministic replay/event journal;
+13. finish or validate a configured victory condition;
+14. confirm no hidden information leaks through the client, event feed, feedback, or logs.
 
 The exact scenario grows with the roadmap. Do not fail an early milestone because later-milestone systems do not yet exist.
+
+## Logging and diagnostics policy
+
+The project has three separate channels. Never conflate them.
+
+### Deterministic domain event journal
+
+- Successful state mutations emit immutable domain events.
+- Event journal ordering is authoritative and deterministic.
+- Journal entries must not depend on wall-clock time, logging configuration, process ids, hostnames, or other operational state.
+- Event sequence/game/state-version invariants require tests.
+- Durable storage can be added later without changing journal semantics.
+
+### Runtime/debug logs
+
+- Use structured logging for diagnostics and support.
+- Include useful correlation fields such as `game_id`, `command_id`, `event_id`, turn, state version, operation, and error code when available.
+- Runtime logs must never consume RNG, mutate state, alter event ordering, or change hashes/replay results.
+- Never log secrets, tokens, credentials, unrestricted hidden-player state, or sensitive internals.
+- Logs and local diagnostic artifacts belong under ignored local paths such as `logs/` and `artifacts/` when persisted.
+
+### User-facing feedback
+
+- Expected errors and outcomes should have stable typed feedback codes/severity/messages.
+- User feedback must be safe to render directly in clients.
+- Do not expose stack traces, filesystem paths, secrets, hidden opponent state, or debug-only context to users.
 
 ## QA report contract
 
 Every verification report must state:
 
+- `Status: PASS|FAIL|BLOCKED`;
 - commit/working tree tested;
 - environment relevant to the test;
-- exact commands executed;
+- exact local commands executed;
 - automated checks passed/failed/skipped;
+- event/logging/feedback checks performed when applicable;
 - playtest scenario and user-visible steps performed;
 - failures with reproducible steps;
-- screenshots/logs/artifacts when available;
-- final status: `PASS`, `FAIL`, or `BLOCKED`.
+- local log/artifact/screenshot paths when available.
 
 Skipped checks require a reason. `BLOCKED` is not `PASS`.
 
 ## Separation of duties
 
 - `implementer`: changes product code and tests; does not self-certify final QA.
-- `local-qa`: runs tests and human-style playtests; does not modify product code to make failures disappear.
-- `reviewer`: reviews correctness, architecture, security, regressions, and missing tests; does not replace QA.
-- GitHub Actions: runs deterministic scripts only; no LLMs, coding agents, AI review agents, browser agents, or agent-generated approvals.
-
-## GitHub and CI policy
-
-GitHub automation must be conventional, reproducible CI/CD only.
-
-Allowed examples:
-
-- checkout;
-- Python/uv setup;
-- dependency installation;
-- lint/format checks;
-- type checks;
-- tests;
-- coverage;
-- static/security scanners;
-- build/package verification;
-- deterministic artifact generation.
-
-Disallowed in required CI/workflow gates:
-
-- autonomous coding agents;
-- LLM calls;
-- agent-authored fixes pushed by CI;
-- AI-generated approvals;
-- tests that depend on an AI agent deciding whether output looks correct.
-
-See `docs/WORKFLOW.md` for branch/PR/merge policy.
+- `local-qa`: runs all local CI/tests/playtests; does not modify product code to make failures disappear.
+- `reviewer`: reviews correctness, architecture, security, determinism, logging safety, regressions, and missing tests; does not replace QA.
+- GitHub: source control/review only; **no GitHub Actions or hosted CI**.
 
 ## Engineering standards
 
@@ -155,10 +168,10 @@ See `docs/WORKFLOW.md` for branch/PR/merge policy.
 - Prefer pure domain logic and deterministic functions.
 - Keep transport schemas separate from domain models.
 - Version rulesets and serialized game state.
-- Treat backwards compatibility of the public API and save format deliberately.
+- Treat backwards compatibility of the public API, events, and save format deliberately.
 - Keep tests deterministic and independent of wall-clock timing wherever possible.
 - Avoid global mutable state.
-- Do not commit secrets, tokens, credentials, generated local state, or private data.
+- Do not commit secrets, tokens, credentials, generated local state, logs, or private data.
 
 ## Definition of done
 
@@ -167,8 +180,9 @@ A change is complete only when:
 - implementation matches the active roadmap scope;
 - relevant documentation is updated;
 - automated tests exist and pass locally;
+- `bash scripts/ci.sh` passes locally when applicable;
 - local QA has executed the applicable verification protocol;
 - human-style client playtesting has passed if the change affects a playable client;
-- the PR accurately documents verification and known limitations;
-- required GitHub CI checks pass;
+- event/runtime logging and user feedback are tested when affected;
+- the PR accurately documents local verification and known limitations;
 - review findings are resolved.
