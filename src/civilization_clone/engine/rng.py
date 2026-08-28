@@ -35,7 +35,7 @@ class DeterministicRng:
     _state: int
 
     @classmethod
-    def from_seed(cls, seed: int) -> "DeterministicRng":
+    def from_seed(cls, seed: int) -> DeterministicRng:
         return cls(seed & _MASK_64)
 
     @property

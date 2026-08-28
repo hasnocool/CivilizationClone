@@ -26,13 +26,17 @@ class RulesetManifest:
     metadata: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
 
     @classmethod
-    def from_mapping(cls, data: Mapping[str, Any]) -> "RulesetManifest":
+    def from_mapping(cls, data: Mapping[str, Any]) -> RulesetManifest:
         unknown = set(data) - _ALLOWED_KEYS
         if unknown:
             raise ValueError(f"unknown ruleset manifest fields: {sorted(unknown)}")
 
         schema_version = data.get("schema_version")
-        if type(schema_version) is not int or schema_version != 1:
+        if (
+            not isinstance(schema_version, int)
+            or isinstance(schema_version, bool)
+            or schema_version != 1
+        ):
             raise ValueError("unsupported ruleset schema_version; expected integer 1")
 
         raw_id = data.get("id")
