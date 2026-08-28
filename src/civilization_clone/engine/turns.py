@@ -12,14 +12,32 @@ def refresh_player_units(session: GameSession, player_id: PlayerId) -> None:
 
 
 def advance_turn(session: GameSession) -> tuple[bool, PlayerId]:
-    """Advance active player and return (wrapped_game_turn, new_active_player)."""
+    """Advance to the next non-eliminated player.
+
+    Returns ``(wrapped_game_turn, new_active_player)``. A full pass over the player order
+    advances the global turn exactly once, even when eliminated players are skipped.
+    """
     if not session.player_order:
         raise ValueError("cannot advance turn without players")
-    session.active_player_index += 1
-    wrapped = session.active_player_index >= len(session.player_order)
-    if wrapped:
-        session.active_player_index = 0
-        session.turn += 1
-    player_id = session.player_order[session.active_player_index]
-    refresh_player_units(session, player_id)
-    return wrapped, player_id
+
+    living = [
+        player_id
+        for player_id in session.player_order
+        if not session.players[player_id].eliminated
+    ]
+    if not living:
+        raise ValueError("cannot advance turn without a living player")
+
+    wrapped = False
+    for _ in range(len(session.player_order)):
+        session.active_player_index += 1
+        if session.active_player_index >= len(session.player_order):
+            session.active_player_index = 0
+            session.turn += 1
+            wrapped = True
+        player_id = session.player_order[session.active_player_index]
+        if not session.players[player_id].eliminated:
+            refresh_player_units(session, player_id)
+            return wrapped, player_id
+
+    raise RuntimeError("failed to locate a living active player")
