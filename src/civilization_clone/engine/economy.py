@@ -14,14 +14,18 @@ from civilization_clone.domain.economy import (
     YieldModifier,
     YieldType,
 )
-from civilization_clone.domain.gameplay import GameSession, UnitDefinition, UnitState
+from civilization_clone.domain.gameplay import GameSession, PlayerState, UnitDefinition, UnitState
 from civilization_clone.domain.ids import PlayerId, UnitId
 from civilization_clone.domain.map import HexCoord, ResourceType, TerrainType, Tile
 from civilization_clone.domain.types import JsonValue
 from civilization_clone.engine.effects import apply_yield_modifiers
 from civilization_clone.engine.hexgrid import neighbors
 from civilization_clone.engine.research import production_is_unlocked
-from civilization_clone.rules.poc import POC_CIVILIZATIONS_BY_ID
+from civilization_clone.rules.poc import (
+    POC_CIVILIZATIONS_BY_ID,
+    POC_UNIQUE_BUILDING_OWNERS,
+    POC_UNIQUE_UNIT_OWNERS,
+)
 
 BUILDINGS: dict[str, BuildingDefinition] = {
     "granary": BuildingDefinition(
@@ -57,6 +61,36 @@ BUILDINGS: dict[str, BuildingDefinition] = {
             YieldModifier("building:archive", YieldType.SCIENCE, ModifierOperation.FLAT, 1),
         ),
     ),
+    "canal_depot": BuildingDefinition(
+        "canal_depot",
+        cost=11,
+        modifiers=(
+            YieldModifier(
+                "building:canal_depot:food",
+                YieldType.FOOD,
+                ModifierOperation.FLAT,
+                1,
+            ),
+            YieldModifier(
+                "building:canal_depot:production",
+                YieldType.PRODUCTION,
+                ModifierOperation.FLAT,
+                1,
+            ),
+        ),
+    ),
+    "field_archive": BuildingDefinition(
+        "field_archive",
+        cost=11,
+        modifiers=(
+            YieldModifier(
+                "building:field_archive",
+                YieldType.SCIENCE,
+                ModifierOperation.FLAT,
+                2,
+            ),
+        ),
+    ),
 }
 
 UNITS: dict[str, UnitDefinition] = {
@@ -84,6 +118,22 @@ UNITS: dict[str, UnitDefinition] = {
         attack_strength=6,
         defense_strength=3,
         ranged_range=2,
+    ),
+    "river_warden": UnitDefinition(
+        "river_warden",
+        movement=2,
+        vision_radius=1,
+        production_cost=11,
+        attack_strength=6,
+        defense_strength=8,
+    ),
+    "trailblazer": UnitDefinition(
+        "trailblazer",
+        movement=3,
+        vision_radius=2,
+        production_cost=10,
+        attack_strength=4,
+        defense_strength=4,
     ),
 }
 
@@ -156,6 +206,21 @@ def production_order(kind: str, definition_id: str) -> ProductionOrder | None:
     return ProductionOrder(production_kind, definition_id, definition.production_cost)
 
 
+def civilization_can_produce(
+    player: PlayerState,
+    kind: ProductionKind,
+    definition_id: str,
+) -> bool:
+    """Apply generic civilization ownership restrictions to unique production content."""
+    owners = (
+        POC_UNIQUE_BUILDING_OWNERS
+        if kind is ProductionKind.BUILDING
+        else POC_UNIQUE_UNIT_OWNERS
+    )
+    required_civilization = owners.get(definition_id)
+    return required_civilization is None or player.civilization_id == required_civilization
+
+
 def resolve_player_economy(
     session: GameSession,
     player_id: PlayerId,
@@ -208,6 +273,8 @@ def _resolve_production(
     while settlement.production_queue:
         order = settlement.production_queue[0]
         owner = session.players[settlement.owner_id]
+        if not civilization_can_produce(owner, order.kind, order.definition_id):
+            break
         if not production_is_unlocked(owner, order.definition_id):
             break
         if settlement.production_storage < order.cost:
