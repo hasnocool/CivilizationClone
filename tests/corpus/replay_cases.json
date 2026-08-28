@@ -62,5 +62,22 @@
       {"type": "RejectPeace", "player": "p1", "payload": {"target_player_id": "p2"}},
       {"type": "Concede", "player": "p1"}
     ]
+  },
+  {
+    "name": "diplomacy-trade-acceptance",
+    "seed": 5505,
+    "player_count": 2,
+    "commands": [
+      {"type": "JoinGame", "player": "p1", "payload": {"name": "River", "civilization_id": "river_compact"}},
+      {"type": "JoinGame", "player": "p2", "payload": {"name": "Second River", "civilization_id": "river_compact"}},
+      {"type": "StartGame"},
+      {"type": "OfferTrade", "player": "p1", "payload": {"target_player_id": "p2", "offered_gold": 2, "requested_gold": 1}},
+      {"type": "ChooseResearch", "player": "p1", "payload": {"technology_id": "surveying"}},
+      {"type": "EndTurn", "player": "p1"},
+      {"type": "AcceptTrade", "player": "p2", "payload": {"target_player_id": "p1"}},
+      {"type": "ChooseResearch", "player": "p2", "payload": {"technology_id": "masonry"}},
+      {"type": "EndTurn", "player": "p2"},
+      {"type": "Concede", "player": "p1"}
+    ]
   }
 ]
