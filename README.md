@@ -6,22 +6,23 @@ Clients will eventually interact with the same authoritative simulation through 
 This repository does **not** bundle proprietary Civilization game data, rules text, art, maps, UI,
 or other protected assets. The project uses original implementation and content.
 
-## Current milestone: v0.1 deterministic core
+## Current milestone: v0.2 hex world and map generation
 
-v0.1 establishes the foundations required by later engine milestones:
+v0.1 established the deterministic core, event journal, structured diagnostics, typed user feedback,
+and local-only agent CI. v0.2 adds the first spatial simulation layer:
 
-- Python 3.12+ package layout;
-- typed domain identifiers and common core state;
-- deterministic SplitMix64-based random streams;
-- immutable command and event envelopes;
-- canonical state serialization and SHA-256 hashing;
-- strict, versioned JSON ruleset manifest loading;
-- deterministic in-memory domain event journal;
-- structured runtime/debug logging and typed user feedback;
-- deterministic tests and agent-operated local-only CI.
+- axial `HexCoord` coordinates with six-neighbor, distance, ring, and radius helpers;
+- immutable terrain/resource/tile/world-map models;
+- deterministic seeded terrain and resource generation;
+- deterministic, spread-out passable player spawn selection;
+- weighted deterministic A* pathfinding;
+- `UNKNOWN` / `DISCOVERED` / `VISIBLE` fog-of-war primitives;
+- canonical world-map representation for state hashing/replay;
+- deterministic map-generation domain events and operational logging;
+- regression tests proving logging configuration does not alter generated state/events.
 
-Map generation, turns, units, settlements, persistence, HTTP APIs, AI, and playable clients are later
-milestones described in `PLAN.md`.
+Turns, units, settlements, persistence, HTTP APIs, AI, and playable clients are later milestones
+described in `PLAN.md`.
 
 ## Development
 
