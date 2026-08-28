@@ -13,7 +13,7 @@ from civilization_clone.domain.state import RulesetRef
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
 from civilization_clone.engine.session import CommandResult, GameEngine
-from civilization_clone.observability.logging import log_with_context
+from civilization_clone.observability.logging import safe_log_with_context
 from civilization_clone.persistence.replay import (
     ReplayReport,
     ReplayVerificationError,
@@ -237,4 +237,4 @@ class GameManager:
     ) -> None:
         if self.logger is None:
             return
-        await asyncio.to_thread(log_with_context, self.logger, level, message, context)
+        await asyncio.to_thread(safe_log_with_context, self.logger, level, message, context)
