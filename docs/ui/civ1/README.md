@@ -10,6 +10,12 @@ This directory is the canonical visual reference for CivilizationClone clients t
 - separate reusable scene families from one-off presentation so clients do not implement dozens of unrelated screens;
 - keep game logic in the engine/API and treat these files as presentation references only.
 
+## Canonical references
+
+- `SCENE_GRAPH.md` — overall ASCII navigation graph, high-level Mermaid graph, detailed 57-scene Mermaid graph, scene-family ownership graph, and navigation rules.
+- `SCENE_INDEX.md` — stable `CIV1-UI-NNN` identifiers for every scene.
+- `SCENE_CONTRACT.md` — cross-client implementation contract, actions, ownership boundaries, responsive behavior, accessibility, and acceptance-test guidance.
+
 ## Layout sets
 
 | Range | Category | ASCII | ANSII |
@@ -20,7 +26,7 @@ This directory is the canonical visual reference for CivilizationClone clients t
 | 35-46 | Palace, diplomacy, government, events | `ascii/03_diplomacy_events.ascii` | `ansii/03_diplomacy_events.ansii` |
 | 47-57 | Space race, victory, defeat, save/load | `ascii/04_space_endgame.ascii` | `ansii/04_space_endgame.ansii` |
 
-See `SCENE_INDEX.md` for every scene ID and `SCENE_CONTRACT.md` for how client implementations should consume them.
+Start with `SCENE_GRAPH.md` for the overall navigation model, then use `SCENE_INDEX.md` and the matching ASCII/ANSII layout file for the individual scene being implemented.
 
 ## Format conventions
 
@@ -58,6 +64,8 @@ COMMANDS ---------------------> ENGINE/API
   |                                v
   +--------- VIEW MODEL / EVENTS --+
 ```
+
+The full routing and transition graph is maintained in `SCENE_GRAPH.md`; this compact architecture diagram only shows the engine/client boundary.
 
 ## Scene families
 
