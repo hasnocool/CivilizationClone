@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
 
+from civilization_clone.api.auth import AuthenticationError, AuthManager
 from civilization_clone.api.schemas import (
     CommandRequest,
     CommandResponse,
@@ -15,6 +16,8 @@ from civilization_clone.api.schemas import (
     FeedbackResponse,
     GameCreatedResponse,
     HealthResponse,
+    JoinPlayerRequest,
+    PlayerJoinedResponse,
 )
 from civilization_clone.application.manager import GameManager
 from civilization_clone.application.projection import project_event, project_game
@@ -32,8 +35,6 @@ _PUBLIC_EVENT_TYPES = frozenset(
         "PlayerJoined",
         "PlayerEndedTurn",
         "WarDeclared",
-        "PeaceOffered",
-        "PeaceAccepted",
         "PlayerConceded",
         "PlayerEliminated",
         "VictoryAchieved",
@@ -41,15 +42,20 @@ _PUBLIC_EVENT_TYPES = frozenset(
 )
 
 
-def create_app(manager: GameManager | None = None) -> FastAPI:
-    """Create the public API adapter around one application-layer game manager."""
+def create_app(
+    manager: GameManager | None = None,
+    auth: AuthManager | None = None,
+) -> FastAPI:
+    """Create the public API adapter around application and identity services."""
     app = FastAPI(
         title="CivilizationClone API",
-        version="0.8.0",
+        version="1.0.0",
         description="Client-agnostic deterministic 4X engine API.",
     )
     game_manager = manager or GameManager()
+    auth_manager = auth or AuthManager.from_environment()
     app.state.game_manager = game_manager
+    app.state.auth_manager = auth_manager
 
     @app.get("/api/v1/health", response_model=HealthResponse)
     async def health() -> HealthResponse:
@@ -76,20 +82,73 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
             seed=engine.session.seed,
             state_version=engine.session.state_version,
             status=engine.session.status.value,
+            admin_token=auth_manager.issue_admin(game_id),
+        )
+
+    @app.post(
+        "/api/v1/games/{game_id}/players",
+        response_model=PlayerJoinedResponse,
+    )
+    async def join_player(
+        game_id: str,
+        request: JoinPlayerRequest,
+        authorization: str | None = Header(default=None),
+    ) -> PlayerJoinedResponse:
+        resolved_game_id = _game_id(game_id)
+        _require_admin(auth_manager, authorization, resolved_game_id)
+        try:
+            player_id = validate_id(request.player_id, PlayerId)
+            command = CommandEnvelope.create(
+                command_id=validate_id(request.command_id, CommandId),
+                game_id=resolved_game_id,
+                command_type="JoinGame",
+                player_id=player_id,
+                payload={"name": request.name, "controller": request.controller},
+            )
+            result = await game_manager.process(command)
+            engine = await game_manager.get_engine(resolved_game_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        response = _command_response(engine, result, player_id)
+        return PlayerJoinedResponse(
+            accepted=response.accepted,
+            state_version=response.state_version,
+            player_id=str(player_id),
+            player_token=(
+                auth_manager.issue_player(resolved_game_id, player_id) if result.accepted else None
+            ),
+            events=response.events,
+            feedback=response.feedback,
         )
 
     @app.post(
         "/api/v1/games/{game_id}/commands",
         response_model=CommandResponse,
     )
-    async def submit_command(game_id: str, request: CommandRequest) -> CommandResponse:
-        try:
-            resolved_game_id = validate_id(game_id, GameId)
-            player_id = (
-                validate_id(request.player_id, PlayerId)
-                if request.player_id is not None
-                else None
+    async def submit_command(
+        game_id: str,
+        request: CommandRequest,
+        authorization: str | None = Header(default=None),
+    ) -> CommandResponse:
+        resolved_game_id = _game_id(game_id)
+        if request.command_type == "JoinGame":
+            raise HTTPException(
+                status_code=405,
+                detail="JoinGame uses POST /api/v1/games/{game_id}/players",
             )
+
+        player_id: PlayerId | None
+        if request.command_type == "StartGame":
+            _require_admin(auth_manager, authorization, resolved_game_id)
+            player_id = None
+        else:
+            player_id = _require_player(auth_manager, authorization, resolved_game_id)
+            if request.player_id is not None and request.player_id != str(player_id):
+                raise HTTPException(status_code=403, detail="player identity does not match credential")
+
+        try:
             command = CommandEnvelope.create(
                 command_id=validate_id(request.command_id, CommandId),
                 game_id=resolved_game_id,
@@ -110,27 +169,27 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
     @app.get("/api/v1/games/{game_id}/state")
     async def game_state(
         game_id: str,
-        player_id: str = Query(min_length=1),
+        authorization: str | None = Header(default=None),
     ) -> dict[str, Any]:
+        resolved_game_id = _game_id(game_id)
+        viewer_id = _require_player(auth_manager, authorization, resolved_game_id)
         try:
-            resolved_game_id = validate_id(game_id, GameId)
-            viewer_id = validate_id(player_id, PlayerId)
             engine = await game_manager.get_engine(resolved_game_id)
             return project_game(engine.session, viewer_id)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.get("/api/v1/games/{game_id}/events", response_model=list[EventResponse])
     async def game_events(
         game_id: str,
-        player_id: str = Query(min_length=1),
-        after_sequence: int = Query(default=-1, ge=-1),
+        after_sequence: int = -1,
+        authorization: str | None = Header(default=None),
     ) -> list[EventResponse]:
+        if after_sequence < -1:
+            raise HTTPException(status_code=422, detail="after_sequence must be at least -1")
+        resolved_game_id = _game_id(game_id)
+        viewer_id = _require_player(auth_manager, authorization, resolved_game_id)
         try:
-            resolved_game_id = validate_id(game_id, GameId)
-            viewer_id = validate_id(player_id, PlayerId)
             engine = await game_manager.get_engine(resolved_game_id)
             events = await game_manager.snapshot_events(resolved_game_id)
             projected = [
@@ -140,24 +199,20 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
             ]
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
         return [EventResponse.model_validate(event) for event in projected if event is not None]
 
     @app.get("/api/v1/games/{game_id}/legal-actions")
     async def legal_actions(
         game_id: str,
-        player_id: str = Query(min_length=1),
+        authorization: str | None = Header(default=None),
     ) -> dict[str, Any]:
+        resolved_game_id = _game_id(game_id)
+        viewer_id = _require_player(auth_manager, authorization, resolved_game_id)
         try:
-            resolved_game_id = validate_id(game_id, GameId)
-            viewer_id = validate_id(player_id, PlayerId)
             engine = await game_manager.get_engine(resolved_game_id)
             player = engine.session.players[viewer_id]
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
         is_turn = engine.session.current_player_id == viewer_id
         actions: list[str] = ["Concede"] if not player.eliminated else []
@@ -187,7 +242,7 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
                 )
         return {
             "game_id": game_id,
-            "player_id": player_id,
+            "player_id": str(viewer_id),
             "state_version": engine.session.state_version,
             "is_active_player": is_turn,
             "actions": actions,
@@ -196,19 +251,19 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
 
     @app.websocket("/api/v1/games/{game_id}/events/ws")
     async def event_websocket(websocket: WebSocket, game_id: str) -> None:
-        raw_player_id = websocket.query_params.get("player_id")
-        if raw_player_id is None:
-            await websocket.close(code=1008, reason="player_id is required")
+        raw_token = websocket.query_params.get("token")
+        if raw_token is None:
+            await websocket.close(code=1008, reason="token is required")
             return
         try:
             resolved_game_id = validate_id(game_id, GameId)
-            viewer_id = validate_id(raw_player_id, PlayerId)
+            viewer_id = auth_manager.verify_player(raw_token, resolved_game_id)
             engine = await game_manager.get_engine(resolved_game_id)
             if viewer_id not in engine.session.players:
                 raise KeyError(f"player not found: {viewer_id}")
             queue = await game_manager.subscribe(resolved_game_id)
-        except (KeyError, ValueError):
-            await websocket.close(code=1008, reason="game or player not found")
+        except (AuthenticationError, KeyError, ValueError):
+            await websocket.close(code=1008, reason="game or credential not authorized")
             return
 
         await websocket.accept()
@@ -231,6 +286,44 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
             game_manager.unsubscribe(resolved_game_id, queue)
 
     return app
+
+
+def _game_id(raw: str) -> GameId:
+    try:
+        return validate_id(raw, GameId)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+def _bearer_token(authorization: str | None) -> str:
+    if authorization is None:
+        raise HTTPException(status_code=401, detail="bearer credential is required")
+    scheme, separator, token = authorization.partition(" ")
+    if separator != " " or scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=401, detail="bearer credential is required")
+    return token
+
+
+def _require_admin(
+    auth: AuthManager,
+    authorization: str | None,
+    game_id: GameId,
+) -> None:
+    try:
+        auth.verify_admin(_bearer_token(authorization), game_id)
+    except AuthenticationError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+
+def _require_player(
+    auth: AuthManager,
+    authorization: str | None,
+    game_id: GameId,
+) -> PlayerId:
+    try:
+        return auth.verify_player(_bearer_token(authorization), game_id)
+    except AuthenticationError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 
 def _command_response(
