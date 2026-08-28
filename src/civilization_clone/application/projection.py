@@ -91,6 +91,17 @@ def project_game(session: GameSession, viewer_id: PlayerId) -> dict[str, Any]:
                 if relationship.pending_peace_from is not None
                 else None
             ),
+            "pending_trade": (
+                {
+                    "proposer_id": str(relationship.pending_trade.proposer_id),
+                    "offered_gold": relationship.pending_trade.offered_gold,
+                    "requested_gold": relationship.pending_trade.requested_gold,
+                }
+                if relationship.pending_trade is not None
+                else None
+            ),
+            "completed_trades": relationship.completed_trades,
+            "last_trade_turn": relationship.last_trade_turn,
         }
         for (first, second), relationship in sorted(session.diplomacy.items())
         if viewer_id in (first, second)
@@ -181,7 +192,15 @@ def project_event(
     if event_type in globally_safe:
         return _event_projection(event, payload)
 
-    if event_type in {"PeaceOffered", "PeaceAccepted", "PeaceRejected"}:
+    if event_type in {
+        "PeaceOffered",
+        "PeaceAccepted",
+        "PeaceRejected",
+        "TradeOffered",
+        "TradeAccepted",
+        "TradeRejected",
+        "TradeCancelled",
+    }:
         if viewer_id in _diplomacy_participants(session, payload):
             return _event_projection(event, payload)
         return None
@@ -248,7 +267,7 @@ def _diplomacy_participants(
     payload: Mapping[str, Any],
 ) -> set[PlayerId]:
     participants: set[PlayerId] = set()
-    for key in ("player_id", "target_player_id"):
+    for key in ("player_id", "target_player_id", "proposer_id"):
         raw = payload.get(key)
         if isinstance(raw, str) and raw in session.players:
             participants.add(PlayerId(raw))
