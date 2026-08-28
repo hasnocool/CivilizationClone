@@ -87,11 +87,11 @@ Only presentation preferences are stored there. API credentials, game authority,
 
 ## Current `/api/v1` coverage
 
-The Godot client now consumes the complete existing POC transport surface rather than only the original hotseat happy path.
+The Godot client consumes the current POC lifecycle, gameplay, discovery, authorized option, and live-event surfaces rather than only the original hotseat happy path.
 
 Implemented lifecycle/setup fields include:
 
-- health and civilization discovery;
+- health, civilization, and rules-content discovery;
 - game ID and seed;
 - player count and map radius;
 - map water percentage and resource percentage;
@@ -101,9 +101,36 @@ Implemented lifecycle/setup fields include:
 - manual attach to an existing game using a player credential;
 - local disconnect/session clearing.
 
-All current POC gameplay command types are sent through the public command endpoint. State, legal actions, event history, and live events are always fetched with the selected player's credential.
+All current POC gameplay command types are sent through the public command endpoint. State, legal actions, research options, settlement production options, event history, and live events are always fetched with the selected player's credential when authorization is required.
 
-### Live authorized events
+## Server-driven rules/content browser
+
+The client does not copy unit/building/technology registries into GDScript.
+
+Public presentation metadata comes from:
+
+- `GET /api/v1/rules/civilizations`;
+- `GET /api/v1/rules/content`.
+
+Player-specific legality/cost information comes from:
+
+- `GET /api/v1/games/{game_id}/research-options`;
+- `GET /api/v1/games/{game_id}/production-options?settlement_id=...`.
+
+The **Rules Browser** shows civilization descriptions, tags, starting resources, bonuses, unique content, technology costs, prerequisites, unlocks, and current viewer research status.
+
+The production area uses a server-populated dropdown instead of asking the user to type a gameplay definition ID. Visible labels use server-provided names and costs. The old line edit remains hidden only as an internal bridge into the already-existing command handler; it is not a source of rules or user input.
+
+Production choices deliberately distinguish two states:
+
+- **queue now** — whether `QueueProduction` can currently accept that item for the selected settlement/viewer;
+- **completion gate** — stable civilization/research requirements that must be satisfied before the queued item can complete.
+
+This preserves the current engine rule that some known items may be queued before their research/civilization completion gate is met. Such entries stay visibly annotated rather than being incorrectly removed by client logic.
+
+Research choices use the viewer's authoritative effective cost after civilization modifiers and current-turn legality. Raw technology IDs remain command metadata only.
+
+## Live authorized events
 
 The Godot client uses `WebSocketPeer` for the v1 event WebSocket.
 
@@ -118,7 +145,7 @@ The Godot client uses `WebSocketPeer` for the v1 event WebSocket.
 
 The live-event status appears in the game toolbar.
 
-### Attach existing game
+## Attach existing game
 
 The connection panel also supports attaching to an existing game without recreating it.
 
@@ -143,15 +170,16 @@ The token field is masked. The token stays in process memory only. **Disconnect 
 6. Create and start the game.
 7. Switch the active viewer with the viewer selector.
 8. Observe live authorized event-stream status in the game toolbar.
-9. Click one of the current viewer's units to select it.
-10. Click an empty authorized tile to submit `MoveUnit`.
-11. Click a visible opposing unit while one of your units is selected to submit `AttackUnit`.
-12. Use the side panel for settlement founding, worked tiles, research, production, diplomacy, turn advancement, concession, and event inspection.
-13. Use **Disconnect / Clear Session** to remove in-memory credentials and return to the connection screen.
+9. Browse civilization and technology details from the server-driven Rules Browser.
+10. Click one of the current viewer's units to select it.
+11. Click an empty authorized tile to submit `MoveUnit`.
+12. Click a visible opposing unit while one of your units is selected to submit `AttackUnit`.
+13. Found/select a settlement and choose production from the authorized server-driven dropdown.
+14. Choose research using server names and effective viewer costs.
+15. Use the side panel for worked tiles, diplomacy, turn advancement, concession, and event inspection.
+16. Use **Disconnect / Clear Session** to remove in-memory credentials and return to the connection screen.
 
 Alternatively, use **Attach Existing Game** from the connection panel with an existing game ID and player token.
-
-The production definition field deliberately remains server-validated rather than embedding a second copy of gameplay content in Godot. A later API/catalog phase must expose richer production metadata for dropdowns and tooltips.
 
 ## Input model
 
@@ -185,20 +213,23 @@ bash scripts/playtest_godot.sh
 
 The human-style test must use the real Godot window with normal pointer/keyboard input. API-level tests do not replace this acceptance test.
 
-API-completeness acceptance should include, at minimum:
+API/content acceptance should include, at minimum:
 
-1. connect to the API;
+1. connect to the API and confirm the public rules browser populates;
 2. create a game using non-default water/resource values;
 3. create at least one Human and one Bot enrollment where the server setup supports it;
 4. verify the game starts only through the public admin-authorized command path;
-5. verify the live-event indicator reaches `live`;
-6. perform commands and confirm state/events update without manual Refresh;
-7. switch viewers and confirm the stream re-authenticates for the new player;
-8. stop/restart or temporarily interrupt the API and inspect reconnect/error behavior where practical;
-9. clear the session and verify credentials are removed from the client UI/process state;
-10. attach using a valid existing game/player token;
-11. try an invalid token and confirm only safe authorization feedback is shown;
-12. confirm no bearer token appears in URLs, event text, status text, or saved settings.
+5. found a settlement and confirm the production dropdown populates from the authorized endpoint;
+6. verify a queueable future item remains selectable but visibly shows its completion gate;
+7. verify an item the current viewer cannot queue is disabled/annotated;
+8. verify research labels use server names and effective civilization-adjusted costs;
+9. switch viewers and confirm research/production choices re-authorize for the new player;
+10. browse technology prerequisites/unlocks and both civilization detail cards;
+11. verify the live-event indicator reaches `live` and commands refresh state without manual Refresh;
+12. clear the session and verify credentials are removed from the client UI/process state;
+13. attach using a valid existing game/player token;
+14. try an invalid token and confirm only safe authorization feedback is shown;
+15. confirm no bearer token appears in URLs, event text, status text, or saved settings.
 
 Resize/settings acceptance must include, at minimum:
 
@@ -227,6 +258,7 @@ clients/godot/
 ├── scripts/
 │   ├── api_client.gd
 │   ├── api_features.gd
+│   ├── content_browser.gd
 │   ├── event_stream.gd
 │   ├── hex_map.gd
 │   ├── main.gd
@@ -247,12 +279,13 @@ clients/godot/
 - Bearer credentials are never printed into the event log UI.
 - The HTTP client does not include credentials in URLs.
 - WebSocket credentials are supplied only through the required subprotocol handshake, never the URL.
-- The client renders only projections/events returned for the selected player credential.
+- The client renders only projections/events/options returned for the selected player credential.
+- Production options are requested only for the selected viewer's own settlement; the server enforces ownership.
 - Error UI should display safe server detail/feedback, not raw stack traces.
-- Hidden unit IDs must never be guessed or surfaced by client code.
+- Hidden unit or settlement IDs must never be guessed or surfaced by client code.
 - Local settings persist display/interface preferences only, never credentials.
 - Attach credentials remain memory-only and are removed by Disconnect / Clear Session.
 
 ## Future client work
 
-See `TODO.md`. The next major client/server boundary is G2: server-driven production, unit/building, and technology presentation catalogs. Those require new read-only/authorized API data; Godot must not work around their absence by copying Python rule registries. Rich inspectors/map queries, event notifications, accessibility, presentation polish, and systematic local Godot QA remain later client work.
+See `TODO.md`. With G2 implemented, the next logical phase is **G3 rich map interaction**: camera controls, tile inspection, fog distinction, overlays, and server-authorized movement/target/path presentation. G4 inspectors, diplomacy/event polish, accessibility, presentation polish, and systematic local Godot QA remain later client work.

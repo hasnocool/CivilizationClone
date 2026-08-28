@@ -11,6 +11,11 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
 
 from civilization_clone.api.auth import AuthenticationError, AuthManager
+from civilization_clone.api.content import (
+    production_options_response,
+    research_options_response,
+    rules_content_response,
+)
 from civilization_clone.api.schemas import (
     CivilizationResponse,
     CivilizationYieldModifierResponse,
@@ -23,10 +28,19 @@ from civilization_clone.api.schemas import (
     HealthResponse,
     JoinPlayerRequest,
     PlayerJoinedResponse,
+    ProductionOptionsResponse,
+    ResearchOptionsResponse,
+    RulesContentResponse,
 )
 from civilization_clone.application.manager import GameManager
 from civilization_clone.application.projection import project_event, project_game
-from civilization_clone.domain.ids import CommandId, GameId, PlayerId, validate_id
+from civilization_clone.domain.ids import (
+    CommandId,
+    GameId,
+    PlayerId,
+    SettlementId,
+    validate_id,
+)
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
 from civilization_clone.engine.research import available_technologies
@@ -123,6 +137,10 @@ def create_app(
             )
             for definition in POC_CIVILIZATIONS
         ]
+
+    @app.get("/api/v1/rules/content", response_model=RulesContentResponse)
+    async def rules_content() -> RulesContentResponse:
+        return rules_content_response()
 
     @app.post("/api/v1/games", response_model=GameCreatedResponse, status_code=201)
     async def create_game(request: CreateGameRequest) -> GameCreatedResponse:
@@ -249,6 +267,46 @@ def create_app(
             return project_game(engine.session, viewer_id)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get(
+        "/api/v1/games/{game_id}/production-options",
+        response_model=ProductionOptionsResponse,
+    )
+    async def production_options(
+        game_id: str,
+        settlement_id: str,
+        authorization: str | None = Header(default=None),
+    ) -> ProductionOptionsResponse:
+        resolved_game_id = _game_id(game_id)
+        viewer_id = _require_player(auth_manager, authorization, resolved_game_id)
+        try:
+            resolved_settlement_id = validate_id(settlement_id, SettlementId)
+            engine = await game_manager.get_engine(resolved_game_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+        settlement = engine.session.settlements.get(resolved_settlement_id)
+        if settlement is None or settlement.owner_id != viewer_id:
+            raise HTTPException(status_code=404, detail="settlement not found")
+        return production_options_response(engine.session, viewer_id, settlement)
+
+    @app.get(
+        "/api/v1/games/{game_id}/research-options",
+        response_model=ResearchOptionsResponse,
+    )
+    async def research_options(
+        game_id: str,
+        authorization: str | None = Header(default=None),
+    ) -> ResearchOptionsResponse:
+        resolved_game_id = _game_id(game_id)
+        viewer_id = _require_player(auth_manager, authorization, resolved_game_id)
+        try:
+            engine = await game_manager.get_engine(resolved_game_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return research_options_response(engine.session, viewer_id)
 
     @app.get("/api/v1/games/{game_id}/events", response_model=list[EventResponse])
     async def game_events(
