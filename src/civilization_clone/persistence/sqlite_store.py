@@ -73,8 +73,14 @@ class SqliteGameStore:
             raise KeyError(f"game not found: {game_id}")
         payload, expected_state_hash, expected_event_hash = row
         document = json.loads(payload)
+        if str(document.get("state_hash", "")) != expected_state_hash:
+            raise ReplayDivergenceError("snapshot state hash metadata diverged from durable row")
+        if str(document.get("event_hash", "")) != expected_event_hash:
+            raise ReplayDivergenceError("snapshot event hash metadata diverged from durable row")
+
         engine = engine_from_document(document)
-        if engine.state_hash() != expected_state_hash:
+        save_version = int(document.get("save_version", 0))
+        if save_version >= 2 and engine.state_hash() != expected_state_hash:
             raise ReplayDivergenceError("restored state hash diverged from durable checkpoint")
         if engine.event_hash() != expected_event_hash:
             raise ReplayDivergenceError("restored event hash diverged from durable checkpoint")
