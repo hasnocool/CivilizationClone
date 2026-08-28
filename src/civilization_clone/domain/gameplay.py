@@ -207,6 +207,17 @@ class GameSession:
                 "second_player_id": second,
                 "status": relationship.status.value,
                 "pending_peace_from": relationship.pending_peace_from,
+                "pending_trade": (
+                    {
+                        "proposer_id": relationship.pending_trade.proposer_id,
+                        "offered_gold": relationship.pending_trade.offered_gold,
+                        "requested_gold": relationship.pending_trade.requested_gold,
+                    }
+                    if relationship.pending_trade is not None
+                    else None
+                ),
+                "completed_trades": relationship.completed_trades,
+                "last_trade_turn": relationship.last_trade_turn,
             }
             for (first, second), relationship in sorted(self.diplomacy.items())
         ]
