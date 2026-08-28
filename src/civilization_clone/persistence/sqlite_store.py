@@ -35,9 +35,11 @@ class SqliteGameStore:
         engine: GameEngine,
         *,
         accepted_commands: tuple[CommandEnvelope, ...] | None = None,
+        replay_complete: bool = True,
     ) -> None:
         """Persist one snapshot plus immutable deterministic events/commands."""
         document = engine_to_document(engine)
+        document["replay_complete"] = replay_complete
         payload = json.dumps(document, sort_keys=True, separators=(",", ":"))
         event_rows = [
             (
@@ -110,6 +112,10 @@ class SqliteGameStore:
                 raise ReplayDivergenceError("durable command payload is not an object")
             commands.append(command_from_data(data))
         return tuple(commands)
+
+    async def replay_complete(self, game_id: GameId) -> bool:
+        """Return whether durable commands cover the full deterministic event history."""
+        return await asyncio.to_thread(self._replay_complete_sync, str(game_id))
 
     async def event_count(self, game_id: GameId) -> int:
         """Return the number of durable events for one game."""
@@ -263,6 +269,32 @@ class SqliteGameStore:
                 (game_id,),
             ).fetchall()
         return [(int(sequence), str(command_json)) for sequence, command_json in rows]
+
+    def _replay_complete_sync(self, game_id: str) -> bool:
+        self._initialize_sync()
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM game_saves WHERE game_id=?",
+                (game_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(f"game not found: {game_id}")
+            command_rows = connection.execute(
+                "SELECT command_id FROM game_commands WHERE game_id=?",
+                (game_id,),
+            ).fetchall()
+        document = json.loads(str(row[0]))
+        marker = document.get("replay_complete")
+        if isinstance(marker, bool):
+            return marker
+
+        event_command_ids = {
+            str(event["causation_command_id"])
+            for event in document.get("events", [])
+            if event.get("causation_command_id") is not None
+        }
+        durable_command_ids = {str(item[0]) for item in command_rows}
+        return event_command_ids == durable_command_ids
 
     def _event_count_sync(self, game_id: str) -> int:
         self._initialize_sync()
