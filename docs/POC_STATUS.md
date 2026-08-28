@@ -1,4 +1,4 @@
-# Proof-of-Concept Roadmap Status
+# Proof-of-Concept and Post-POC Roadmap Status
 
 This document maps the current implementation branch to `PLAN.md`. It records implementation scope only; local QA remains authoritative for PASS/FAIL status.
 
@@ -13,7 +13,10 @@ This document maps the current implementation branch to `PLAN.md`. It records im
 | v0.7 client-agnostic API | implemented and hardened in v1 | FastAPI `/api/v1`, rules discovery, projections, feedback, WebSocket, signed identity, safe request/command diagnostics |
 | v0.8 AI/automation | implemented | projection-only bot policy, public civilization research preferences, bot match runner, completion/failure/replay metrics |
 | v0.9 first playable client | implemented | `civilization-clone-tui`, public-HTTP-only hotseat play, civilization selection, visible feedback |
-| v1.0 POC hardening | implementation complete on feature branch | E2E public-client tests, replay corpus, migration coverage, docs, release/playtest scripts, expanded benchmark tooling |
+| v1.0 POC hardening | implemented | E2E public-client tests, replay corpus, migration coverage, docs, release/playtest scripts, benchmark tooling, multiple graphical client foundations |
+| v1.1 advanced diplomacy / atomic trade | implementation complete on feature branch | bilateral trade state/commands/events, participant privacy, save v3 migration, replay corpus, API/legal actions, TUI, deterministic bot trade decisions |
+
+The POC remains the stable v1.0 foundation. v1.1 is the first ordered post-POC phase; later phases are defined in `PLAN.md` through v2.0.
 
 ## POC content limits
 
@@ -46,6 +49,30 @@ bash scripts/release.sh
 The benchmark should report zero replay failures; material completion/rejection/throughput regressions should be investigated and the machine-specific baseline attached to local QA/release evidence.
 
 `bash scripts/release.sh` intentionally re-runs the canonical CI gate before building artifacts.
+
+## v1.1 exit path
+
+v1.1 is not complete merely because the source changes exist. An execution-capable local agent must run:
+
+```bash
+bash scripts/ci.sh
+bash scripts/playtest_tui.sh
+```
+
+The trade-specific human-style acceptance path should include at minimum:
+
+1. create a 2-player game and inspect both starting Gold balances;
+2. as the active player, submit `trade p2 2 1`;
+3. switch viewers and verify only the two participants can see the pending terms;
+4. make the recipient active through normal research/end-turn flow and run `accept-trade p1`;
+5. verify Gold moved exactly once and the completed-trade counter advanced;
+6. exercise `reject-trade` and `cancel-trade` paths;
+7. create a pending offer and declare war, confirming the offer is cancelled;
+8. in a 3-player match, confirm the uninvolved player cannot observe private trade terms/events;
+9. persist/restart the match and verify the relationship state restores;
+10. run deterministic replay verification and confirm both state and event hashes match.
+
+The canonical automated suite additionally covers accepted-command retry idempotency, rejected-command mutation purity, third-party privacy, v2→v3 save migration, API authorization, bot negotiation behavior, and a committed trade replay-corpus case.
 
 ## Current verification state
 
