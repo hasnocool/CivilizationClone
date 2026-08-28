@@ -87,3 +87,21 @@ def log_with_context(
 ) -> None:
     """Emit a structured operational log record with correlation context."""
     logger.log(level, message, extra=dict(context or {}))
+
+
+def safe_log_with_context(
+    logger: logging.Logger,
+    level: int,
+    message: str,
+    context: Mapping[str, str | int | float | bool | None] | None = None,
+) -> None:
+    """Emit best-effort diagnostics that can never become authoritative behavior.
+
+    Runtime logging is a side channel. A broken formatter, handler, stream, or custom
+    integration must not turn an already-applied command into an apparent failure or
+    change API control flow. Operational logging failures are therefore contained here.
+    """
+    try:
+        log_with_context(logger, level, message, context)
+    except Exception:
+        return
