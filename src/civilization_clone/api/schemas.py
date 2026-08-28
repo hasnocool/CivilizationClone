@@ -29,6 +29,7 @@ class JoinPlayerRequest(BaseModel):
     player_id: str = Field(min_length=1)
     name: str = Field(min_length=1)
     controller: str = "human"
+    civilization_id: str = "river_compact"
 
 
 class CommandRequest(BaseModel):
@@ -46,6 +47,15 @@ class CommandRequest(BaseModel):
     expected_state_version: int | None = Field(default=None, ge=0)
     payload: dict[str, Any] = Field(default_factory=dict)
     client_timestamp: str | None = None
+
+
+class CivilizationResponse(BaseModel):
+    civilization_id: str
+    name: str
+    description: str
+    tags: list[str]
+    research_preferences: list[str]
+    content_hooks: list[str]
 
 
 class FeedbackResponse(BaseModel):
@@ -82,6 +92,7 @@ class PlayerJoinedResponse(BaseModel):
     accepted: bool
     state_version: int
     player_id: str
+    civilization_id: str
     player_token: str | None
     events: list[EventResponse]
     feedback: list[FeedbackResponse]
