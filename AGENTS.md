@@ -14,6 +14,13 @@ Read these before changing code:
 2. `docs/WORKFLOW.md` — required Git/GitHub development workflow.
 3. This `AGENTS.md` — mandatory agent behavior and verification policy.
 
+For civilization, research, or historical content-pack work, also read:
+
+- `docs/CIVILIZATION_ROSTER.md` — planned historical faction roster, expansion waves, design identities, and content guardrails.
+- `docs/TECHNOLOGY_TREES.md` — shared research model plus civilization-specific heritage technology branches, prerequisites, implementation guidance, and validation requirements.
+
+These content plans supplement `PLAN.md`; they do not override the engine/content separation, deterministic simulation rules, or original-content boundary.
+
 When these documents disagree, stop expanding scope and prefer the narrowest interpretation consistent with `PLAN.md`.
 
 ## Mandatory workflow for every agent
