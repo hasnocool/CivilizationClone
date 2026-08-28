@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from civilization_clone.domain.gameplay import GameSession, UnitState
 from civilization_clone.domain.ids import CommandId, PlayerId, UnitId
 from civilization_clone.domain.map import TerrainType
+from civilization_clone.domain.visibility import Visibility
 from civilization_clone.engine.diplomacy import at_war
 from civilization_clone.engine.hexgrid import distance
 from civilization_clone.engine.rng import RngFactory
@@ -44,6 +45,8 @@ def validate_attack(
         return "no_actions_remaining"
     if not at_war(session, attacker.owner_id, defender.owner_id):
         return "not_at_war"
+    if session.players[player_id].visibility.get(defender.position) is not Visibility.VISIBLE:
+        return "target_not_visible"
     attack_range = max(1, attacker.definition.ranged_range)
     if distance(attacker.position, defender.position) > attack_range:
         return "target_out_of_range"
