@@ -100,8 +100,10 @@ def tile_yield(tile: Tile) -> YieldBundle:
 
 
 def settlement_yield(session: GameSession, settlement: SettlementState) -> YieldBundle:
-    """Calculate settlement yields from center, worked tiles, and buildings."""
-    total = tile_yield(session.world.tile(settlement.center))
+    """Calculate settlement yields from center, worked tiles, buildings, and civic activity."""
+    total = tile_yield(session.world.tile(settlement.center)).add(
+        YieldBundle(science=1, culture=1)
+    )
     for coord in sorted(settlement.worked_tiles):
         total = total.add(tile_yield(session.world.tile(coord)))
 
