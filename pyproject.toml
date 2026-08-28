@@ -1,0 +1,49 @@
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13"]
+build-backend = "uv_build"
+
+[project]
+name = "civilization-clone"
+version = "0.8.0"
+description = "Deterministic, headless 4X strategy engine proof of concept"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "CivilizationClone contributors" }]
+dependencies = [
+  "fastapi==0.141.1",
+  "pydantic==2.13.4",
+  "uvicorn==0.52.4",
+]
+
+[project.scripts]
+civilization-clone-api = "civilization_clone.api.server:main"
+
+[dependency-groups]
+dev = [
+  "httpx==0.28.1",
+  "pyright==1.1.411",
+  "pytest==9.1.1",
+  "ruff==0.16.4",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["civilization_clone"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+include = ["src"]
+exclude = ["**/__pycache__"]
