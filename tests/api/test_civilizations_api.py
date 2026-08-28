@@ -59,5 +59,8 @@ def test_join_player_selects_civilization_and_projection_reports_it() -> None:
         headers={"Authorization": f"Bearer {player_token}"},
     )
     assert state.status_code == 200
-    assert state.json()["viewer"]["civilization_id"] == "horizon_league"
-    assert state.json()["viewer"]["science"] == 2
+    viewer = state.json()["viewer"]
+    assert viewer["civilization_id"] == "horizon_league"
+    assert viewer["science"] == 2
+    assert viewer["research"]["available"] == ["masonry", "surveying"]
+    assert viewer["research"]["preferences"] == ["surveying", "writing", "archery"]
