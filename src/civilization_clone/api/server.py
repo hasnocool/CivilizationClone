@@ -6,13 +6,14 @@ import os
 from pathlib import Path
 
 import uvicorn
+from fastapi import FastAPI
 
 from civilization_clone.api.app import create_app
 from civilization_clone.application.manager import GameManager
 from civilization_clone.persistence.sqlite_store import SqliteGameStore
 
 
-def build_app():
+def build_app() -> FastAPI:
     """Build the default server using durable SQLite persistence."""
     database_path = Path(
         os.environ.get("CIVILIZATION_CLONE_DB", "data/civilization_clone.sqlite3")
@@ -27,6 +28,12 @@ def main() -> None:
     """Run the local API server."""
     host = os.environ.get("CIVILIZATION_CLONE_HOST", "127.0.0.1")
     raw_port = os.environ.get("CIVILIZATION_CLONE_PORT", "8000")
+    if host not in {"127.0.0.1", "localhost", "::1"} and not os.environ.get(
+        "CIVILIZATION_CLONE_AUTH_SECRET"
+    ):
+        raise SystemExit(
+            "CIVILIZATION_CLONE_AUTH_SECRET is required when binding beyond loopback"
+        )
     try:
         port = int(raw_port)
     except ValueError as exc:
