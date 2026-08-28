@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass, field
 
 from civilization_clone.domain.events import EventEnvelope
@@ -85,6 +86,7 @@ class GameManager:
         if engine is not None:
             return engine
         loaded = False
+        replay_complete = False
         async with self._registry_lock:
             engine = self._games.get(game_id)
             if engine is not None:
@@ -115,6 +117,7 @@ class GameManager:
 
     async def process(self, command: CommandEnvelope) -> CommandResult:
         """Serialize one command, persist idempotency, publish events, and log safely."""
+        started = time.perf_counter()
         engine = await self.get_engine(command.game_id)
         lock = self._locks.setdefault(command.game_id, asyncio.Lock())
         async with lock:
@@ -133,7 +136,7 @@ class GameManager:
                 )
             if new_events:
                 self._publish(command.game_id, new_events)
-            log_context: dict[str, str | int | bool] = {
+            log_context: dict[str, str | int | float | bool] = {
                 "game_id": str(command.game_id),
                 "command_id": str(command.command_id),
                 "operation": command.command_type,
@@ -141,6 +144,7 @@ class GameManager:
                 "accepted": result.accepted,
                 "cached": already_processed,
                 "new_event_count": len(new_events),
+                "duration_ms": round((time.perf_counter() - started) * 1000, 3),
             }
             if result.feedback:
                 log_context["error_code"] = result.feedback[0].code
