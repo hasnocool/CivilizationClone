@@ -255,6 +255,7 @@ def create_app(
                     "DeclareWar",
                     "OfferPeace",
                     "AcceptPeace",
+                    "RejectPeace",
                     "EndTurn",
                 ]
             )
