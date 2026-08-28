@@ -10,6 +10,7 @@ from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconne
 from civilization_clone.api.auth import AuthenticationError, AuthManager
 from civilization_clone.api.schemas import (
     CivilizationResponse,
+    CivilizationYieldModifierResponse,
     CommandRequest,
     CommandResponse,
     CreateGameRequest,
@@ -72,6 +73,21 @@ def create_app(
                 name=definition.name,
                 description=definition.description,
                 tags=list(definition.tags),
+                starting_resources=dict(definition.starting_resources),
+                yield_modifiers=[
+                    CivilizationYieldModifierResponse(
+                        yield_type=modifier.yield_type.value,
+                        operation=modifier.operation.value,
+                        value=modifier.value,
+                        priority=modifier.priority,
+                    )
+                    for modifier in definition.yield_modifiers
+                ],
+                research_cost_percent=definition.research_cost_percent,
+                attack_strength_percent=definition.attack_strength_percent,
+                defense_strength_percent=definition.defense_strength_percent,
+                unique_units=list(definition.unique_units),
+                unique_buildings=list(definition.unique_buildings),
                 research_preferences=list(definition.research_preferences),
                 content_hooks=list(definition.content_hooks),
             )
