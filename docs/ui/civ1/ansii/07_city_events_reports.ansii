@@ -1,0 +1,243 @@
+CIVILIZATIONCLONE — CIV1-INSPIRED UI REFERENCE
+ANSII SUPPLEMENT: CITY SUBVIEWS, EVENTS, REPORT PAGES (CIV1-UI-105..130)
+
+[CIV1-UI-105] CITY INFORMATION TAB
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>CITY: ROME                              <FOCUS>[INFO] HAPPY MAP VIEW ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ Defenders: [PHX] [LEG]                                                     ║
+║ Trade routes: Athens +3 │ Thebes +2                                        ║
+║ Pollution risk: ▥ ▥ ▥ ▥                                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-106] CITY HAPPINESS CHART
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>CITY: ROME                               INFO <FOCUS>[HAPPY] MAP VIEW ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ Base population:      ▬ ▬ ☹ ☹                                             ║
+║ Luxuries:             ☺ ▬ ☹ ☹                                             ║
+║ Temple/Cathedral:     ☺ ☺ ▬ ☹                                             ║
+║ Wonders / Martial:    ☺ ☺ ☺ ▬                                             ║
+║ <FOCUS>Final:         ☺ ☺ ☺ ▬                                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-107] CITY MAP SUBVIEW
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>CITY: ROME                               INFO HAPPY <FOCUS>[MAP] VIEW ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                         KNOWN WORLD                                          ║
+║      ≈≈≈≈≈····R····≈≈≈≈≈≈≈····G····≈≈≈≈                                   ║
+║ Home units: ○      Trade partners: +      Current city: ★                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-108] CITY CITIZEN REASSIGNMENT MODE
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                   ASSIGN CITY WORKERS                              ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║          [F] [F] [S] [T] [·]                                                ║
+║          [F] <FOCUS>[W] [S] [T] [·]                                       ║
+║          [·] [S] [C] [S] [·]                                                ║
+║          [·] [T] [S] [F] [·]                                                ║
+║ <ACTION>              [ ASSIGN ] [ REMOVE ] [ DONE ]                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-109] CITY SPECIALIST ASSIGNMENT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>CHANGE SPECIALIST                                  │
+├────────────────────────────────────────────────────────────┤
+│ Citizen #4                                                 │
+│ <FOCUS>▶ Entertainer                                       │
+│ Tax Collector                                              │
+│ Scientist                                                  │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-110] RENAME CITY PROMPT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>RENAME CITY                                        │
+├────────────────────────────────────────────────────────────┤
+│ Current name: Rome                                         │
+│ New name: <FOCUS>[ Roma________________________ ]          │
+│ <ACTION>                         [ RENAME ] [ CANCEL ]      │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-111] CITY UNIT ACTIVATION
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>ACTIVATE CITY UNIT                                 │
+├────────────────────────────────────────────────────────────┤
+│ <FOCUS>▶ Phalanx       Fortified                           │
+│          Legion        Sentry                              │
+│          Caravan       Active                              │
+│ <ACTION>                         [ ACTIVATE ] [ DONE ]      │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-112] CITY IMPROVEMENT COMPLETED / VIEW
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                   IMPROVEMENT COMPLETED                            ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ Rome has completed: <FOCUS>MARKETPLACE                                     ║
+║               ┌────┐       ┌────────┐       ┌────┐                          ║
+║               │ □  │───────│ MARKET │───────│ □  │                          ║
+║               └────┘       └────────┘       └────┘                          ║
+║ <ACTION>                       [ CONTINUE ]                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-113] WONDER RACE LOST / FORCED PRODUCTION CHANGE
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>WONDER NO LONGER AVAILABLE                         │
+├────────────────────────────────────────────────────────────┤
+│ Another civilization completed THE PYRAMIDS.               │
+│ Rome must choose new production.                           │
+│ <ACTION>                              [ CHANGE PRODUCTION ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-114] CIVIL DISORDER CONTINUES
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>CIVIL DISORDER CONTINUES                           │
+├────────────────────────────────────────────────────────────┤
+│ Rome remains in disorder. Production is halted.            │
+│ <ACTION>                         [ VIEW CITY ] [ OK ]       │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-115] WE LOVE THE KING DAY
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>WE LOVE THE KING DAY!                              │
+├────────────────────────────────────────────────────────────┤
+│ The citizens of Rome celebrate your leadership.            │
+│ Government-specific celebration effects apply.             │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-116] POLLUTION APPEARS
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>POLLUTION REPORTED                                 │
+├────────────────────────────────────────────────────────────┤
+│ Industrial pollution has appeared near Rome.               │
+│ <ACTION>                          [ CENTER MAP ] [ OK ]     │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-117] GLOBAL WARMING
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>GLOBAL WARMING                                     │
+├────────────────────────────────────────────────────────────┤
+│ Environmental damage has changed terrain around the world. │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-118] NUCLEAR MELTDOWN
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>NUCLEAR PLANT MELTDOWN                             │
+├────────────────────────────────────────────────────────────┤
+│ A plant accident struck Rome; population fell and nearby   │
+│ terrain became polluted.                                   │
+│ <ACTION>                          [ CENTER MAP ] [ OK ]     │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-119] DISASTER - EARTHQUAKE
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>EARTHQUAKE                                         │
+├────────────────────────────────────────────────────────────┤
+│ Rome was struck; one improvement was destroyed.            │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-120] DISASTER - FAMINE
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>FAMINE                                             │
+├────────────────────────────────────────────────────────────┤
+│ Stored food and population have been lost.                 │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-121] DISASTER - FIRE
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>FIRE                                               │
+├────────────────────────────────────────────────────────────┤
+│ Fire destroyed one city improvement.                       │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-122] DISASTER - FLOOD
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>FLOOD                                              │
+├────────────────────────────────────────────────────────────┤
+│ Flooding reduced the city's population.                    │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-123] DISASTER - PIRACY
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>PIRATE RAID                                        │
+├────────────────────────────────────────────────────────────┤
+│ Stored food and current production have been lost.         │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-124] DISASTER - PLAGUE
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>PLAGUE                                             │
+├────────────────────────────────────────────────────────────┤
+│ Plague reduced the city's population.                      │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-125] DISASTER - VOLCANO
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>VOLCANIC ERUPTION                                  │
+├────────────────────────────────────────────────────────────┤
+│ A nearby eruption reduced the city's population.           │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-126] MILITARY ADVISOR - CASUALTIES PAGE
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                    MILITARY CASUALTIES                             ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ UNIT TYPE       YOUR LOSSES     ROMAN      GREEK      EGYPTIAN               ║
+║ Militia              3             —          2           1                  ║
+║ Phalanx              2             —          4           0                  ║
+║ Legion               1             —          3           2                  ║
+║ <ACTION>                         [ BACK ] [ CLOSE ]                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-127] INTELLIGENCE ADVISOR - DETAIL PAGE
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                    INTELLIGENCE: GREEKS                            ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ Leader: Alexander             Personality: Aggressive                        ║
+║ Apparent goals: Expansion / military pressure                               ║
+║ Recent advances: Navigation, Astronomy                                      ║
+║ Diplomatic state: War with Egyptians, Peace with Romans                      ║
+║ <ACTION>                         [ BACK ] [ CLOSE ]                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-128] CIVILOPEDIA SECTION MENU
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>CIVILOPEDIA                                       │
+├────────────────────────────────────────────────────────────┤
+│ <FOCUS>▶ Complete                                         │
+│ Civilization Advances                                     │
+│ City Improvements                                         │
+│ Military Units                                            │
+│ Terrain Types                                             │
+│ Miscellaneous                                             │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-129] CIVILOPEDIA ENTRY - HISTORY PAGE
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>CIVILOPEDIA: MATHEMATICS                         PAGE 1 OF 2         ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                           [ ENTRY ICON ]                                     ║
+║ Historical description and background of the selected concept.              ║
+║ <ACTION>                           [ NEXT ]                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-130] CIVILOPEDIA ENTRY - GAMEPLAY PAGE
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>CIVILOPEDIA: MATHEMATICS                         PAGE 2 OF 2         ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ Prerequisites: Alphabet, Masonry                                             ║
+║ Enables: Catapult │ Leads toward: Astronomy                                 ║
+║ Gameplay effects and rules summary.                                          ║
+║ <ACTION>                       [ PREVIOUS ] [ CLOSE ]                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
