@@ -11,12 +11,13 @@ from civilization_clone.domain.state import RulesetRef
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
 from civilization_clone.engine.session import CommandResult, GameEngine
+from civilization_clone.persistence.replay import ReplayReport, verify_replay
 from civilization_clone.persistence.sqlite_store import SqliteGameStore
 
 
 @dataclass(slots=True)
 class GameManager:
-    """Own running engines, mutation locks, persistence, and event subscribers."""
+    """Own running engines, mutation locks, persistence, replay, and event subscribers."""
 
     store: SqliteGameStore | None = None
     _games: dict[GameId, GameEngine] = field(default_factory=dict)
@@ -24,6 +25,7 @@ class GameManager:
     _subscribers: dict[GameId, set[asyncio.Queue[EventEnvelope]]] = field(
         default_factory=dict
     )
+    _accepted_commands: dict[GameId, list[CommandEnvelope]] = field(default_factory=dict)
     _registry_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     async def create_game(
@@ -40,7 +42,7 @@ class GameManager:
                 raise ValueError(f"game already exists: {game_id}")
             if self.store is not None and game_id in await self.store.list_games():
                 raise ValueError(f"game already exists: {game_id}")
-            resolved_ruleset = ruleset or RulesetRef(RulesetId("poc-core"), "0.8.0")
+            resolved_ruleset = ruleset or RulesetRef(RulesetId("poc-core"), "1.0.0")
             engine = GameEngine.create(
                 game_id=game_id,
                 seed=seed,
@@ -50,8 +52,9 @@ class GameManager:
             self._games[game_id] = engine
             self._locks[game_id] = asyncio.Lock()
             self._subscribers.setdefault(game_id, set())
+            self._accepted_commands[game_id] = []
             if self.store is not None:
-                await self.store.save(engine)
+                await self.store.save(engine, accepted_commands=())
             return engine
 
     async def get_engine(self, game_id: GameId) -> GameEngine:
@@ -66,7 +69,9 @@ class GameManager:
             if self.store is None:
                 raise KeyError(f"game not found: {game_id}")
             engine = await self.store.load(game_id)
+            commands = list(await self.store.load_commands(game_id))
             self._games[game_id] = engine
+            self._accepted_commands[game_id] = commands
             self._locks.setdefault(game_id, asyncio.Lock())
             self._subscribers.setdefault(game_id, set())
             return engine
@@ -79,8 +84,11 @@ class GameManager:
             before_sequence = engine.event_log.next_sequence
             result = engine.process(command)
             new_events = engine.event_log.snapshot()[before_sequence:]
+            transcript = self._accepted_commands.setdefault(command.game_id, [])
+            if result.accepted and new_events:
+                transcript.append(command)
             if new_events and self.store is not None:
-                await self.store.save(engine)
+                await self.store.save(engine, accepted_commands=tuple(transcript))
             if new_events:
                 self._publish(command.game_id, new_events)
             return result
@@ -92,7 +100,20 @@ class GameManager:
         engine = await self.get_engine(game_id)
         lock = self._locks.setdefault(game_id, asyncio.Lock())
         async with lock:
-            await self.store.save(engine)
+            transcript = tuple(self._accepted_commands.get(game_id, ()))
+            await self.store.save(engine, accepted_commands=transcript)
+
+    async def accepted_commands(self, game_id: GameId) -> tuple[CommandEnvelope, ...]:
+        """Return an immutable accepted-command transcript for replay/debug tooling."""
+        await self.get_engine(game_id)
+        return tuple(self._accepted_commands.get(game_id, ()))
+
+    async def verify_replay(self, game_id: GameId) -> ReplayReport:
+        """Independently rebuild one running game from its accepted command transcript."""
+        engine = await self.get_engine(game_id)
+        lock = self._locks.setdefault(game_id, asyncio.Lock())
+        async with lock:
+            return verify_replay(engine, self._accepted_commands.get(game_id, ()))
 
     async def snapshot_events(self, game_id: GameId) -> tuple[EventEnvelope, ...]:
         """Return an immutable event snapshot for queries without mutating the engine."""
