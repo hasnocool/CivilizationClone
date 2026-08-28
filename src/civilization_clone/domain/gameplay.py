@@ -9,6 +9,11 @@ from civilization_clone.domain.economy import SettlementState
 from civilization_clone.domain.ids import GameId, PlayerId, SettlementId, UnitId
 from civilization_clone.domain.map import HexCoord, WorldMap
 from civilization_clone.domain.state import GamePhase, GameStatus, RulesetRef
+from civilization_clone.domain.strategy import (
+    DiplomaticRelationship,
+    ResearchState,
+    VictoryResult,
+)
 from civilization_clone.domain.visibility import Visibility
 
 
@@ -30,17 +35,23 @@ class PlayerState:
     gold: int = 0
     science: int = 0
     culture: int = 0
+    research: ResearchState = field(default_factory=ResearchState)
+    eliminated: bool = False
+    ever_had_presence: bool = False
 
 
 @dataclass(frozen=True, slots=True)
 class UnitDefinition:
-    """Small data-driven unit definition shared by movement and production."""
+    """Small data-driven unit definition shared by movement, production, and combat."""
 
     definition_id: str
     movement: int = 2
     vision_radius: int = 1
     production_cost: int = 0
     can_found: bool = False
+    attack_strength: int = 4
+    defense_strength: int = 4
+    ranged_range: int = 0
 
     def __post_init__(self) -> None:
         if not self.definition_id.strip():
@@ -51,6 +62,10 @@ class UnitDefinition:
             raise ValueError("unit vision radius must be non-negative")
         if self.production_cost < 0:
             raise ValueError("unit production cost must be non-negative")
+        if self.attack_strength < 0 or self.defense_strength < 0:
+            raise ValueError("combat strengths must be non-negative")
+        if self.ranged_range < 0:
+            raise ValueError("ranged range must be non-negative")
 
 
 @dataclass(slots=True)
@@ -94,6 +109,11 @@ class GameSession:
     player_order: list[PlayerId] = field(default_factory=list)
     units: dict[UnitId, UnitState] = field(default_factory=dict)
     settlements: dict[SettlementId, SettlementState] = field(default_factory=dict)
+    diplomacy: dict[tuple[PlayerId, PlayerId], DiplomaticRelationship] = field(
+        default_factory=dict
+    )
+    victory: VictoryResult | None = None
+    max_turns: int = 60
     next_unit_index: int = 0
     next_settlement_index: int = 0
     turn: int = 0
@@ -125,6 +145,13 @@ class GameSession:
                     "gold": player.gold,
                     "science": player.science,
                     "culture": player.culture,
+                    "research": {
+                        "selected": player.research.selected,
+                        "progress": player.research.progress,
+                        "completed": sorted(player.research.completed),
+                    },
+                    "eliminated": player.eliminated,
+                    "ever_had_presence": player.ever_had_presence,
                     "visibility": [
                         {"q": coord.q, "r": coord.r, "state": visibility.value}
                         for coord, visibility in sorted(player.visibility.items())
@@ -156,7 +183,8 @@ class GameSession:
                     {"q": coord.q, "r": coord.r} for coord in sorted(settlement.territory)
                 ],
                 "worked_tiles": [
-                    {"q": coord.q, "r": coord.r} for coord in sorted(settlement.worked_tiles)
+                    {"q": coord.q, "r": coord.r}
+                    for coord in sorted(settlement.worked_tiles)
                 ],
                 "buildings": sorted(settlement.buildings),
                 "production_queue": [
@@ -171,6 +199,25 @@ class GameSession:
             for _, settlement in sorted(self.settlements.items())
         ]
 
+        diplomacy = [
+            {
+                "first_player_id": first,
+                "second_player_id": second,
+                "status": relationship.status.value,
+                "pending_peace_from": relationship.pending_peace_from,
+            }
+            for (first, second), relationship in sorted(self.diplomacy.items())
+        ]
+
+        victory = None
+        if self.victory is not None:
+            victory = {
+                "winner_id": self.victory.winner_id,
+                "victory_type": self.victory.victory_type.value,
+                "turn": self.victory.turn,
+                "score": self.victory.score,
+            }
+
         return {
             "game_id": self.game_id,
             "ruleset": {"id": self.ruleset.ruleset_id, "version": self.ruleset.version},
@@ -180,6 +227,9 @@ class GameSession:
             "player_order": list(self.player_order),
             "units": units,
             "settlements": settlements,
+            "diplomacy": diplomacy,
+            "victory": victory,
+            "max_turns": self.max_turns,
             "next_unit_index": self.next_unit_index,
             "next_settlement_index": self.next_settlement_index,
             "turn": self.turn,
