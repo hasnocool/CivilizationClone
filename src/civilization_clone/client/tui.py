@@ -25,6 +25,7 @@ _HELP = """Commands:
   war PLAYER                        declare war
   peace PLAYER                      offer peace
   accept PLAYER                     accept that player's peace offer
+  reject PLAYER                     reject that player's peace offer
   end                               end the active player's turn
   concede                           concede the current player
   refresh                           redraw current authorized state
@@ -95,10 +96,17 @@ async def _new_hotseat(api: CivilizationApiClient) -> ClientSession:
     for index in range(player_count):
         default_id = f"p{index + 1}"
         default_civilization = str(
-            civilizations[index % len(civilizations)].get("civilization_id", "river_compact")
+            civilizations[index % len(civilizations)].get(
+                "civilization_id",
+                "river_compact",
+            )
         )
-        player_id = (await _read(f"Player {index + 1} id [{default_id}] > ")).strip() or default_id
-        name = (await _read(f"Player {index + 1} name [{player_id}] > ")).strip() or player_id
+        player_id = (
+            await _read(f"Player {index + 1} id [{default_id}] > ")
+        ).strip() or default_id
+        name = (
+            await _read(f"Player {index + 1} name [{player_id}] > ")
+        ).strip() or player_id
         civilization_id = (
             await _read(
                 f"Player {index + 1} civilization [{default_civilization}] > "
@@ -141,7 +149,6 @@ async def _attach() -> ClientSession:
 
 async def _game_loop(api: CivilizationApiClient, session: ClientSession) -> None:
     await _write("Type 'help' for commands.")
-    state: dict[str, Any] = {}
     while True:
         try:
             state = await api.state(session.game_id, session.viewer_token)
@@ -206,8 +213,11 @@ async def _game_loop(api: CivilizationApiClient, session: ClientSession) -> None
             continue
 
         if result.get("accepted"):
-            event_types = [str(event.get("event_type")) for event in result.get("events", [])]
-            await _write("Accepted" + (f": {', '.join(event_types)}" if event_types else "."))
+            event_types = [
+                str(event.get("event_type")) for event in result.get("events", [])
+            ]
+            suffix = f": {', '.join(event_types)}" if event_types else "."
+            await _write("Accepted" + suffix)
         else:
             await _write(_feedback_text(result))
 
@@ -218,13 +228,22 @@ def parse_player_command(parts: list[str]) -> tuple[str, dict[str, Any]]:
         raise ValueError("command is empty")
     verb = parts[0].lower()
     if verb == "move" and len(parts) == 4:
-        return "MoveUnit", {"unit_id": parts[1], "q": int(parts[2]), "r": int(parts[3])}
+        return "MoveUnit", {
+            "unit_id": parts[1],
+            "q": int(parts[2]),
+            "r": int(parts[3]),
+        }
     if verb == "attack" and len(parts) == 3:
         return "AttackUnit", {"attacker_id": parts[1], "defender_id": parts[2]}
     if verb == "found" and len(parts) == 2:
         return "FoundSettlement", {"unit_id": parts[1]}
     if verb == "work" and len(parts) in {4, 5}:
-        worked = True if len(parts) == 4 else parts[4].lower() not in {"off", "false", "0", "no"}
+        worked = True if len(parts) == 4 else parts[4].lower() not in {
+            "off",
+            "false",
+            "0",
+            "no",
+        }
         return "SetWorkedTile", {
             "settlement_id": parts[1],
             "q": int(parts[2]),
@@ -250,6 +269,8 @@ def parse_player_command(parts: list[str]) -> tuple[str, dict[str, Any]]:
         return "OfferPeace", {"target_player_id": parts[1]}
     if verb == "accept" and len(parts) == 2:
         return "AcceptPeace", {"target_player_id": parts[1]}
+    if verb == "reject" and len(parts) == 2:
+        return "RejectPeace", {"target_player_id": parts[1]}
     if verb in {"end", "endturn"} and len(parts) == 1:
         return "EndTurn", {}
     if verb == "concede" and len(parts) == 1:
@@ -258,7 +279,7 @@ def parse_player_command(parts: list[str]) -> tuple[str, dict[str, Any]]:
 
 
 def render_civilizations(civilizations: list[dict[str, Any]]) -> str:
-    """Render public civilization content returned by the API."""
+    """Render public civilization content and gameplay bonuses returned by the API."""
     lines = ["Available civilizations:"]
     for item in civilizations:
         civilization_id = item.get("civilization_id", "?")
@@ -268,35 +289,76 @@ def render_civilizations(civilizations: list[dict[str, Any]]) -> str:
         lines.append(f"  {civilization_id}: {name} [{tags}]")
         if description:
             lines.append(f"    {description}")
+        bonuses = _civilization_bonus_text(item)
+        if bonuses:
+            lines.append(f"    Bonuses: {bonuses}")
     return "\n".join(lines)
+
+
+def _civilization_bonus_text(item: dict[str, Any]) -> str:
+    bonuses: list[str] = []
+    resources = _mapping(item.get("starting_resources", {}))
+    if resources:
+        bonuses.append(
+            "start "
+            + ", ".join(
+                f"{key} +{value}" for key, value in sorted(resources.items())
+            )
+        )
+    for raw_modifier in item.get("yield_modifiers", []):
+        modifier = _mapping(raw_modifier)
+        operation = str(modifier.get("operation", ""))
+        value = modifier.get("value", 0)
+        yield_type = modifier.get("yield_type", "yield")
+        if operation == "flat":
+            bonuses.append(f"{yield_type} {int(value):+d} per settlement")
+        elif operation == "percent":
+            bonuses.append(f"{yield_type} {int(value):+d}% per settlement")
+    for field_name, label in (
+        ("research_cost_percent", "research cost"),
+        ("attack_strength_percent", "attack strength"),
+        ("defense_strength_percent", "defense strength"),
+    ):
+        value = item.get(field_name, 0)
+        if isinstance(value, int) and not isinstance(value, bool) and value != 0:
+            bonuses.append(f"{label} {value:+d}%")
+    return "; ".join(bonuses)
 
 
 def render_state(state: dict[str, Any]) -> str:
     """Render one authorized player projection as compact terminal text."""
     viewer = _mapping(state.get("viewer", {}))
+    research = _mapping(viewer.get("research", {}))
     lines = [
         "=" * 72,
         f"Game {state.get('game_id')} | turn {state.get('turn')} | {state.get('status')} | "
         f"active={state.get('active_player_id')} | viewer={viewer.get('player_id')} | "
         f"civ={viewer.get('civilization_id', '-')}",
         f"Gold {viewer.get('gold', 0)}  Science {viewer.get('science', 0)}  "
-        f"Culture {viewer.get('culture', 0)}  Research {_mapping(viewer.get('research', {})).get('selected') or '-'}",
+        f"Culture {viewer.get('culture', 0)}  Research {research.get('selected') or '-'}",
         render_map(state),
     ]
     units = [_mapping(item) for item in state.get("units", [])]
     if units:
-        lines.append("Units: " + "; ".join(
-            f"{unit.get('unit_id')}:{unit.get('definition_id')}@({unit.get('q')},{unit.get('r')}) "
-            f"hp={unit.get('hit_points')} mv={unit.get('movement_remaining')} owner={unit.get('owner_id')}"
-            for unit in units
-        ))
+        lines.append(
+            "Units: "
+            + "; ".join(
+                f"{unit.get('unit_id')}:{unit.get('definition_id')}@"
+                f"({unit.get('q')},{unit.get('r')}) hp={unit.get('hit_points')} "
+                f"mv={unit.get('movement_remaining')} owner={unit.get('owner_id')}"
+                for unit in units
+            )
+        )
     settlements = [_mapping(item) for item in state.get("settlements", [])]
     if settlements:
-        lines.append("Settlements: " + "; ".join(
-            f"{item.get('settlement_id')}@({item.get('q')},{item.get('r')}) pop={item.get('population')} "
-            f"owner={item.get('owner_id')}"
-            for item in settlements
-        ))
+        lines.append(
+            "Settlements: "
+            + "; ".join(
+                f"{item.get('settlement_id')}@({item.get('q')},{item.get('r')}) "
+                f"pop={item.get('population')} owner={item.get('owner_id')}"
+                for item in settlements
+            )
+        )
     victory = state.get("victory")
     if isinstance(victory, dict):
         lines.append(
@@ -319,10 +381,12 @@ def render_map(state: dict[str, Any]) -> str:
     viewer_id = str(_mapping(state.get("viewer", {})).get("player_id", ""))
     for raw in state.get("settlements", []):
         item = _mapping(raw)
-        overlay[(int(item["q"]), int(item["r"]))] = "S" if item.get("owner_id") == viewer_id else "s"
+        marker = "S" if item.get("owner_id") == viewer_id else "s"
+        overlay[(int(item["q"]), int(item["r"]))] = marker
     for raw in state.get("units", []):
         item = _mapping(raw)
-        overlay[(int(item["q"]), int(item["r"]))] = "U" if item.get("owner_id") == viewer_id else "e"
+        marker = "U" if item.get("owner_id") == viewer_id else "e"
+        overlay[(int(item["q"]), int(item["r"]))] = marker
 
     symbols = {
         "water": "~",
