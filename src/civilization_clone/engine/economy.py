@@ -20,6 +20,7 @@ from civilization_clone.domain.map import HexCoord, ResourceType, TerrainType, T
 from civilization_clone.domain.types import JsonValue
 from civilization_clone.engine.effects import apply_yield_modifiers
 from civilization_clone.engine.hexgrid import neighbors
+from civilization_clone.engine.research import production_is_unlocked
 
 BUILDINGS: dict[str, BuildingDefinition] = {
     "granary": BuildingDefinition(
@@ -187,6 +188,9 @@ def _resolve_production(
     outcomes: list[EconomyOutcome] = []
     while settlement.production_queue:
         order = settlement.production_queue[0]
+        owner = session.players[settlement.owner_id]
+        if not production_is_unlocked(owner, order.definition_id):
+            break
         if settlement.production_storage < order.cost:
             break
         if order.kind is ProductionKind.UNIT:
