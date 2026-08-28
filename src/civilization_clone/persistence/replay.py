@@ -8,6 +8,7 @@ from typing import Any
 
 from civilization_clone.domain.gameplay import GameSession
 from civilization_clone.domain.ids import CommandId, GameId, PlayerId
+from civilization_clone.engine.advanced import AdvancedGameEngine
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.event_log import EventLog
 from civilization_clone.engine.session import GameEngine
@@ -46,7 +47,7 @@ def verify_replay(
     )
     journal = EventLog(engine.session.game_id)
     journal.extend(initial_events)
-    replay = GameEngine(
+    replay = AdvancedGameEngine(
         session=GameSession(
             game_id=engine.session.game_id,
             ruleset=engine.session.ruleset,
