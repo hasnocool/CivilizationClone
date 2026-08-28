@@ -9,6 +9,7 @@ from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconne
 
 from civilization_clone.api.auth import AuthenticationError, AuthManager
 from civilization_clone.api.schemas import (
+    CivilizationResponse,
     CommandRequest,
     CommandResponse,
     CreateGameRequest,
@@ -26,6 +27,7 @@ from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
 from civilization_clone.engine.research import available_technologies
 from civilization_clone.engine.session import CommandResult, GameEngine
+from civilization_clone.rules.poc import POC_CIVILIZATIONS
 
 _PUBLIC_EVENT_TYPES = frozenset(
     {
@@ -61,6 +63,20 @@ def create_app(
     @app.get("/api/v1/health", response_model=HealthResponse)
     async def health() -> HealthResponse:
         return HealthResponse()
+
+    @app.get("/api/v1/rules/civilizations", response_model=list[CivilizationResponse])
+    async def civilizations() -> list[CivilizationResponse]:
+        return [
+            CivilizationResponse(
+                civilization_id=str(definition.civilization_id),
+                name=definition.name,
+                description=definition.description,
+                tags=list(definition.tags),
+                research_preferences=list(definition.research_preferences),
+                content_hooks=list(definition.content_hooks),
+            )
+            for definition in POC_CIVILIZATIONS
+        ]
 
     @app.post("/api/v1/games", response_model=GameCreatedResponse, status_code=201)
     async def create_game(request: CreateGameRequest) -> GameCreatedResponse:
@@ -104,7 +120,11 @@ def create_app(
                 game_id=resolved_game_id,
                 command_type="JoinGame",
                 player_id=player_id,
-                payload={"name": request.name, "controller": request.controller},
+                payload={
+                    "name": request.name,
+                    "controller": request.controller,
+                    "civilization_id": request.civilization_id,
+                },
             )
             result = await game_manager.process(command)
             engine = await game_manager.get_engine(resolved_game_id)
@@ -113,10 +133,14 @@ def create_app(
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         response = _command_response(engine, result, player_id)
+        civilization_id = request.civilization_id
+        if result.accepted:
+            civilization_id = str(engine.session.players[player_id].civilization_id)
         return PlayerJoinedResponse(
             accepted=response.accepted,
             state_version=response.state_version,
             player_id=str(player_id),
+            civilization_id=civilization_id,
             player_token=(
                 auth_manager.issue_player(resolved_game_id, player_id) if result.accepted else None
             ),
