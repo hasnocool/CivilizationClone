@@ -143,7 +143,8 @@ def test_building_queue_completes_and_modifier_affects_yield() -> None:
     assert "granary" in settlement.buildings
     assert any(event.event_type == "BuildingCompleted" for event in engine.event_log)
     base_food = tile_yield(engine.session.world.tile(settlement.center)).food
-    assert settlement_yield(engine.session, settlement).food == base_food + 1
+    # River Compact contributes +1 Food and the granary contributes another +1.
+    assert settlement_yield(engine.session, settlement).food == base_food + 2
 
 
 def test_unit_production_spawns_deterministic_unit() -> None:
