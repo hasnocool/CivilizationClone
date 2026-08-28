@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnec
 from civilization_clone.api.schemas import (
     CommandRequest,
     CommandResponse,
+    CreateGameRequest,
     EventResponse,
     FeedbackResponse,
     GameCreatedResponse,
@@ -55,20 +56,17 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
         return HealthResponse()
 
     @app.post("/api/v1/games", response_model=GameCreatedResponse, status_code=201)
-    async def create_game(request: Any) -> GameCreatedResponse:
-        from civilization_clone.api.schemas import CreateGameRequest
-
-        parsed = CreateGameRequest.model_validate(request)
+    async def create_game(request: CreateGameRequest) -> GameCreatedResponse:
         try:
-            game_id = validate_id(parsed.game_id, GameId)
+            game_id = validate_id(request.game_id, GameId)
             engine = await game_manager.create_game(
                 game_id=game_id,
-                seed=parsed.seed,
+                seed=request.seed,
                 map_config=MapGenerationConfig(
-                    radius=parsed.map_radius,
-                    player_count=parsed.player_count,
-                    water_percent=parsed.water_percent,
-                    resource_percent=parsed.resource_percent,
+                    radius=request.map_radius,
+                    player_count=request.player_count,
+                    water_percent=request.water_percent,
+                    resource_percent=request.resource_percent,
                 ),
             )
         except ValueError as exc:
@@ -142,6 +140,8 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
             ]
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
         return [EventResponse.model_validate(event) for event in projected if event is not None]
 
     @app.get("/api/v1/games/{game_id}/legal-actions")
@@ -156,6 +156,8 @@ def create_app(manager: GameManager | None = None) -> FastAPI:
             player = engine.session.players[viewer_id]
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
         is_turn = engine.session.current_player_id == viewer_id
         actions: list[str] = ["Concede"] if not player.eliminated else []
