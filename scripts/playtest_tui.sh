@@ -16,10 +16,12 @@ api_pid=$!
 trap 'kill "$api_pid" >/dev/null 2>&1 || true' EXIT
 
 python - <<'PY'
+import os
 import time
 import urllib.request
 
-url = "http://127.0.0.1:8765/api/v1/health"
+port = os.environ["CIVILIZATION_CLONE_PORT"]
+url = f"http://127.0.0.1:{port}/api/v1/health"
 for _ in range(100):
     try:
         with urllib.request.urlopen(url, timeout=0.25) as response:
