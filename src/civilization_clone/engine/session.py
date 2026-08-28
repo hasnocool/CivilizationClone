@@ -16,6 +16,7 @@ from civilization_clone.domain.gameplay import (
     UnitState,
 )
 from civilization_clone.domain.ids import (
+    CivilizationId,
     CommandId,
     EventId,
     GameId,
@@ -49,6 +50,7 @@ from civilization_clone.engine.state_hash import state_hash
 from civilization_clone.engine.turns import advance_turn
 from civilization_clone.engine.victory import check_victory, update_eliminations
 from civilization_clone.engine.visibility import update_visibility, visible_coords
+from civilization_clone.rules.poc import POC_CIVILIZATIONS_BY_ID
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,13 +201,33 @@ class GameEngine:
             controller = ControllerType(str(raw_controller))
         except ValueError:
             return self._rejected("INVALID_CONTROLLER", "Unsupported player controller type.")
-        player = PlayerState(command.player_id, raw_name.strip(), controller)
+        raw_civilization = command.payload.get("civilization_id", "river_compact")
+        if not isinstance(raw_civilization, str):
+            return self._rejected(
+                "INVALID_CIVILIZATION",
+                "civilization_id must be text.",
+            )
+        civilization_id = CivilizationId(raw_civilization)
+        if civilization_id not in POC_CIVILIZATIONS_BY_ID:
+            return self._rejected(
+                "INVALID_CIVILIZATION",
+                "That civilization is not available in this ruleset.",
+            )
+        player = PlayerState(
+            command.player_id,
+            raw_name.strip(),
+            controller,
+            civilization_id=civilization_id,
+        )
         self.session.players[command.player_id] = player
         self.session.player_order.append(command.player_id)
         self.session.state_version += 1
         event = self._emit(
             "PlayerJoined",
-            {"player_id": command.player_id},
+            {
+                "player_id": command.player_id,
+                "civilization_id": civilization_id,
+            },
             command.command_id,
         )
         self._log(command, "command accepted", event.event_id)
