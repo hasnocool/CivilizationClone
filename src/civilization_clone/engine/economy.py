@@ -221,6 +221,24 @@ def civilization_can_produce(
     return required_civilization is None or player.civilization_id == required_civilization
 
 
+def production_rule_blockers(
+    player: PlayerState,
+    kind: ProductionKind,
+    definition_id: str,
+) -> tuple[str, ...]:
+    """Return stable content-rule blockers that prevent a queued order from completing.
+
+    Queue-time action legality is intentionally separate. The POC permits an otherwise
+    valid item to be queued before its civilization/research completion gates are met.
+    """
+    blockers: list[str] = []
+    if not civilization_can_produce(player, kind, definition_id):
+        blockers.append("civilization_restricted")
+    if not production_is_unlocked(player, definition_id):
+        blockers.append("technology_required")
+    return tuple(blockers)
+
+
 def resolve_player_economy(
     session: GameSession,
     player_id: PlayerId,
@@ -273,9 +291,7 @@ def _resolve_production(
     while settlement.production_queue:
         order = settlement.production_queue[0]
         owner = session.players[settlement.owner_id]
-        if not civilization_can_produce(owner, order.kind, order.definition_id):
-            break
-        if not production_is_unlocked(owner, order.definition_id):
+        if production_rule_blockers(owner, order.kind, order.definition_id):
             break
         if settlement.production_storage < order.cost:
             break

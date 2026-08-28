@@ -23,8 +23,10 @@ Exit: project imports and main scene instantiates under Godot 4.7.x.
 - [x] API health connection flow.
 - [x] Public civilization catalog loading.
 - [x] New game parameters.
+- [x] Full public map-generation parameters: radius, water %, resource %.
 - [x] 2–4 player hotseat enrollment.
 - [x] Civilization selection per player.
+- [x] Public `human` / `bot` controller selection during enrollment.
 - [x] Start game through public API.
 - [x] In-memory player credential switching.
 - [x] Fog-safe authorized map rendering.
@@ -54,21 +56,23 @@ Goal: remove remaining manual definition-ID entry without copying gameplay conte
 
 Server/API:
 
-- [ ] Add a stable read-only public POC rules catalog or player-authorized production-options query.
-- [ ] Expose unit definitions needed for presentation: id, movement, vision, production cost, abstract combat stats, requirements, civilization ownership.
-- [ ] Expose building definitions needed for presentation: id, production cost, visible yield effects, requirements, civilization ownership.
-- [ ] Expose technology display data: id, cost, prerequisites, unlocks, effective player cost where appropriate.
-- [ ] Keep hidden/authoritative-only rule data out of public responses.
+- [x] Add stable read-only public POC rules content and player-authorized production/research option queries.
+- [x] Expose producible unit definitions needed for presentation: id/name, movement, vision, production cost, abstract combat stats, requirements, civilization ownership.
+- [x] Expose building definitions needed for presentation: id/name, production cost, visible yield effects, requirements, civilization ownership.
+- [x] Expose technology display data: id/name, base cost, prerequisites, unlocks, effective player cost, content status, and current-turn selectability.
+- [x] Keep hidden/authoritative-only rule and player data out of public responses; production options are scoped to the credential holder's own settlement.
+- [x] Preserve QueueProduction semantics by reporting queue blockers separately from stable completion-content blockers.
 
 Godot:
 
-- [ ] Production dropdown populated exclusively from server responses.
-- [ ] Disable/annotate locked production options based on server response.
-- [ ] Technology browser/tree.
-- [ ] Civilization detail cards with bonuses and unique content.
-- [ ] Context-sensitive tooltips.
+- [x] Production dropdown populated exclusively from server-authorized responses; raw definition-ID entry is hidden from normal UI.
+- [x] Disable options that cannot currently be queued and annotate queueable future production with civilization/research completion gates.
+- [x] Technology browser with server names, effective cost/status, prerequisites, unlocks, and blocker explanations.
+- [x] Civilization detail browser with descriptions, tags, starting resources, bonuses, and unique content.
+- [x] Context-sensitive tooltips/detail text for research and production choices.
+- [x] Existing command path remains authoritative: visible dropdown metadata feeds the same public QueueProduction/ChooseResearch commands rather than mutating state locally.
 
-Exit: no gameplay definition IDs or rule constants are manually duplicated in the Godot UI.
+Exit: normal Godot play no longer requires manually typing gameplay definition IDs or duplicating rule constants in GDScript.
 
 ## Phase G3 — Rich map interaction
 
@@ -113,27 +117,27 @@ Exit: routine play no longer depends on raw event payload inspection.
 
 ## Phase G5 — Real-time authorized event stream
 
-- [ ] Godot `WebSocketPeer` client.
-- [ ] Use `civilization.v1` + player token subprotocol handshake as required by API contract.
-- [ ] Never put token in WebSocket query string.
-- [ ] Resume using non-secret `after_sequence`.
-- [ ] Auto-refresh projection after relevant events.
-- [ ] Reconnect/backoff state machine.
-- [ ] Viewer switch cleanly closes/re-authenticates stream.
+- [x] Godot `WebSocketPeer` client.
+- [x] Use `civilization.v1` + player token subprotocol handshake as required by API contract.
+- [x] Never put token in WebSocket query string.
+- [x] Resume using non-secret `after_sequence`.
+- [x] Auto-refresh projection after relevant events.
+- [x] Reconnect/backoff state machine.
+- [x] Viewer switch cleanly closes/re-authenticates stream.
 - [ ] Event notifications/toasts.
-- [ ] Test that unauthorized/bilateral/hidden events do not surface.
+- [ ] Test that unauthorized/bilateral/hidden events do not surface with an executable local API + Godot run.
 
 Exit: client updates without manual refresh while preserving server-side authorization.
 
 ## Phase G6 — Attach/reconnect/session UX
 
-- [ ] Attach to existing game with manually supplied game/player credential.
+- [x] Attach to existing game with manually supplied game/player credential.
 - [ ] Optional OS-keystore-backed credential persistence if implemented safely; never plain-text token files by default.
 - [ ] Recent non-secret server/game IDs.
-- [ ] Clear credentials/logout.
-- [ ] Graceful expired/invalid-token handling.
+- [x] Clear credentials/logout.
+- [x] Graceful invalid-token handling in attach and live-stream status.
 - [ ] Server restart guidance when ephemeral auth secret invalidates credentials.
-- [ ] Connection loss overlay and retry.
+- [ ] Connection loss overlay and HTTP retry UX.
 
 Exit: persistent local server sessions are usable without recreating games.
 
@@ -152,8 +156,8 @@ Exit: diplomacy and match-end state are obvious without reading raw events.
 
 ## Phase G8 — AI and match setup
 
-- [ ] Human/bot controller selection in lobby when public API supports desired setup.
-- [ ] Bot status indicators.
+- [x] Human/bot controller selection in lobby through the existing public enrollment API.
+- [ ] Bot status indicators after game start.
 - [ ] Spectator/read-only design decision.
 - [ ] Fast-forward controls only through public server surfaces.
 - [ ] Bot-vs-bot observer mode.
@@ -166,7 +170,7 @@ Exit: Godot can configure common human/AI POC scenarios without engine shortcuts
 - [ ] Complete keyboard navigation.
 - [ ] Focus order review.
 - [ ] Gamepad navigation.
-- [ ] UI scale setting.
+- [x] UI scale setting.
 - [ ] High-contrast mode.
 - [ ] Color-blind-safe map distinction that does not rely only on hue.
 - [ ] Screen-reader/accessibility metadata where Godot supports it.
@@ -178,14 +182,14 @@ Exit: core game loop is usable without precision pointer-only input.
 ## Phase G10 — Presentation polish
 
 - [ ] Reusable theme resource.
-- [ ] Consistent spacing/typography.
+- [x] Consistent spacing/typography and distinct button/input/label/description hierarchy.
 - [ ] Original/generated icons with clear licensing/source notes.
 - [ ] Turn transition animation.
 - [ ] Selection/movement feedback animation.
 - [ ] Optional sound effects/music controls using original or properly licensed assets only.
 - [ ] Main menu/settings/about screens.
-- [ ] Responsive layouts for common desktop resolutions.
-- [ ] Window/fullscreen settings.
+- [x] Responsive layouts for common desktop resolutions.
+- [x] Window/fullscreen settings.
 
 Exit: client feels like an intentional game UI rather than a debugging console.
 
@@ -205,18 +209,25 @@ Human-style automation/local agent:
 - [ ] Click Connect.
 - [ ] Create two-player game.
 - [ ] Choose different civilizations.
+- [ ] Select Human/Bot controller combinations.
+- [ ] Exercise water/resource map-generation controls.
 - [ ] Start.
 - [ ] Select/move a unit.
 - [ ] Explore fog.
 - [ ] Found a settlement.
-- [ ] Choose research.
-- [ ] Queue production.
+- [ ] Choose research from server-named/effective-cost options.
+- [ ] Browse technology prerequisites/unlocks and civilization details.
+- [ ] Queue production from server-authorized dropdowns, including a queueable future item and an unavailable item.
 - [ ] End several turns.
-- [ ] Switch hotseat player using normal UI.
+- [ ] Switch hotseat player using normal UI and confirm research/production options re-authorize for that viewer.
+- [ ] Verify live WebSocket event updates and reconnect behavior.
+- [ ] Exercise attach-existing-game with a valid player token.
+- [ ] Verify invalid attach token is rejected safely.
 - [ ] Exercise diplomacy.
 - [ ] Exercise abstract combat when reachable.
 - [ ] Inspect authorized event/feedback rendering.
 - [ ] Finish/concede match.
+- [ ] Clear session and confirm credentials are removed from the UI/process state.
 - [ ] Confirm hidden information is absent.
 - [ ] Capture screenshots/logs under ignored `artifacts/`/`logs/` paths.
 

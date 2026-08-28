@@ -3,6 +3,9 @@ extends Node
 
 var base_url: String = "http://127.0.0.1:8000"
 var timeout_seconds: float = 10.0
+var pending_water_percent: int = 20
+var pending_resource_percent: int = 18
+var player_controller_overrides: Dictionary = {}
 var _command_number: int = 0
 var _client_id: String
 
@@ -12,13 +15,38 @@ func _ready() -> void:
 func configure(url: String) -> void:
 	base_url = url.strip_edges().trim_suffix("/")
 
+func configure_game_options(water_percent: int, resource_percent: int) -> void:
+	pending_water_percent = clampi(water_percent, 0, 60)
+	pending_resource_percent = clampi(resource_percent, 0, 60)
+
+func set_player_controller(player_id: String, controller: String) -> void:
+	var normalized := controller.strip_edges().to_lower()
+	player_controller_overrides[player_id] = normalized if normalized in ["human", "bot"] else "human"
+
+func clear_setup_overrides() -> void:
+	pending_water_percent = 20
+	pending_resource_percent = 18
+	player_controller_overrides.clear()
+
 func health() -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, "/api/v1/health")
 
 func civilizations() -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, "/api/v1/rules/civilizations")
 
-func create_game(game_id: String, seed: int, player_count: int, map_radius: int = 4) -> Dictionary:
+func rules_content() -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, "/api/v1/rules/content")
+
+func create_game(
+	game_id: String,
+	seed: int,
+	player_count: int,
+	map_radius: int = 4,
+	water_percent: int = -1,
+	resource_percent: int = -1
+) -> Dictionary:
+	var resolved_water := pending_water_percent if water_percent < 0 else clampi(water_percent, 0, 60)
+	var resolved_resources := pending_resource_percent if resource_percent < 0 else clampi(resource_percent, 0, 60)
 	return await _request_json(
 		HTTPClient.METHOD_POST,
 		"/api/v1/games",
@@ -27,8 +55,8 @@ func create_game(game_id: String, seed: int, player_count: int, map_radius: int 
 			"seed": seed,
 			"player_count": player_count,
 			"map_radius": map_radius,
-			"water_percent": 20,
-			"resource_percent": 18,
+			"water_percent": resolved_water,
+			"resource_percent": resolved_resources,
 		}
 	)
 
@@ -37,8 +65,14 @@ func join_player(
 	admin_token: String,
 	player_id: String,
 	player_name: String,
-	civilization_id: String
+	civilization_id: String,
+	controller: String = ""
 ) -> Dictionary:
+	var resolved_controller := controller.strip_edges().to_lower()
+	if resolved_controller.is_empty():
+		resolved_controller = str(player_controller_overrides.get(player_id, "human"))
+	if resolved_controller not in ["human", "bot"]:
+		resolved_controller = "human"
 	return await _request_json(
 		HTTPClient.METHOD_POST,
 		"/api/v1/games/%s/players" % game_id.uri_encode(),
@@ -46,7 +80,7 @@ func join_player(
 			"command_id": _next_command_id("join"),
 			"player_id": player_id,
 			"name": player_name,
-			"controller": "human",
+			"controller": resolved_controller,
 			"civilization_id": civilization_id,
 		},
 		admin_token
@@ -67,6 +101,7 @@ func command(
 		"command_id": _next_command_id(command_type.to_lower()),
 		"command_type": command_type,
 		"payload": payload,
+		"client_timestamp": Time.get_datetime_string_from_system(true, false),
 	}
 	if not player_id.is_empty():
 		body["player_id"] = player_id
@@ -95,6 +130,29 @@ func legal_actions(game_id: String, player_token: String) -> Dictionary:
 		player_token
 	)
 
+func production_options(
+	game_id: String,
+	player_token: String,
+	settlement_id: String
+) -> Dictionary:
+	return await _request_json(
+		HTTPClient.METHOD_GET,
+		"/api/v1/games/%s/production-options?settlement_id=%s" % [
+			game_id.uri_encode(),
+			settlement_id.uri_encode(),
+		],
+		null,
+		player_token
+	)
+
+func research_options(game_id: String, player_token: String) -> Dictionary:
+	return await _request_json(
+		HTTPClient.METHOD_GET,
+		"/api/v1/games/%s/research-options" % game_id.uri_encode(),
+		null,
+		player_token
+	)
+
 func events(game_id: String, player_token: String, after_sequence: int = -1) -> Dictionary:
 	return await _request_json(
 		HTTPClient.METHOD_GET,
@@ -102,6 +160,21 @@ func events(game_id: String, player_token: String, after_sequence: int = -1) -> 
 		null,
 		player_token
 	)
+
+func event_websocket_url(game_id: String, after_sequence: int = -1) -> String:
+	var websocket_base := base_url
+	if websocket_base.begins_with("https://"):
+		websocket_base = "wss://" + websocket_base.substr(8)
+	elif websocket_base.begins_with("http://"):
+		websocket_base = "ws://" + websocket_base.substr(7)
+	return "%s/api/v1/games/%s/events/ws?after_sequence=%d" % [
+		websocket_base,
+		game_id.uri_encode(),
+		after_sequence,
+	]
+
+func event_websocket_protocols(player_token: String) -> PackedStringArray:
+	return PackedStringArray(["civilization.v1", player_token])
 
 func _next_command_id(prefix: String) -> String:
 	_command_number += 1

@@ -72,6 +72,93 @@ class CivilizationResponse(BaseModel):
     content_hooks: list[str]
 
 
+class YieldModifierResponse(BaseModel):
+    source: str
+    yield_type: str
+    operation: str
+    value: int
+    priority: int
+
+
+class UnitDefinitionResponse(BaseModel):
+    definition_id: str
+    name: str
+    movement: int
+    vision_radius: int
+    production_cost: int
+    can_found: bool
+    attack_strength: int
+    defense_strength: int
+    ranged_range: int
+    required_civilization: str | None = None
+    required_technology: str | None = None
+
+
+class BuildingDefinitionResponse(BaseModel):
+    definition_id: str
+    name: str
+    production_cost: int
+    yield_modifiers: list[YieldModifierResponse]
+    required_civilization: str | None = None
+    required_technology: str | None = None
+
+
+class TechnologyDefinitionResponse(BaseModel):
+    technology_id: str
+    name: str
+    cost: int
+    prerequisites: list[str]
+    unlocks: list[str]
+
+
+class RulesContentResponse(BaseModel):
+    units: list[UnitDefinitionResponse]
+    buildings: list[BuildingDefinitionResponse]
+    technologies: list[TechnologyDefinitionResponse]
+
+
+class ProductionOptionResponse(BaseModel):
+    kind: str
+    definition_id: str
+    name: str
+    cost: int
+    queue_allowed: bool
+    queue_blockers: list[str]
+    completion_unlocked: bool
+    completion_blockers: list[str]
+    required_civilization: str | None = None
+    required_technology: str | None = None
+
+
+class ProductionOptionsResponse(BaseModel):
+    game_id: str
+    player_id: str
+    settlement_id: str
+    state_version: int
+    is_active_player: bool
+    options: list[ProductionOptionResponse]
+
+
+class ResearchOptionResponse(BaseModel):
+    technology_id: str
+    name: str
+    base_cost: int
+    effective_cost: int
+    prerequisites: list[str]
+    unlocks: list[str]
+    status: str
+    selectable: bool
+    blockers: list[str]
+
+
+class ResearchOptionsResponse(BaseModel):
+    game_id: str
+    player_id: str
+    state_version: int
+    is_active_player: bool
+    options: list[ResearchOptionResponse]
+
+
 class FeedbackResponse(BaseModel):
     code: str
     message: str

@@ -47,6 +47,10 @@ async def _play() -> None:
     http = TestClient(app)
     api = CivilizationApiClient(TestClientTransport(http))
 
+    rules = await api.rules_content()
+    assert any(item["definition_id"] == "scout" for item in rules["units"])
+    assert any(item["technology_id"] == "surveying" for item in rules["technologies"])
+
     created = await api.create_game("e2e-game", seed=6006, player_count=2, water_percent=0)
     admin = str(created["admin_token"])
     p1 = await api.join_player("e2e-game", admin, player_id="p1", name="One")
@@ -60,6 +64,12 @@ async def _play() -> None:
     assert state["viewer"]["player_id"] == "p1"
     assert state["active_player_id"] == "p1"
 
+    research_options = await api.research_options("e2e-game", p1_token)
+    surveying = next(
+        item for item in research_options["options"] if item["technology_id"] == "surveying"
+    )
+    assert surveying["selectable"]
+
     research = await api.command(
         "e2e-game",
         p1_token,
@@ -69,6 +79,41 @@ async def _play() -> None:
         payload={"technology_id": "surveying"},
     )
     assert research["accepted"]
+
+    state = await api.state("e2e-game", p1_token)
+    founder_id = str(state["units"][0]["unit_id"])
+    founded = await api.command(
+        "e2e-game",
+        p1_token,
+        "FoundSettlement",
+        player_id="p1",
+        expected_state_version=int(state["state_version"]),
+        payload={"unit_id": founder_id},
+    )
+    assert founded["accepted"]
+
+    state = await api.state("e2e-game", p1_token)
+    settlement_id = str(state["settlements"][0]["settlement_id"])
+    production_options = await api.production_options("e2e-game", p1_token, settlement_id)
+    scout = next(
+        item
+        for item in production_options["options"]
+        if item["kind"] == "unit" and item["definition_id"] == "scout"
+    )
+    assert scout["queue_allowed"]
+    queued = await api.command(
+        "e2e-game",
+        p1_token,
+        "QueueProduction",
+        player_id="p1",
+        expected_state_version=int(state["state_version"]),
+        payload={
+            "settlement_id": settlement_id,
+            "kind": "unit",
+            "definition_id": "scout",
+        },
+    )
+    assert queued["accepted"]
 
     state = await api.state("e2e-game", p1_token)
     conceded = await api.command(

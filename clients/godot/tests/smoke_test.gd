@@ -13,6 +13,7 @@ func _init() -> void:
 	await process_frame
 	await process_frame
 	await process_frame
+	await process_frame
 	var main := root.get_node_or_null("Main")
 	if main == null:
 		_fail("Main scene did not enter the tree")
@@ -64,6 +65,35 @@ func _init() -> void:
 	if not _visual_hierarchy_is_distinct(main, settings):
 		_fail("Buttons, field controls, headings, and descriptions are not visually distinct")
 		return
+	if not _complete_api_surface_is_installed(main):
+		_fail("Complete v1 API controls were not installed")
+		return
+	if not _g2_content_surface_is_installed(main):
+		_fail("G2 server-driven content controls were not installed")
+		return
+
+	main.call("_rebuild_player_rows")
+	await process_frame
+	await process_frame
+	await process_frame
+	if _count_named(main, "ControllerSelect") < 2:
+		_fail("Dynamically-created player rows do not expose Human/Bot controller selection")
+		return
+
+	var api := main.get("api") as CivilizationApiClient
+	if api == null:
+		_fail("API client is unavailable")
+		return
+	var token := "smoke-secret-token"
+	var ws_url := api.event_websocket_url("game-one", 12)
+	if ws_url.contains(token) or not ws_url.contains("after_sequence=12"):
+		_fail("WebSocket URL resume/credential handling is unsafe")
+		return
+	var protocols := api.event_websocket_protocols(token)
+	if protocols.size() != 2 or protocols[0] != "civilization.v1" or protocols[1] != token:
+		_fail("WebSocket credential subprotocol contract is incorrect")
+		return
+
 	print("GODOT CLIENT SMOKE PASS")
 	quit(0)
 
@@ -125,6 +155,42 @@ func _visual_hierarchy_is_distinct(main: Node, settings: CivilizationSettingsScr
 	var section_color := section.get_theme_color("font_color")
 	var description_color := description.get_theme_color("font_color")
 	return title_color != section_color and section_color != description_color and title_color != description_color
+
+func _complete_api_surface_is_installed(main: Node) -> bool:
+	if _find_first(main, "ApiFeatures") == null:
+		return false
+	if _find_first(main, "AuthorizedEventStream") == null:
+		return false
+	if _find_first(main, "WaterPercentSpin") == null or _find_first(main, "ResourcePercentSpin") == null:
+		return false
+	if _find_first(main, "AttachExistingButton") == null:
+		return false
+	var token_edit := _find_first(main, "AttachPlayerTokenEdit") as LineEdit
+	if token_edit == null or not token_edit.secret:
+		return false
+	if _find_first(main, "LiveEventStatus") == null:
+		return false
+	if _find_first(main, "ClearSessionButton") == null:
+		return false
+	return true
+
+func _g2_content_surface_is_installed(main: Node) -> bool:
+	if _find_first(main, "ContentBrowser") == null:
+		return false
+	if _find_first(main, "ContentBrowserCard") == null:
+		return false
+	if _find_first(main, "ProductionChoiceSelect") == null:
+		return false
+	if _find_first(main, "ProductionChoiceDetail") == null:
+		return false
+	if _find_first(main, "TechnologyBrowserSelect") == null:
+		return false
+	if _find_first(main, "CivilizationBrowserSelect") == null:
+		return false
+	var raw_production := main.get("production_id_edit") as LineEdit
+	if raw_production == null or raw_production.visible:
+		return false
+	return true
 
 func _find_button_by_text(parent: Node, text: String) -> Button:
 	if parent is Button and (parent as Button).text == text:

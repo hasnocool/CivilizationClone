@@ -114,6 +114,9 @@ class CivilizationApiClient:
             raise ApiError(0, "API returned an invalid civilization list")
         return [dict(item) for item in value]
 
+    async def rules_content(self) -> JsonObject:
+        return _object(await self.transport.request("GET", "/api/v1/rules/content"))
+
     async def create_game(
         self,
         game_id: str,
@@ -215,6 +218,30 @@ class CivilizationApiClient:
             await self.transport.request(
                 "GET",
                 f"/api/v1/games/{game_id}/legal-actions",
+                token=player_token,
+            )
+        )
+
+    async def production_options(
+        self,
+        game_id: str,
+        player_token: str,
+        settlement_id: str,
+    ) -> JsonObject:
+        return _object(
+            await self.transport.request(
+                "GET",
+                f"/api/v1/games/{game_id}/production-options",
+                token=player_token,
+                query={"settlement_id": settlement_id},
+            )
+        )
+
+    async def research_options(self, game_id: str, player_token: str) -> JsonObject:
+        return _object(
+            await self.transport.request(
+                "GET",
+                f"/api/v1/games/{game_id}/research-options",
                 token=player_token,
             )
         )
