@@ -56,21 +56,23 @@ Goal: remove remaining manual definition-ID entry without copying gameplay conte
 
 Server/API:
 
-- [ ] Add a stable read-only public POC rules catalog or player-authorized production-options query.
-- [ ] Expose unit definitions needed for presentation: id, movement, vision, production cost, abstract combat stats, requirements, civilization ownership.
-- [ ] Expose building definitions needed for presentation: id, production cost, visible yield effects, requirements, civilization ownership.
-- [ ] Expose technology display data: id, cost, prerequisites, unlocks, effective player cost where appropriate.
-- [ ] Keep hidden/authoritative-only rule data out of public responses.
+- [x] Add stable read-only public POC rules content and player-authorized production/research option queries.
+- [x] Expose producible unit definitions needed for presentation: id/name, movement, vision, production cost, abstract combat stats, requirements, civilization ownership.
+- [x] Expose building definitions needed for presentation: id/name, production cost, visible yield effects, requirements, civilization ownership.
+- [x] Expose technology display data: id/name, base cost, prerequisites, unlocks, effective player cost, content status, and current-turn selectability.
+- [x] Keep hidden/authoritative-only rule and player data out of public responses; production options are scoped to the credential holder's own settlement.
+- [x] Preserve QueueProduction semantics by reporting queue blockers separately from stable completion-content blockers.
 
 Godot:
 
-- [ ] Production dropdown populated exclusively from server responses.
-- [ ] Disable/annotate locked production options based on server response.
-- [ ] Technology browser/tree.
-- [ ] Civilization detail cards with bonuses and unique content.
-- [ ] Context-sensitive tooltips.
+- [x] Production dropdown populated exclusively from server-authorized responses; raw definition-ID entry is hidden from normal UI.
+- [x] Disable options that cannot currently be queued and annotate queueable future production with civilization/research completion gates.
+- [x] Technology browser with server names, effective cost/status, prerequisites, unlocks, and blocker explanations.
+- [x] Civilization detail browser with descriptions, tags, starting resources, bonuses, and unique content.
+- [x] Context-sensitive tooltips/detail text for research and production choices.
+- [x] Existing command path remains authoritative: visible dropdown metadata feeds the same public QueueProduction/ChooseResearch commands rather than mutating state locally.
 
-Exit: no gameplay definition IDs or rule constants are manually duplicated in the Godot UI.
+Exit: normal Godot play no longer requires manually typing gameplay definition IDs or duplicating rule constants in GDScript.
 
 ## Phase G3 — Rich map interaction
 
@@ -213,10 +215,11 @@ Human-style automation/local agent:
 - [ ] Select/move a unit.
 - [ ] Explore fog.
 - [ ] Found a settlement.
-- [ ] Choose research.
-- [ ] Queue production.
+- [ ] Choose research from server-named/effective-cost options.
+- [ ] Browse technology prerequisites/unlocks and civilization details.
+- [ ] Queue production from server-authorized dropdowns, including a queueable future item and an unavailable item.
 - [ ] End several turns.
-- [ ] Switch hotseat player using normal UI.
+- [ ] Switch hotseat player using normal UI and confirm research/production options re-authorize for that viewer.
 - [ ] Verify live WebSocket event updates and reconnect behavior.
 - [ ] Exercise attach-existing-game with a valid player token.
 - [ ] Verify invalid attach token is rejected safely.
