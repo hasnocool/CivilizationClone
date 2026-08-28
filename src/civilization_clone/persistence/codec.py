@@ -16,6 +16,7 @@ from civilization_clone.domain.gameplay import (
     UnitState,
 )
 from civilization_clone.domain.ids import (
+    CivilizationId,
     CommandId,
     EventId,
     GameId,
@@ -37,8 +38,10 @@ from civilization_clone.domain.visibility import Visibility
 from civilization_clone.engine.economy import UNITS
 from civilization_clone.engine.event_log import EventLog
 from civilization_clone.engine.session import CommandResult, GameEngine
+from civilization_clone.engine.state_hash import state_hash as canonical_state_hash
 
-_SAVE_VERSION = 1
+_SAVE_VERSION = 2
+_LEGACY_SAVE_VERSION = 1
 
 
 def _jsonable(value: Any) -> Any:
@@ -132,11 +135,25 @@ def engine_to_document(engine: GameEngine) -> dict[str, Any]:
 
 
 def engine_from_document(document: Mapping[str, Any]) -> GameEngine:
-    """Restore a complete engine and verify persisted deterministic hashes."""
-    if int(document.get("save_version", 0)) != _SAVE_VERSION:
+    """Restore a complete engine and verify persisted deterministic hashes.
+
+    Save version 1 predates civilization identity. Its raw canonical snapshot is
+    verified before migration, then restored with the v1 default civilization.
+    """
+    save_version = int(document.get("save_version", 0))
+    if save_version not in {_LEGACY_SAVE_VERSION, _SAVE_VERSION}:
         raise ValueError("unsupported save document version")
 
-    session = _session_from_state(_mapping(document["state"]))
+    state_data = _mapping(document["state"])
+    expected_state_hash = str(document.get("state_hash", ""))
+    if (
+        save_version == _LEGACY_SAVE_VERSION
+        and expected_state_hash
+        and canonical_state_hash(state_data) != expected_state_hash
+    ):
+        raise ValueError("legacy state snapshot does not match persisted checkpoint")
+
+    session = _session_from_state(state_data)
     journal = EventLog(session.game_id)
     journal.extend(_event_from_data(_mapping(item)) for item in document.get("events", []))
     processed = {
@@ -145,10 +162,13 @@ def engine_from_document(document: Mapping[str, Any]) -> GameEngine:
     }
     engine = GameEngine(session=session, event_log=journal, _processed=processed)
 
-    expected_state_hash = str(document.get("state_hash", ""))
-    expected_event_hash = str(document.get("event_hash", ""))
-    if expected_state_hash and engine.state_hash() != expected_state_hash:
+    if (
+        save_version == _SAVE_VERSION
+        and expected_state_hash
+        and engine.state_hash() != expected_state_hash
+    ):
         raise ValueError("restored state hash does not match persisted checkpoint")
+    expected_event_hash = str(document.get("event_hash", ""))
     if expected_event_hash and engine.event_hash() != expected_event_hash:
         raise ValueError("restored event hash does not match persisted checkpoint")
     return engine
@@ -187,6 +207,9 @@ def _session_from_state(state: Mapping[str, Any]) -> GameSession:
             player_id=player_id,
             name=str(player_data["name"]),
             controller=ControllerType(str(player_data.get("controller", "human"))),
+            civilization_id=CivilizationId(
+                str(player_data.get("civilization_id", "river_compact"))
+            ),
             visibility=visibility,
             gold=int(player_data.get("gold", 0)),
             science=int(player_data.get("science", 0)),
