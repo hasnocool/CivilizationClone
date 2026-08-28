@@ -80,7 +80,7 @@ class AuthManager:
             raise AuthenticationError("invalid credential")
         try:
             raw_payload = json.loads(_b64decode(encoded).decode("utf-8"))
-        except (ValueError, UnicodeError, binascii.Error, json.JSONDecodeError) as exc:
+        except (ValueError, UnicodeError, binascii.Error) as exc:
             raise AuthenticationError("invalid credential") from exc
         if not isinstance(raw_payload, dict) or not all(
             isinstance(key, str) and isinstance(value, str)
