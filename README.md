@@ -6,26 +6,25 @@ Clients will eventually interact with the same authoritative simulation through 
 This repository does **not** bundle proprietary Civilization game data, rules text, art, maps, UI,
 or other protected assets. The project uses original implementation and content.
 
-## Current milestone: v0.3 game sessions, turns, players, and units
+## Current milestone: v0.4 settlements, economy, and effects
 
-v0.1 established deterministic engine foundations and local-only agent CI. v0.2 added the hex world,
-seeded map generation, pathfinding, and fog primitives. v0.3 adds the first playable simulation loop:
+The engine now includes the deterministic core, hex world, game sessions/turns/units, and a working
+settlement economy:
 
-- authoritative `GameSession`, `PlayerState`, and `UnitState` models;
-- human/bot controller metadata and typed unit definitions;
-- deterministic player join and game-start commands;
-- deterministic starting-unit placement on generated map spawns;
-- sequential active-player turns with movement refresh;
-- validated adjacent movement, terrain costs, passability, and occupancy checks;
-- per-player fog updates as units move;
-- in-memory command idempotency and optimistic `state_version` rejection;
-- deterministic game, turn, spawn, movement, and player events appended to one event journal;
-- safe typed feedback for rejected commands;
-- structured command/runtime logging that cannot affect state or event hashes;
-- multi-turn deterministic integration tests.
+- founder units can establish settlements and are consumed by founding;
+- settlements control a deterministic center-and-neighbor territory;
+- population limits how many additional controlled tiles can be worked;
+- Food, Production, Gold, Science, and Culture use typed deterministic yield bundles;
+- terrain/resources generate original POC yields;
+- end-turn resolution accumulates yields and deterministic population growth;
+- production queues support cancellation, buildings, and produced units;
+- granary/workshop examples exercise a generic ordered yield-modifier pipeline;
+- produced units receive deterministic IDs and legal spawn positions;
+- settlement/economy actions emit deterministic domain events and safe feedback;
+- logging remains operational-only and cannot alter state or event hashes.
 
-Settlements/economy, research/combat/diplomacy/victory, durable persistence, HTTP APIs, AI, and a
-playable client remain later milestones described in `PLAN.md`.
+Research, combat, diplomacy, victory, durable persistence/replay, HTTP APIs, AI, and a playable client
+remain later milestones described in `PLAN.md`.
 
 ## Development
 
