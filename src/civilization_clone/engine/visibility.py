@@ -3,19 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from enum import StrEnum
 from types import MappingProxyType
 
 from civilization_clone.domain.map import HexCoord, WorldMap
+from civilization_clone.domain.visibility import Visibility
 from civilization_clone.engine.hexgrid import distance
-
-
-class Visibility(StrEnum):
-    """Player-relative visibility state for one tile."""
-
-    UNKNOWN = "unknown"
-    DISCOVERED = "discovered"
-    VISIBLE = "visible"
 
 
 def visible_coords(

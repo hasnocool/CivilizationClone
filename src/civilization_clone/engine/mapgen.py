@@ -82,12 +82,13 @@ def generate_world(
     *,
     game_id: GameId,
     seed: int,
-    config: MapGenerationConfig = MapGenerationConfig(),
+    config: MapGenerationConfig | None = None,
     start_sequence: int = 0,
     state_version: int = 0,
     logger: logging.Logger | None = None,
 ) -> MapGenerationResult:
     """Generate one deterministic POC map and its map-generation events."""
+    resolved_config = config or MapGenerationConfig()
     if logger is not None:
         logger.info(
             "map generation started",
@@ -98,21 +99,21 @@ def generate_world(
     center = HexCoord(0, 0)
     tiles: dict[HexCoord, Tile] = {}
 
-    for coord in within_radius(center, config.radius):
-        edge = distance(coord, center) == config.radius
+    for coord in within_radius(center, resolved_config.radius):
+        edge = distance(coord, center) == resolved_config.radius
         water_roll = rng.randbelow(100)
-        is_water = (water_roll < config.water_percent and coord != center) or (
-            edge and water_roll < config.water_percent // 2
+        is_water = (water_roll < resolved_config.water_percent and coord != center) or (
+            edge and water_roll < resolved_config.water_percent // 2
         )
         terrain = TerrainType.WATER if is_water else _land_terrain(rng.randbelow(1000))
         resource = None
-        if terrain is not TerrainType.WATER and rng.randbelow(100) < config.resource_percent:
+        if terrain is not TerrainType.WATER and rng.randbelow(100) < resolved_config.resource_percent:
             resource = _RESOURCES[rng.randbelow(len(_RESOURCES))]
         tiles[coord] = Tile(coord=coord, terrain=terrain, resource=resource)
 
     tiles[center] = Tile(coord=center, terrain=TerrainType.GRASSLAND)
-    spawns = _select_spawns(tiles, config.player_count)
-    world = WorldMap(radius=config.radius, seed=seed, tiles=tiles, spawns=spawns)
+    spawns = _select_spawns(tiles, resolved_config.player_count)
+    world = WorldMap(radius=resolved_config.radius, seed=seed, tiles=tiles, spawns=spawns)
 
     events = (
         EventEnvelope.create(
@@ -121,7 +122,7 @@ def generate_world(
             sequence=start_sequence,
             event_type="MapGenerationStarted",
             state_version=state_version,
-            payload={"seed": seed, "radius": config.radius},
+            payload={"seed": seed, "radius": resolved_config.radius},
         ),
         EventEnvelope.create(
             event_id=EventId(f"map-{start_sequence + 1}"),

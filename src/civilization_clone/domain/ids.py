@@ -7,6 +7,7 @@ GameId = NewType("GameId", str)
 PlayerId = NewType("PlayerId", str)
 CommandId = NewType("CommandId", str)
 EventId = NewType("EventId", str)
+UnitId = NewType("UnitId", str)
 RulesetId = NewType("RulesetId", str)
 
 

@@ -6,23 +6,26 @@ Clients will eventually interact with the same authoritative simulation through 
 This repository does **not** bundle proprietary Civilization game data, rules text, art, maps, UI,
 or other protected assets. The project uses original implementation and content.
 
-## Current milestone: v0.2 hex world and map generation
+## Current milestone: v0.3 game sessions, turns, players, and units
 
-v0.1 established the deterministic core, event journal, structured diagnostics, typed user feedback,
-and local-only agent CI. v0.2 adds the first spatial simulation layer:
+v0.1 established deterministic engine foundations and local-only agent CI. v0.2 added the hex world,
+seeded map generation, pathfinding, and fog primitives. v0.3 adds the first playable simulation loop:
 
-- axial `HexCoord` coordinates with six-neighbor, distance, ring, and radius helpers;
-- immutable terrain/resource/tile/world-map models;
-- deterministic seeded terrain and resource generation;
-- deterministic, spread-out passable player spawn selection;
-- weighted deterministic A* pathfinding;
-- `UNKNOWN` / `DISCOVERED` / `VISIBLE` fog-of-war primitives;
-- canonical world-map representation for state hashing/replay;
-- deterministic map-generation domain events and operational logging;
-- regression tests proving logging configuration does not alter generated state/events.
+- authoritative `GameSession`, `PlayerState`, and `UnitState` models;
+- human/bot controller metadata and typed unit definitions;
+- deterministic player join and game-start commands;
+- deterministic starting-unit placement on generated map spawns;
+- sequential active-player turns with movement refresh;
+- validated adjacent movement, terrain costs, passability, and occupancy checks;
+- per-player fog updates as units move;
+- in-memory command idempotency and optimistic `state_version` rejection;
+- deterministic game, turn, spawn, movement, and player events appended to one event journal;
+- safe typed feedback for rejected commands;
+- structured command/runtime logging that cannot affect state or event hashes;
+- multi-turn deterministic integration tests.
 
-Turns, units, settlements, persistence, HTTP APIs, AI, and playable clients are later milestones
-described in `PLAN.md`.
+Settlements/economy, research/combat/diplomacy/victory, durable persistence, HTTP APIs, AI, and a
+playable client remain later milestones described in `PLAN.md`.
 
 ## Development
 
