@@ -4,6 +4,8 @@
 
 `/api/v1` is a client adapter over the application layer. HTTP handlers do not implement simulation rules. Clients submit commands and render authorized projections/events/feedback; they never mutate authoritative state directly.
 
+The current additive implementation version is **1.1.0**. The URL remains `/api/v1` because v1.1 adds compatible command/state/event fields rather than changing existing v1 request semantics.
+
 ## Identity and credentials
 
 The v1 API does not trust `player_id` from arbitrary request data.
@@ -87,7 +89,7 @@ For v1 compatibility, omitted `civilization_id` defaults to `river_compact`; int
 
 Normal commands require a player token and use the same authoritative command processor as local engine callers and bots.
 
-POC command types:
+Current v1 command types:
 
 - `MoveUnit`
 - `AttackUnit`
@@ -100,6 +102,10 @@ POC command types:
 - `OfferPeace`
 - `AcceptPeace`
 - `RejectPeace`
+- `OfferTrade`
+- `AcceptTrade`
+- `RejectTrade`
+- `CancelTrade`
 - `EndTurn`
 - `Concede`
 
@@ -108,6 +114,50 @@ POC command types:
 Every command carries a unique `command_id`. `expected_state_version` is optional optimistic concurrency control. Retrying an already-processed command id reuses the original deterministic result rather than mutating twice. Accepted and rejected command results are persisted so idempotency survives process restart.
 
 `EndTurn` is rejected with `MANDATORY_CHOICE_REQUIRED` while a selectable research decision is unresolved. The `legal-actions` query reports the same mandatory research options before the client attempts the command.
+
+### Trade commands and terms
+
+v1.1 adds bilateral lump-sum Gold trade without adding a second mutation API.
+
+`OfferTrade` payload:
+
+```json
+{
+  "target_player_id": "p2",
+  "offered_gold": 2,
+  "requested_gold": 1
+}
+```
+
+Rules:
+
+- only the active player may create/respond to/cancel a trade proposal;
+- both players must exist, be non-eliminated, and currently be at peace;
+- one pending trade proposal may exist per bilateral relationship;
+- `offered_gold` and `requested_gold` are integers from 0 through the configured safety cap; at least one must be positive;
+- the proposer must be able to afford the offered amount when proposing;
+- both players' balances are revalidated when `AcceptTrade` executes;
+- Gold moves atomically only after successful acceptance;
+- `RejectTrade` clears the other player's proposal without changing resources;
+- `CancelTrade` withdraws the actor's own proposal;
+- declaring war or eliminating/conceding a participant invalidates pending trade state;
+- command idempotency applies normally, so retrying the same accepted `AcceptTrade` command cannot transfer Gold twice.
+
+The bilateral relationship projection may include:
+
+```json
+{
+  "pending_trade": {
+    "proposer_id": "p1",
+    "offered_gold": 2,
+    "requested_gold": 1
+  },
+  "completed_trades": 1,
+  "last_trade_turn": 4
+}
+```
+
+These fields are returned only inside relationships involving the authenticated viewer. Trade proposal/event data is not a public diplomacy feed.
 
 ### Queue-time versus completion-time production gates
 
@@ -125,7 +175,7 @@ All normal queries require a player credential and return only that player's aut
 - `GET /api/v1/games/{game_id}/research-options`
 - `GET /api/v1/games/{game_id}/production-options?settlement_id=<own-settlement-id>`
 
-The player projection includes the viewer's selected civilization id and public civilization ids for the player roster. Unknown map tiles are omitted. Previously discovered but not currently visible tiles contain only persistent map knowledge. Hidden opposing units are omitted. Opponent settlement internals, production queues, and private economy details are not exposed.
+The player projection includes the viewer's selected civilization id and public civilization ids for the player roster. Unknown map tiles are omitted. Previously discovered but not currently visible tiles contain only persistent map knowledge. Hidden opposing units are omitted. Opponent settlement internals, production queues, private economy details, and unrelated bilateral trade proposals are not exposed.
 
 ### Research options
 
@@ -157,14 +207,16 @@ Clients should use this endpoint to populate normal production controls, but sti
 
 The credential is supplied through the WebSocket subprotocol header as described above. The server first sends authorized historical events newer than `after_sequence`, then publishes newly appended authorized events in journal order. Command retries do not republish old events.
 
-Peace offers, acceptances, and rejections are bilateral rather than globally visible. Combat events include stable participant ownership in their deterministic payload so both involved players retain authorization even after a destroyed unit has been removed from current state.
+Peace offers/acceptances/rejections and all `Trade*` proposal/result/cancellation events are bilateral rather than globally visible. Combat events include stable participant ownership in their deterministic payload so both involved players retain authorization even after a destroyed unit has been removed from current state.
 
 ## Feedback and errors
 
-Expected gameplay rejection is returned in the normal command response using typed feedback with stable code, severity, safe message, and small safe context.
+Expected gameplay rejection is returned in the normal command response using typed feedback with stable code, severity, safe message, and small safe context. v1.1 trade validation uses `INVALID_TRADE` for malformed terms and `TRADE_REJECTED` with a stable safe `reason` context for rule rejection.
 
 Authentication/transport failures use HTTP status codes and must not expose stack traces, filesystem paths, database internals, credentials, or hidden-player state.
 
 ## Compatibility
 
-The v1 contract deliberately hardens the earlier v0.8 prototype by replacing trusted `player_id` query/body identity with signed credentials and a dedicated enrollment endpoint. It also makes civilization identity and its generic modifiers part of authoritative state/save/replay behavior. Public read-model additions under `/api/v1/rules/content`, `/research-options`, and `/production-options` are additive presentation/discovery surfaces; command authority remains unchanged. Future incompatible public changes require a new API version or an explicit compatibility decision.
+The v1 contract deliberately hardens the earlier v0.8 prototype by replacing trusted `player_id` query/body identity with signed credentials and a dedicated enrollment endpoint. It also makes civilization identity and its generic modifiers part of authoritative state/save/replay behavior. Public read-model additions under `/api/v1/rules/content`, `/research-options`, and `/production-options` are additive presentation/discovery surfaces; command authority remains unchanged.
+
+v1.1 is additive at the HTTP path level: existing v1 commands and response fields remain valid, while trade commands and diplomacy projection fields are new. Durable save format v3 adds trade relationship fields; older v1/v2 save documents are hash-verified in their original form before deterministic default migration. Future incompatible public changes require a new API version or an explicit compatibility decision.
