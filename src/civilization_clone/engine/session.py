@@ -342,18 +342,28 @@ class GameEngine:
             command.command_id,
         )
         self.session.state_version += 1
+        combat_participants: dict[str, JsonValue] = {
+            "attacker_owner_id": player_id,
+            "defender_owner_id": defender_owner,
+        }
         events = [
             self._emit(
                 "UnitAttacked",
-                {"attacker_id": attacker_id, "defender_id": defender_id},
+                {
+                    "attacker_id": attacker_id,
+                    "defender_id": defender_id,
+                    **combat_participants,
+                },
                 command.command_id,
             ),
             self._emit(
                 "UnitDamaged",
                 {
                     "unit_id": defender_id,
+                    "owner_id": defender_owner,
                     "damage": resolution.defender_damage,
                     "destroyed": resolution.defender_destroyed,
+                    **combat_participants,
                 },
                 command.command_id,
             ),
@@ -364,8 +374,10 @@ class GameEngine:
                     "UnitDamaged",
                     {
                         "unit_id": attacker_id,
+                        "owner_id": player_id,
                         "damage": resolution.attacker_damage,
                         "destroyed": resolution.attacker_destroyed,
+                        **combat_participants,
                     },
                     command.command_id,
                 )
@@ -374,7 +386,11 @@ class GameEngine:
             events.append(
                 self._emit(
                     "UnitDestroyed",
-                    {"unit_id": defender_id, "owner_id": defender_owner},
+                    {
+                        "unit_id": defender_id,
+                        "owner_id": defender_owner,
+                        **combat_participants,
+                    },
                     command.command_id,
                 )
             )
@@ -382,7 +398,11 @@ class GameEngine:
             events.append(
                 self._emit(
                     "UnitDestroyed",
-                    {"unit_id": attacker_id, "owner_id": player_id},
+                    {
+                        "unit_id": attacker_id,
+                        "owner_id": player_id,
+                        **combat_participants,
+                    },
                     command.command_id,
                 )
             )
@@ -391,6 +411,7 @@ class GameEngine:
         self._update_player_visibility(defender_owner)
         self._append_elimination_events(events, command.command_id)
         self._append_victory_event(events, command.command_id)
+        self._advance_if_active_eliminated(events, command.command_id)
         return CommandResult(True, self.session.state_version, tuple(events))
 
     def _found_settlement(self, command: CommandEnvelope) -> CommandResult:
@@ -688,6 +709,7 @@ class GameEngine:
             self._emit("PlayerEliminated", {"player_id": player_id}, command.command_id),
         ]
         self._append_victory_event(events, command.command_id)
+        self._advance_if_active_eliminated(events, command.command_id)
         return CommandResult(True, self.session.state_version, tuple(events))
 
     def _end_turn(self, command: CommandEnvelope) -> CommandResult:
@@ -804,6 +826,28 @@ class GameEngine:
                     "turn": result.turn,
                     "score": result.score,
                 },
+                command_id,
+            )
+        )
+
+    def _advance_if_active_eliminated(
+        self,
+        events: list[EventEnvelope],
+        command_id: CommandId,
+    ) -> None:
+        if self.session.status is not GameStatus.ACTIVE:
+            return
+        current_player_id = self.session.current_player_id
+        if current_player_id is None or not self.session.players[current_player_id].eliminated:
+            return
+        ended_turn = self.session.turn
+        wrapped, next_player = advance_turn(self.session)
+        if wrapped:
+            events.append(self._emit("TurnEnded", {"turn": ended_turn}, command_id))
+        events.append(
+            self._emit(
+                "TurnStarted",
+                {"turn": self.session.turn, "player_id": next_player},
                 command_id,
             )
         )
