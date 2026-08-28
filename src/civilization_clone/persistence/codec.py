@@ -31,16 +31,19 @@ from civilization_clone.domain.strategy import (
     DiplomaticRelationship,
     DiplomacyStatus,
     ResearchState,
+    TradeOffer,
     VictoryResult,
     VictoryType,
 )
 from civilization_clone.domain.visibility import Visibility
+from civilization_clone.engine.advanced import AdvancedGameEngine
 from civilization_clone.engine.economy import UNITS
 from civilization_clone.engine.event_log import EventLog
 from civilization_clone.engine.session import CommandResult, GameEngine
 from civilization_clone.engine.state_hash import state_hash as canonical_state_hash
 
-_SAVE_VERSION = 2
+_SAVE_VERSION = 3
+_PRE_TRADE_SAVE_VERSION = 2
 _LEGACY_SAVE_VERSION = 1
 
 
@@ -137,21 +140,22 @@ def engine_to_document(engine: GameEngine) -> dict[str, Any]:
 def engine_from_document(document: Mapping[str, Any]) -> GameEngine:
     """Restore a complete engine and verify persisted deterministic hashes.
 
-    Save version 1 predates civilization identity. Its raw canonical snapshot is
-    verified before migration, then restored with the v1 default civilization.
+    Save version 1 predates civilization identity. Save version 2 predates v1.1
+    trade diplomacy fields. Older snapshots are verified in their original canonical
+    form before deterministic default migration; version 3 is verified after restore.
     """
     save_version = int(document.get("save_version", 0))
-    if save_version not in {_LEGACY_SAVE_VERSION, _SAVE_VERSION}:
+    if save_version not in {_LEGACY_SAVE_VERSION, _PRE_TRADE_SAVE_VERSION, _SAVE_VERSION}:
         raise ValueError("unsupported save document version")
 
     state_data = _mapping(document["state"])
     expected_state_hash = str(document.get("state_hash", ""))
     if (
-        save_version == _LEGACY_SAVE_VERSION
+        save_version in {_LEGACY_SAVE_VERSION, _PRE_TRADE_SAVE_VERSION}
         and expected_state_hash
         and canonical_state_hash(state_data) != expected_state_hash
     ):
-        raise ValueError("legacy state snapshot does not match persisted checkpoint")
+        raise ValueError("pre-v1.1 state snapshot does not match persisted checkpoint")
 
     session = _session_from_state(state_data)
     journal = EventLog(session.game_id)
@@ -160,7 +164,7 @@ def engine_from_document(document: Mapping[str, Any]) -> GameEngine:
         CommandId(str(item["command_id"])): _result_from_data(_mapping(item["result"]))
         for item in document.get("processed", [])
     }
-    engine = GameEngine(session=session, event_log=journal, _processed=processed)
+    engine = AdvancedGameEngine(session=session, event_log=journal, _processed=processed)
 
     if (
         save_version == _SAVE_VERSION
@@ -278,9 +282,22 @@ def _session_from_state(state: Mapping[str, Any]) -> GameSession:
         first = PlayerId(str(relationship_data["first_player_id"]))
         second = PlayerId(str(relationship_data["second_player_id"]))
         pending = relationship_data.get("pending_peace_from")
+        raw_trade = relationship_data.get("pending_trade")
+        trade: TradeOffer | None = None
+        if raw_trade is not None:
+            trade_data = _mapping(raw_trade)
+            trade = TradeOffer(
+                proposer_id=PlayerId(str(trade_data["proposer_id"])),
+                offered_gold=int(trade_data["offered_gold"]),
+                requested_gold=int(trade_data["requested_gold"]),
+            )
+        last_trade_turn = relationship_data.get("last_trade_turn")
         session.diplomacy[(first, second)] = DiplomaticRelationship(
             status=DiplomacyStatus(str(relationship_data["status"])),
             pending_peace_from=PlayerId(str(pending)) if pending is not None else None,
+            pending_trade=trade,
+            completed_trades=int(relationship_data.get("completed_trades", 0)),
+            last_trade_turn=int(last_trade_turn) if last_trade_turn is not None else None,
         )
 
     raw_victory = state.get("victory")
