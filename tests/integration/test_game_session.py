@@ -62,18 +62,36 @@ def _run_script() -> GameEngine:
         {"unit_id": unit_one, "q": destination_one.q, "r": destination_one.r},
     )
     assert engine.process(move_one).accepted
-    assert engine.process(_command(5, engine.session.game_id, "EndTurn", player_one)).accepted
+    assert engine.process(
+        _command(
+            5,
+            engine.session.game_id,
+            "ChooseResearch",
+            player_one,
+            {"technology_id": "surveying"},
+        )
+    ).accepted
+    assert engine.process(_command(6, engine.session.game_id, "EndTurn", player_one)).accepted
 
     unit_two, destination_two = _legal_neighbor(engine, player_two)
     move_two = _command(
-        6,
+        7,
         engine.session.game_id,
         "MoveUnit",
         player_two,
         {"unit_id": unit_two, "q": destination_two.q, "r": destination_two.r},
     )
     assert engine.process(move_two).accepted
-    assert engine.process(_command(7, engine.session.game_id, "EndTurn", player_two)).accepted
+    assert engine.process(
+        _command(
+            8,
+            engine.session.game_id,
+            "ChooseResearch",
+            player_two,
+            {"technology_id": "surveying"},
+        )
+    ).accepted
+    assert engine.process(_command(9, engine.session.game_id, "EndTurn", player_two)).accepted
     return engine
 
 
