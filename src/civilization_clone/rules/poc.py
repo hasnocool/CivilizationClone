@@ -1,5 +1,6 @@
 """Packaged original proof-of-concept content definitions."""
 
+from civilization_clone.domain.ids import CivilizationId
 from civilization_clone.rules.civilizations import CivilizationDefinition
 
 POC_CIVILIZATIONS: tuple[CivilizationDefinition, ...] = (
@@ -19,8 +20,8 @@ POC_CIVILIZATIONS: tuple[CivilizationDefinition, ...] = (
             "research_cost_percent": 0,
             "attack_strength_percent": 0,
             "defense_strength_percent": 10,
-            "unique_units": [],
-            "unique_buildings": [],
+            "unique_units": ["river_warden"],
+            "unique_buildings": ["canal_depot"],
             "research_preferences": ["surveying", "masonry", "engineering"],
             "content_hooks": ["canal_infrastructure", "river_market"],
         }
@@ -46,8 +47,8 @@ POC_CIVILIZATIONS: tuple[CivilizationDefinition, ...] = (
             "research_cost_percent": -15,
             "attack_strength_percent": 0,
             "defense_strength_percent": 0,
-            "unique_units": [],
-            "unique_buildings": [],
+            "unique_units": ["trailblazer"],
+            "unique_buildings": ["field_archive"],
             "research_preferences": ["surveying", "writing", "archery"],
             "content_hooks": ["waystation", "field_archive"],
         }
@@ -57,3 +58,18 @@ POC_CIVILIZATIONS: tuple[CivilizationDefinition, ...] = (
 POC_CIVILIZATIONS_BY_ID = {
     definition.civilization_id: definition for definition in POC_CIVILIZATIONS
 }
+
+
+def _unique_content_owners(attribute: str) -> dict[str, CivilizationId]:
+    owners: dict[str, CivilizationId] = {}
+    for definition in POC_CIVILIZATIONS:
+        content_ids = getattr(definition, attribute)
+        for content_id in content_ids:
+            if content_id in owners:
+                raise ValueError(f"duplicate unique content id: {content_id}")
+            owners[content_id] = definition.civilization_id
+    return owners
+
+
+POC_UNIQUE_UNIT_OWNERS = _unique_content_owners("unique_units")
+POC_UNIQUE_BUILDING_OWNERS = _unique_content_owners("unique_buildings")
