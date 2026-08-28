@@ -1,4 +1,4 @@
-# CivilizationClone — Proof-of-Concept Engine Plan
+# CivilizationClone — Engine Plan and Post-POC Roadmap
 
 ## 1. Purpose
 
@@ -238,7 +238,7 @@ Generic prerequisite DAG with id/cost, prerequisites, unlocks, modifiers, and ta
 
 ### `DiplomaticRelationship`
 
-Contact, peace/war, pending proposals, and later treaties/history.
+Contact, peace/war, pending proposals, trade/treaty state, and later relationship history/reputation.
 
 ### `VictoryTracker`
 
@@ -350,7 +350,9 @@ Mandatory decisions must be queryable so clients can explain rejected `EndTurn` 
 
 All state mutation uses commands.
 
-POC commands include `CreateGame`, `JoinGame`, `StartGame`, `MoveUnit`, `AttackUnit`, `FoundSettlement`, `SetWorkedTile`, `QueueProduction`, `CancelProduction`, `ChooseResearch`, `DeclareWar`, `OfferPeace`, `AcceptPeace`, `EndTurn`, and `Concede`.
+POC commands include `CreateGame`, `JoinGame`, `StartGame`, `MoveUnit`, `AttackUnit`, `FoundSettlement`, `SetWorkedTile`, `QueueProduction`, `CancelProduction`, `ChooseResearch`, `DeclareWar`, `OfferPeace`, `AcceptPeace`, `RejectPeace`, `EndTurn`, and `Concede`.
+
+Post-POC v1.1 extends the same command envelope with `OfferTrade`, `AcceptTrade`, `RejectTrade`, and `CancelTrade`; no separate mutation path is introduced.
 
 Command envelope includes command id, game id, player id when applicable, expected state version, command type, immutable payload, and optional client timestamp for diagnostics only.
 
@@ -362,7 +364,7 @@ Command envelope includes command id, game id, player id when applicable, expect
 
 ## 13. Deterministic domain event model
 
-Successful commands produce immutable events such as `GameCreated`, `GameStarted`, `TurnStarted`, `UnitMoved`, `UnitAttacked`, `UnitDamaged`, `UnitDestroyed`, `SettlementFounded`, production/research events, diplomacy events, turn events, elimination, and victory.
+Successful commands produce immutable events such as `GameCreated`, `GameStarted`, `TurnStarted`, `UnitMoved`, `UnitAttacked`, `UnitDamaged`, `UnitDestroyed`, `SettlementFounded`, production/research events, diplomacy/trade events, turn events, elimination, and victory.
 
 Events support replay, debugging, auditability, client updates, spectator tools, deterministic tests, and AI analysis.
 
@@ -461,11 +463,13 @@ Implement a generic prerequisite DAG. Science advances selected research each tu
 
 ---
 
-## 19. Diplomacy POC
+## 19. Diplomacy POC and v1.1 foundation
 
-Initial states: unknown, contacted, peace, war, and pending peace proposal. Commands include declare war, offer peace, and accept/reject peace.
+POC states are unknown, contacted, peace, war, and pending peace proposal. POC commands include declare war, offer peace, and accept/reject peace.
 
-Later: trade, alliances, borders, influence, grievances, reputation, joint wars, and independent powers.
+v1.1 adds deterministic bilateral lump-sum Gold trade proposals. A proposal records proposer, offered Gold, and requested Gold; resources transfer atomically only when the other player accepts. Offers may be rejected or withdrawn, are invalid at war, and are automatically cancelled by war/elimination. Trade terms and trade events are visible only to the two participating players.
+
+Later diplomacy phases build on this relationship object with trade routes, open borders, alliances, influence, grievances, reputation, joint wars, independent powers, and richer treaty histories.
 
 ---
 
@@ -481,7 +485,7 @@ Authorized GameSnapshot
 
 POC priorities: explore, find settlement location, maintain production, choose research, defend, attack favorable targets, end turn.
 
-Normal bots do not receive hidden state.
+Post-POC policies may negotiate, plan multi-turn objectives, and use deterministic evaluation/rollouts, but normal bots still do not receive hidden state.
 
 ---
 
@@ -580,6 +584,8 @@ Examples:
 - event sequence rejects duplicates/gaps/out-of-order entries;
 - command retries do not apply twice;
 - player projection never reveals undiscovered enemy unit;
+- bilateral proposals/events never leak to an uninvolved player;
+- accepted resource exchanges cannot be applied twice by command retry;
 - runtime logging enabled/disabled does not alter deterministic result;
 - user feedback does not expose debug-only details.
 
@@ -589,17 +595,17 @@ Run scripted games through command bus and verify event/log/state behavior.
 
 ### API tests
 
-Cover create/start, commands, stale version, idempotency, event ordering, feedback contract, fog filtering, and later WebSocket ordering.
+Cover create/start, commands, stale version, idempotency, event ordering, feedback contract, fog filtering, bilateral diplomacy filtering, and WebSocket ordering.
 
 ### Simulation tests
 
-Run bot-vs-bot matches and collect completion rate, turns, victory distribution, command failures, replay divergence, and performance.
+Run bot-vs-bot matches and collect completion rate, turns, victory distribution, command failures, replay divergence, diplomacy/trade activity, and performance.
 
 ---
 
 ## 25. Observability
 
-Runtime metrics/diagnostics should eventually include command latency, turn-resolution latency, pathfinding latency, AI decision latency, active games, command/event counts, snapshot size, replay failures, invalid-command reasons, subscribers/connections, and error counts by stable code.
+Runtime metrics/diagnostics should eventually include command latency, turn-resolution latency, pathfinding latency, AI decision latency, active games, command/event counts, snapshot size, replay failures, invalid-command reasons, subscribers/connections, trade/treaty counts, and error counts by stable code.
 
 Operational log records should include correlation identifiers where available.
 
@@ -607,12 +613,13 @@ Operational log records should include correlation identifiers where available.
 
 ## 26. Security and multiplayer authority
 
-Even in the POC:
+Even in the POC and post-POC expansion:
 
 - server/engine owns authoritative state;
 - identity is not trusted from arbitrary payload fields;
 - ownership/authorization checks precede mutations;
 - hidden state is filtered server-side;
+- bilateral/private diplomacy is filtered server-side;
 - payload/ruleset input is validated;
 - admin/debug surfaces are separate;
 - logs and feedback avoid secrets/hidden state;
@@ -746,8 +753,160 @@ Deliver complete end-to-end test/playtest suite, deterministic replay corpus, do
 
 ---
 
-## 30. Post-POC directions
+## 30. Post-POC implementation roadmap
 
-Possible later work includes larger worlds/eras, richer original culture/religion/influence systems, espionage, trade networks, advanced diplomacy, simultaneous turns, mod/plugin SDK, scenario editor, stronger AI planning, deterministic multiplayer experiments, richer replay/spectator tools, multiple 2D/3D clients, and performance/distributed simulation tooling.
+The v0.1→v1.0 POC is the stable foundation. Post-POC phases remain subject to evidence from tests/playtests, but they are now ordered so agents can continue implementation without inventing a new roadmap each turn.
+
+### v1.1 — Advanced diplomacy and atomic trade foundation — **CURRENT / IMPLEMENTED ON THIS BRANCH**
+
+Deliver:
+
+- immutable bilateral trade offers with proposer, offered Gold, and requested Gold;
+- `OfferTrade`, `AcceptTrade`, `RejectTrade`, and `CancelTrade` through the normal command bus;
+- atomic Gold transfer only on accepted terms with affordability revalidation;
+- deterministic invalidation on war and player elimination;
+- `TradeOffered`, `TradeAccepted`, `TradeRejected`, and `TradeCancelled` journal events;
+- participant-only trade projections/events and third-party privacy tests;
+- completed-trade history counters on bilateral relationships;
+- save-format v3 plus verified v1/v2 migration;
+- replay reconstruction through the advanced engine;
+- legal-action/API/TUI support;
+- deterministic projection-only bot negotiation;
+- idempotency, persistence, replay, API, and privacy regression coverage.
+
+Exit criteria:
+
+- an accepted trade can never transfer resources twice when the command is retried;
+- a third player cannot observe another pair's offer or trade events;
+- declaring war or eliminating a participant cannot leave a stale offer active;
+- save/reload and accepted-command replay preserve deterministic state/event hashes;
+- local CI and a human-style TUI trade playtest pass in an execution-capable environment.
+
+### v1.2 — Trade networks, open borders, and logistics
+
+Deliver:
+
+- settlement-to-settlement trade-route graph and route ownership;
+- deterministic route validation/path cost and route disruption rules;
+- recurring route yields through the normal economy pipeline;
+- open-borders proposals/treaties with explicit movement permissions;
+- supply/upkeep/logistics primitives reusable by military and trade systems;
+- authorized route/treaty queries for clients;
+- treaty expiry/cancellation rules represented as deterministic state/events;
+- AI route selection and treaty evaluation from authorized snapshots.
+
+Exit: two empires can negotiate access, create/disrupt a route, receive deterministic route yields, save/reload/replay it, and observe only authorized route information.
+
+### v1.3 — Culture, influence, civics, and richer eras
+
+Deliver:
+
+- reusable civics/progression DAG based on the research machinery;
+- culture accumulation and policy/civic unlocks;
+- influence pressure between settlements/players without hidden-state leakage;
+- deterministic territorial/influence effects;
+- data-driven phase/era progression and era-specific content gates;
+- original civilization hooks for culture/influence playstyles;
+- culture/influence/scenario victory foundations.
+
+Exit: a complete match can progress through more than one phase and culture/influence choices materially affect authoritative state without client-specific rules.
+
+### v1.4 — Espionage and intelligence
+
+Deliver:
+
+- explicit intelligence levels and information provenance;
+- deterministic espionage operations expressed as commands/events;
+- operation costs, durations, counter-intelligence, and safe failure feedback;
+- projection rules that reveal only intelligence legitimately acquired;
+- event filtering that never turns espionage into a hidden-state oracle;
+- deterministic AI operation selection using only authorized knowledge.
+
+Exit: espionage changes what a player is authorized to know without granting unrestricted engine state.
+
+### v1.5 — Scenario system, mod/plugin SDK, and editor foundation
+
+Deliver:
+
+- versioned scenario manifest/schema;
+- map/player/rules/objective import/export using original content;
+- validated extension points for rules/content packs instead of arbitrary engine mutation;
+- deterministic plugin ordering/version compatibility rules;
+- scenario objectives and scripted deterministic triggers;
+- headless scenario validation/build commands;
+- editor-facing API suitable for Godot/Unity/Unreal or a separate authoring client.
+
+Exit: an external scenario/content pack can be validated, loaded, played, saved, and replayed without modifying engine source.
+
+### v1.6 — Simultaneous-turn and multiplayer experiments
+
+Deliver:
+
+- explicit simultaneous-turn phase model separate from current sequential mode;
+- command reservation/commit windows;
+- deterministic conflict ordering/resolution rules;
+- reconnect/resume semantics and authoritative deadlines represented outside deterministic rules where appropriate;
+- multiplayer load/concurrency tests proving one serialized authoritative mutation order;
+- compatibility mode retaining sequential games/replays.
+
+Exit: equivalent simultaneous command sets resolve deterministically regardless of request arrival scheduling once their authoritative ordering inputs are fixed.
+
+### v1.7 — Advanced non-cheating AI planning
+
+Deliver:
+
+- typed goals/utility scoring;
+- multi-turn economic/research/military/diplomatic planning;
+- bounded planning/rollout against authorized immutable snapshots;
+- deterministic tie-breaking;
+- difficulty profiles based on policy quality/budgets rather than hidden information;
+- automated tournament/evaluation corpus and regression metrics.
+
+Exit: stronger bots complete matches reliably and remain deterministic/non-cheating under replay and visibility tests.
+
+### v1.8 — Replay, spectator, and time-travel tooling
+
+Deliver:
+
+- replay query API and deterministic checkpoint navigation;
+- immutable replay manifests/export/import;
+- observer/spectator credential semantics with explicit information policy;
+- event timeline/search and state-at-checkpoint reconstruction;
+- branch/fork tooling for counterfactual simulation without rewriting original history;
+- client hooks for replay controls in graphical clients.
+
+Exit: a completed match can be independently loaded, stepped, inspected, and verified without mutating its authoritative history.
+
+### v1.9 — Larger worlds, performance, and distributed simulation tooling
+
+Deliver:
+
+- larger-map profiling and memory budgets;
+- chunk/index structures only where benchmarks justify them;
+- pathfinding/visibility/economy hot-path instrumentation;
+- deterministic batch/tournament worker protocol where workers return commands/results and never share mutable game state;
+- load tests for many concurrent isolated games;
+- reproducible benchmark baselines and regression thresholds.
+
+Exit: significantly larger maps and high-volume automated matches meet documented local performance budgets without deterministic divergence.
+
+### v2.0 — Post-POC consolidation
+
+Deliver:
+
+- compatibility audit across v1.x save/API/ruleset contracts;
+- migration/replay corpus spanning supported historical versions;
+- stable extension/scenario interfaces;
+- multi-client capability matrix and parity expectations;
+- accessibility/UX acceptance requirements for maintained clients;
+- security/privacy review of all authorized projections and credentials;
+- performance/reliability release gates;
+- updated architecture/developer documentation suitable for long-term maintenance.
+
+Exit: the project has a stable second-generation engine/API contract with deterministic migration/replay evidence and multiple maintained clients.
+
+### Cross-phase rule
+
+Do not implement later-phase presentation by copying authoritative rules into clients. Each phase must first expose the minimum deterministic domain/application/API contract, then adapt clients to it. Every phase that changes canonical state must define migration and replay behavior before it is considered complete.
 
 The architectural rule remains: **one authoritative deterministic engine, many clients**.
