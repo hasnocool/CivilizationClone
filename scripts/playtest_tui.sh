@@ -6,14 +6,25 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 mkdir -p artifacts
-export CIVILIZATION_CLONE_DB="${CIVILIZATION_CLONE_DB:-artifacts/playtest.sqlite3}"
+if [[ -z "${CIVILIZATION_CLONE_DB:-}" ]]; then
+  export CIVILIZATION_CLONE_DB="artifacts/playtest-${$}.sqlite3"
+  cleanup_db=1
+else
+  cleanup_db=0
+fi
 export CIVILIZATION_CLONE_AUTH_SECRET="${CIVILIZATION_CLONE_AUTH_SECRET:-local-playtest-secret}"
 export CIVILIZATION_CLONE_HOST="127.0.0.1"
 export CIVILIZATION_CLONE_PORT="${CIVILIZATION_CLONE_PORT:-8765}"
 
 uv run civilization-clone-api >artifacts/playtest-api.log 2>&1 &
 api_pid=$!
-trap 'kill "$api_pid" >/dev/null 2>&1 || true' EXIT
+cleanup() {
+  kill "$api_pid" >/dev/null 2>&1 || true
+  if [[ "$cleanup_db" -eq 1 ]]; then
+    rm -f "$CIVILIZATION_CLONE_DB" "$CIVILIZATION_CLONE_DB-shm" "$CIVILIZATION_CLONE_DB-wal"
+  fi
+}
+trap cleanup EXIT
 
 python - <<'PY'
 import os
