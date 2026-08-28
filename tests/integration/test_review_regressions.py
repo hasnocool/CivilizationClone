@@ -52,7 +52,10 @@ def test_active_player_concession_advances_to_next_living_player() -> None:
     assert engine.session.current_player_id == p2
     assert result.events[-1].event_type == "TurnStarted"
     assert result.events[-1].payload["player_id"] == p2
-    assert engine.process(_command(6, engine, "EndTurn", p2)).accepted
+    assert engine.process(
+        _command(6, engine, "ChooseResearch", p2, {"technology_id": "surveying"})
+    ).accepted
+    assert engine.process(_command(7, engine, "EndTurn", p2)).accepted
 
 
 def test_peace_offer_is_visible_only_to_bilateral_participants() -> None:
