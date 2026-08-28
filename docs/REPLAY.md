@@ -59,6 +59,12 @@ This detects state-transition drift as well as event-shape/order drift.
 
 `GameManager` records accepted commands and passes the complete transcript to `SqliteGameStore` whenever authoritative events are persisted. A newly constructed manager lazily loads both the snapshot and command transcript from SQLite and can call `verify_replay(game_id)` without relying on the prior process's memory.
 
+## Legacy v0.8 save compatibility
+
+Snapshots created before v1 did not store accepted command payloads, so a complete independent command replay cannot be reconstructed from those files. v1 may still load such a snapshot for normal local use, but `GameManager.verify_replay()` marks it explicitly unavailable rather than treating an empty/incomplete transcript as valid.
+
+Once a legacy game has already mutated, later v1 commands cannot recover the missing historical command payloads. Start a new v1 game when complete replay verification is required. This is an explicit POC compatibility boundary rather than an inferred or lossy migration.
+
 ## Versioning
 
 Replay depends on deterministic rules behavior. Ruleset/save/API versions must therefore be treated deliberately. A future change that intentionally changes deterministic outcomes must either preserve the old ruleset implementation for old saves/replays or explicitly introduce a migration/incompatibility boundary.
