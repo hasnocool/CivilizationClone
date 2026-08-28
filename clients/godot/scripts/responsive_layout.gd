@@ -1,9 +1,8 @@
 class_name CivilizationResponsiveLayout
 extends Node
 
-const NARROW_WIDTH := 960.0
-const COMPACT_WIDTH := 700.0
-const TINY_WIDTH := 520.0
+const NARROW_WIDTH := 900.0
+const COMPACT_WIDTH := 640.0
 const MAP_MIN_WIDE := Vector2(320.0, 280.0)
 const MAP_MIN_NARROW := Vector2(220.0, 200.0)
 const SECTION_TITLES := [
@@ -220,7 +219,6 @@ func _apply_layout() -> void:
 	var width := get_viewport().get_visible_rect().size.x
 	var narrow := width < NARROW_WIDTH
 	var compact := width < COMPACT_WIDTH
-	var tiny := width < TINY_WIDTH
 	if _split != null:
 		_split.vertical = narrow
 		_split.split_offset = 0
@@ -236,7 +234,7 @@ func _apply_layout() -> void:
 		if only_buttons:
 			grid.columns = 1 if compact else 2
 		else:
-			grid.columns = 1 if tiny else (2 if narrow else 4)
+			grid.columns = 2 if narrow else 4
 
 func _apply_split_ratios(narrow: bool) -> void:
 	if _split == null or _split.get_child_count() < 2:
@@ -245,5 +243,5 @@ func _apply_split_ratios(narrow: bool) -> void:
 	var secondary := _split.get_child(1) as Control
 	if primary == null or secondary == null:
 		return
-	primary.size_flags_stretch_ratio = 1.25 if narrow else 2.0
+	primary.size_flags_stretch_ratio = 1.4 if narrow else 2.0
 	secondary.size_flags_stretch_ratio = 1.0
