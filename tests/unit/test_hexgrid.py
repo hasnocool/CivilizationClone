@@ -2,7 +2,7 @@
 import pytest
 
 from civilization_clone.domain.map import HexCoord
-from civilization_clone.engine.hexgrid import distance, neighbors, ring, within_radius
+from civilization_clone.engine.hexgrid import distance, line, neighbors, ring, within_radius
 
 
 def test_neighbors_are_six_unique_adjacent_coordinates() -> None:
@@ -36,3 +36,27 @@ def test_hex_disk_tile_count_matches_formula() -> None:
     coords = within_radius(HexCoord(0, 0), radius)
 
     assert len(coords) == 1 + 3 * radius * (radius + 1)
+
+
+@pytest.mark.parametrize(
+    ("start", "end"),
+    [
+        (HexCoord(0, 0), HexCoord(4, -2)),
+        (HexCoord(-3, 1), HexCoord(2, 2)),
+        (HexCoord(2, -3), HexCoord(-2, 1)),
+    ],
+)
+def test_hex_line_is_shortest_connected_and_reversible(start: HexCoord, end: HexCoord) -> None:
+    forward = line(start, end)
+    reverse = line(end, start)
+
+    assert forward[0] == start
+    assert forward[-1] == end
+    assert len(forward) == distance(start, end) + 1
+    assert all(distance(left, right) == 1 for left, right in zip(forward, forward[1:]))
+    assert forward == tuple(reversed(reverse))
+
+
+def test_hex_line_single_coordinate_is_stable() -> None:
+    coord = HexCoord(2, -1)
+    assert line(coord, coord) == (coord,)
