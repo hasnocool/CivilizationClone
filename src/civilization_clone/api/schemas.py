@@ -155,6 +155,7 @@ class ResearchOptionsResponse(BaseModel):
     game_id: str
     player_id: str
     state_version: int
+    is_active_player: bool
     options: list[ResearchOptionResponse]
 
 
