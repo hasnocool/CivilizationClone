@@ -21,7 +21,13 @@ def _create(client: TestClient, game_id: str, *, seed: int = 4242) -> str:
     return token
 
 
-def _join(client: TestClient, game_id: str, admin_token: str, player_id: str) -> str:
+def _join(
+    client: TestClient,
+    game_id: str,
+    admin_token: str,
+    player_id: str,
+    civilization_id: str = "river_compact",
+) -> str:
     response = client.post(
         f"/api/v1/games/{game_id}/players",
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -29,11 +35,13 @@ def _join(client: TestClient, game_id: str, admin_token: str, player_id: str) ->
             "command_id": f"join-{player_id}",
             "player_id": player_id,
             "name": player_id,
+            "civilization_id": civilization_id,
         },
     )
     assert response.status_code == 200
     body = response.json()
     assert body["accepted"]
+    assert body["civilization_id"] == civilization_id
     token = body["player_token"]
     assert isinstance(token, str) and token
     return token
@@ -68,10 +76,51 @@ def _command(
     return response.json()
 
 
+def test_api_exposes_and_validates_original_civilization_content() -> None:
+    client = _client()
+    civilizations = client.get("/api/v1/rules/civilizations")
+    assert civilizations.status_code == 200
+    body = civilizations.json()
+    assert [item["civilization_id"] for item in body] == [
+        "river_compact",
+        "horizon_league",
+    ]
+    assert all(item["description"] for item in body)
+
+    admin = _create(client, "civilization-api")
+    p1_token = _join(
+        client,
+        "civilization-api",
+        admin,
+        "p1",
+        civilization_id="horizon_league",
+    )
+    rejected = client.post(
+        "/api/v1/games/civilization-api/players",
+        headers={"Authorization": f"Bearer {admin}"},
+        json={
+            "command_id": "join-invalid-civ",
+            "player_id": "p2",
+            "name": "p2",
+            "civilization_id": "not-a-civilization",
+        },
+    )
+    assert rejected.status_code == 200
+    assert not rejected.json()["accepted"]
+    assert rejected.json()["feedback"][0]["code"] == "INVALID_CIVILIZATION"
+
+    state = client.get(
+        "/api/v1/games/civilization-api/state",
+        headers={"Authorization": f"Bearer {p1_token}"},
+    )
+    assert state.status_code == 200
+    assert state.json()["viewer"]["civilization_id"] == "horizon_league"
+
+
 def test_api_game_lifecycle_and_player_projection_hide_enemy_start() -> None:
     client = _client()
     admin = _create(client, "api-game")
-    p1_token = _join(client, "api-game", admin, "p1")
+    p1_token = _join(client, "api-game", admin, "p1", "horizon_league")
     _join(client, "api-game", admin, "p2")
 
     started = _command(client, "api-game", admin, "start", "StartGame")
@@ -85,6 +134,11 @@ def test_api_game_lifecycle_and_player_projection_hide_enemy_start() -> None:
     assert state.status_code == 200
     projection = state.json()
     assert projection["viewer"]["player_id"] == "p1"
+    assert projection["viewer"]["civilization_id"] == "horizon_league"
+    assert {player["civilization_id"] for player in projection["players"]} == {
+        "river_compact",
+        "horizon_league",
+    }
     assert {unit["owner_id"] for unit in projection["units"]} == {"p1"}
     assert len(projection["map"]["tiles"]) < 61
 
