@@ -142,6 +142,7 @@ def resolve_research(player: PlayerState) -> tuple[ResearchOutcome, ...]:
             ResearchOutcome(
                 "ResearchAdvanced",
                 {
+                    "player_id": player.player_id,
                     "technology_id": selected,
                     "spent": spent,
                     "progress": player.research.progress,
@@ -159,6 +160,7 @@ def resolve_research(player: PlayerState) -> tuple[ResearchOutcome, ...]:
             ResearchOutcome(
                 "TechnologyCompleted",
                 {
+                    "player_id": player.player_id,
                     "technology_id": selected,
                     "unlocks": list(definition.unlocks),
                 },
