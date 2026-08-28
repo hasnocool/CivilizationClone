@@ -1,5 +1,13 @@
 """CivilizationClone deterministic 4X engine core."""
 
+from civilization_clone.domain.economy import (
+    ProductionKind,
+    ProductionOrder,
+    SettlementState,
+    YieldBundle,
+    YieldModifier,
+    YieldType,
+)
 from civilization_clone.domain.gameplay import (
     ControllerType,
     GameSession,
@@ -33,19 +41,25 @@ __all__ = [
     "MapGenerationConfig",
     "MapGenerationResult",
     "PlayerState",
+    "ProductionKind",
+    "ProductionOrder",
     "ResourceType",
     "RngFactory",
     "RulesetLoader",
     "RulesetManifest",
+    "SettlementState",
     "TerrainType",
     "Tile",
     "UnitDefinition",
     "UnitState",
     "Visibility",
     "WorldMap",
+    "YieldBundle",
+    "YieldModifier",
+    "YieldType",
     "canonical_json",
     "generate_world",
     "state_hash",
 ]
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
