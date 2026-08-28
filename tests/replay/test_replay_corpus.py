@@ -6,9 +6,9 @@ from pathlib import Path
 
 from civilization_clone.domain.ids import CommandId, GameId, PlayerId, RulesetId
 from civilization_clone.domain.state import RulesetRef
+from civilization_clone.engine.advanced import AdvancedGameEngine
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.mapgen import MapGenerationConfig
-from civilization_clone.engine.session import GameEngine
 from civilization_clone.persistence.replay import verify_replay
 
 _CORPUS = Path(__file__).parents[1] / "corpus" / "replay_cases.json"
@@ -19,7 +19,7 @@ def test_replay_corpus_matches_state_and_event_hashes() -> None:
     assert isinstance(cases, list) and cases
     for case_index, case in enumerate(cases):
         game_id = GameId(f"corpus-{case['name']}")
-        engine = GameEngine.create(
+        engine = AdvancedGameEngine.create(
             game_id=game_id,
             seed=int(case["seed"]),
             ruleset=RulesetRef(RulesetId("poc-core"), "1.0.0"),
