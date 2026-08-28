@@ -10,6 +10,8 @@ from civilization_clone.domain.gameplay import GameSession
 from civilization_clone.domain.ids import PlayerId, SettlementId, UnitId
 from civilization_clone.domain.map import HexCoord
 from civilization_clone.domain.visibility import Visibility
+from civilization_clone.engine.research import available_technologies
+from civilization_clone.rules.poc import POC_CIVILIZATIONS_BY_ID
 
 
 def project_game(session: GameSession, viewer_id: PlayerId) -> dict[str, Any]:
@@ -17,6 +19,7 @@ def project_game(session: GameSession, viewer_id: PlayerId) -> dict[str, Any]:
     player = session.players.get(viewer_id)
     if player is None:
         raise KeyError(f"player not found: {viewer_id}")
+    civilization = POC_CIVILIZATIONS_BY_ID.get(player.civilization_id)
 
     tiles = []
     for coord, visibility in sorted(player.visibility.items()):
@@ -122,6 +125,12 @@ def project_game(session: GameSession, viewer_id: PlayerId) -> dict[str, Any]:
                 "selected": player.research.selected,
                 "progress": player.research.progress,
                 "completed": sorted(player.research.completed),
+                "available": list(available_technologies(player)),
+                "preferences": (
+                    list(civilization.research_preferences)
+                    if civilization is not None
+                    else []
+                ),
             },
             "eliminated": player.eliminated,
         },
