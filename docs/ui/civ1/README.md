@@ -12,7 +12,7 @@ This directory is the canonical visual reference for CivilizationClone clients t
 
 ## Canonical references
 
-- `SCENE_GRAPH.md` — overall ASCII navigation graph, high-level Mermaid graph, detailed 57-scene Mermaid graph, scene-family ownership graph, and navigation rules.
+- `SCENE_GRAPH.md` — overall ASCII navigation graph, validated high-level Mermaid graph, detailed 57-scene Mermaid graph, scene-family ownership graph, and navigation rules.
 - `SCENE_INDEX.md` — stable `CIV1-UI-NNN` identifiers for every scene.
 - `SCENE_CONTRACT.md` — cross-client implementation contract, actions, ownership boundaries, responsive behavior, accessibility, and acceptance-test guidance.
 
