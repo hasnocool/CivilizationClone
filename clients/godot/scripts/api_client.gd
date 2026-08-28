@@ -18,7 +18,14 @@ func health() -> Dictionary:
 func civilizations() -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, "/api/v1/rules/civilizations")
 
-func create_game(game_id: String, seed: int, player_count: int, map_radius: int = 4) -> Dictionary:
+func create_game(
+	game_id: String,
+	seed: int,
+	player_count: int,
+	map_radius: int = 4,
+	water_percent: int = 20,
+	resource_percent: int = 18
+) -> Dictionary:
 	return await _request_json(
 		HTTPClient.METHOD_POST,
 		"/api/v1/games",
@@ -27,8 +34,8 @@ func create_game(game_id: String, seed: int, player_count: int, map_radius: int 
 			"seed": seed,
 			"player_count": player_count,
 			"map_radius": map_radius,
-			"water_percent": 20,
-			"resource_percent": 18,
+			"water_percent": water_percent,
+			"resource_percent": resource_percent,
 		}
 	)
 
@@ -37,7 +44,8 @@ func join_player(
 	admin_token: String,
 	player_id: String,
 	player_name: String,
-	civilization_id: String
+	civilization_id: String,
+	controller: String = "human"
 ) -> Dictionary:
 	return await _request_json(
 		HTTPClient.METHOD_POST,
@@ -46,7 +54,7 @@ func join_player(
 			"command_id": _next_command_id("join"),
 			"player_id": player_id,
 			"name": player_name,
-			"controller": "human",
+			"controller": controller,
 			"civilization_id": civilization_id,
 		},
 		admin_token
@@ -67,6 +75,7 @@ func command(
 		"command_id": _next_command_id(command_type.to_lower()),
 		"command_type": command_type,
 		"payload": payload,
+		"client_timestamp": Time.get_datetime_string_from_system(true, false),
 	}
 	if not player_id.is_empty():
 		body["player_id"] = player_id
@@ -102,6 +111,21 @@ func events(game_id: String, player_token: String, after_sequence: int = -1) -> 
 		null,
 		player_token
 	)
+
+func event_websocket_url(game_id: String, after_sequence: int = -1) -> String:
+	var websocket_base := base_url
+	if websocket_base.begins_with("https://"):
+		websocket_base = "wss://" + websocket_base.substr(8)
+	elif websocket_base.begins_with("http://"):
+		websocket_base = "ws://" + websocket_base.substr(7)
+	return "%s/api/v1/games/%s/events/ws?after_sequence=%d" % [
+		websocket_base,
+		game_id.uri_encode(),
+		after_sequence,
+	]
+
+func event_websocket_protocols(player_token: String) -> PackedStringArray:
+	return PackedStringArray(["civilization.v1", player_token])
 
 func _next_command_id(prefix: String) -> String:
 	_command_number += 1
