@@ -139,6 +139,25 @@ class ProductionOptionsResponse(BaseModel):
     options: list[ProductionOptionResponse]
 
 
+class ResearchOptionResponse(BaseModel):
+    technology_id: str
+    name: str
+    base_cost: int
+    effective_cost: int
+    prerequisites: list[str]
+    unlocks: list[str]
+    status: str
+    selectable: bool
+    blockers: list[str]
+
+
+class ResearchOptionsResponse(BaseModel):
+    game_id: str
+    player_id: str
+    state_version: int
+    options: list[ResearchOptionResponse]
+
+
 class FeedbackResponse(BaseModel):
     code: str
     message: str
