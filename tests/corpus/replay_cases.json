@@ -20,7 +20,9 @@
       {"type": "JoinGame", "player": "p3", "payload": {"name": "Three"}},
       {"type": "StartGame"},
       {"type": "Concede", "player": "p1"},
+      {"type": "ChooseResearch", "player": "p2", "payload": {"technology_id": "surveying"}},
       {"type": "EndTurn", "player": "p2"},
+      {"type": "ChooseResearch", "player": "p3", "payload": {"technology_id": "masonry"}},
       {"type": "EndTurn", "player": "p3"}
     ]
   },
