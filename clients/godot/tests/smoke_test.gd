@@ -12,6 +12,7 @@ func _init() -> void:
 	root.add_child(instance)
 	await process_frame
 	await process_frame
+	await process_frame
 	var main := root.get_node_or_null("Main")
 	if main == null:
 		_fail("Main scene did not enter the tree")
@@ -21,6 +22,25 @@ func _init() -> void:
 		return
 	if _find_first(main, "ResponsiveGameSplit") == null:
 		_fail("Responsive game split was not installed")
+		return
+	if _find_first(main, "ClientToolbar") == null:
+		_fail("Client toolbar was not installed")
+		return
+	var settings := _find_first(main, "SettingsScreen") as CivilizationSettingsScreen
+	if settings == null:
+		_fail("Display settings screen was not installed")
+		return
+	if settings.visible:
+		_fail("Settings screen should be hidden on normal startup")
+		return
+	if settings.resolution_select == null or settings.resolution_select.item_count < 6:
+		_fail("Settings screen does not expose enough resolution choices")
+		return
+	if settings.mode_select == null or settings.mode_select.item_count < 4:
+		_fail("Settings screen does not expose window modes")
+		return
+	if settings.ui_scale_select == null or settings.ui_scale_select.item_count < 5:
+		_fail("Settings screen does not expose UI scale choices")
 		return
 	if _contains_hsplit(main):
 		_fail("Fixed horizontal split remained after responsive installation")
@@ -34,6 +54,9 @@ func _init() -> void:
 		return
 	if map.custom_minimum_size.x > 320.0 or map.custom_minimum_size.y > 280.0:
 		_fail("Hex map retains an oversized fixed minimum")
+		return
+	if not _dropdowns_are_responsive(main):
+		_fail("One or more dropdowns still reserve width for their longest item")
 		return
 	print("GODOT CLIENT SMOKE PASS")
 	quit(0)
@@ -62,6 +85,18 @@ func _contains_hbox(parent: Node) -> bool:
 		if _contains_hbox(child):
 			return true
 	return false
+
+func _dropdowns_are_responsive(parent: Node) -> bool:
+	if parent is OptionButton:
+		var option := parent as OptionButton
+		if option.fit_to_longest_item:
+			return false
+		if option.custom_minimum_size.x > 0.0:
+			return false
+	for child in parent.get_children():
+		if not _dropdowns_are_responsive(child):
+			return false
+	return true
 
 func _find_map(parent: Node) -> CivilizationHexMap:
 	for child in parent.get_children():
