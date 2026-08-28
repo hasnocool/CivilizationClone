@@ -84,17 +84,18 @@ class GameManager:
             return engine
 
     async def process(self, command: CommandEnvelope) -> CommandResult:
-        """Serialize one state-changing command for its game and publish only new events."""
+        """Serialize one command, persist idempotency, and publish only new events."""
         engine = await self.get_engine(command.game_id)
         lock = self._locks.setdefault(command.game_id, asyncio.Lock())
         async with lock:
+            already_processed = command.command_id in engine._processed
             before_sequence = engine.event_log.next_sequence
             result = engine.process(command)
             new_events = engine.event_log.snapshot()[before_sequence:]
             transcript = self._accepted_commands.setdefault(command.game_id, [])
             if result.accepted and new_events:
                 transcript.append(command)
-            if new_events and self.store is not None:
+            if not already_processed and self.store is not None:
                 await self.store.save(engine, accepted_commands=tuple(transcript))
             if new_events:
                 self._publish(command.game_id, new_events)
