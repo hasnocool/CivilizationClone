@@ -3,6 +3,9 @@ extends Node
 
 var base_url: String = "http://127.0.0.1:8000"
 var timeout_seconds: float = 10.0
+var pending_water_percent: int = 20
+var pending_resource_percent: int = 18
+var player_controller_overrides: Dictionary = {}
 var _command_number: int = 0
 var _client_id: String
 
@@ -11,6 +14,19 @@ func _ready() -> void:
 
 func configure(url: String) -> void:
 	base_url = url.strip_edges().trim_suffix("/")
+
+func configure_game_options(water_percent: int, resource_percent: int) -> void:
+	pending_water_percent = clampi(water_percent, 0, 60)
+	pending_resource_percent = clampi(resource_percent, 0, 60)
+
+func set_player_controller(player_id: String, controller: String) -> void:
+	var normalized := controller.strip_edges().to_lower()
+	player_controller_overrides[player_id] = normalized if normalized in ["human", "bot"] else "human"
+
+func clear_setup_overrides() -> void:
+	pending_water_percent = 20
+	pending_resource_percent = 18
+	player_controller_overrides.clear()
 
 func health() -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, "/api/v1/health")
@@ -23,9 +39,11 @@ func create_game(
 	seed: int,
 	player_count: int,
 	map_radius: int = 4,
-	water_percent: int = 20,
-	resource_percent: int = 18
+	water_percent: int = -1,
+	resource_percent: int = -1
 ) -> Dictionary:
+	var resolved_water := pending_water_percent if water_percent < 0 else clampi(water_percent, 0, 60)
+	var resolved_resources := pending_resource_percent if resource_percent < 0 else clampi(resource_percent, 0, 60)
 	return await _request_json(
 		HTTPClient.METHOD_POST,
 		"/api/v1/games",
@@ -34,8 +52,8 @@ func create_game(
 			"seed": seed,
 			"player_count": player_count,
 			"map_radius": map_radius,
-			"water_percent": water_percent,
-			"resource_percent": resource_percent,
+			"water_percent": resolved_water,
+			"resource_percent": resolved_resources,
 		}
 	)
 
@@ -45,8 +63,13 @@ func join_player(
 	player_id: String,
 	player_name: String,
 	civilization_id: String,
-	controller: String = "human"
+	controller: String = ""
 ) -> Dictionary:
+	var resolved_controller := controller.strip_edges().to_lower()
+	if resolved_controller.is_empty():
+		resolved_controller = str(player_controller_overrides.get(player_id, "human"))
+	if resolved_controller not in ["human", "bot"]:
+		resolved_controller = "human"
 	return await _request_json(
 		HTTPClient.METHOD_POST,
 		"/api/v1/games/%s/players" % game_id.uri_encode(),
@@ -54,7 +77,7 @@ func join_player(
 			"command_id": _next_command_id("join"),
 			"player_id": player_id,
 			"name": player_name,
-			"controller": controller,
+			"controller": resolved_controller,
 			"civilization_id": civilization_id,
 		},
 		admin_token
