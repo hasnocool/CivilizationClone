@@ -34,6 +34,9 @@ func health() -> Dictionary:
 func civilizations() -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, "/api/v1/rules/civilizations")
 
+func rules_content() -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, "/api/v1/rules/content")
+
 func create_game(
 	game_id: String,
 	seed: int,
@@ -123,6 +126,21 @@ func legal_actions(game_id: String, player_token: String) -> Dictionary:
 	return await _request_json(
 		HTTPClient.METHOD_GET,
 		"/api/v1/games/%s/legal-actions" % game_id.uri_encode(),
+		null,
+		player_token
+	)
+
+func production_options(
+	game_id: String,
+	player_token: String,
+	settlement_id: String
+) -> Dictionary:
+	return await _request_json(
+		HTTPClient.METHOD_GET,
+		"/api/v1/games/%s/production-options?settlement_id=%s" % [
+			game_id.uri_encode(),
+			settlement_id.uri_encode(),
+		],
 		null,
 		player_token
 	)
