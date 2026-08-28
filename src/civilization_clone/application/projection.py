@@ -172,7 +172,7 @@ def project_event(
     if event_type in globally_safe:
         return _event_projection(event, payload)
 
-    if event_type in {"PeaceOffered", "PeaceAccepted"}:
+    if event_type in {"PeaceOffered", "PeaceAccepted", "PeaceRejected"}:
         if viewer_id in _diplomacy_participants(session, payload):
             return _event_projection(event, payload)
         return None
