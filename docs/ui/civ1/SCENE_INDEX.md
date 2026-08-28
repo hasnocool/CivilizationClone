@@ -2,6 +2,8 @@
 
 Stable IDs below are intended for documentation, test cases, client routing, screenshots, and issue references.
 
+For the complete navigation topology, see `SCENE_GRAPH.md`, which contains both the overall ASCII scene graph and Mermaid diagrams.
+
 | ID | Scene | Family | Primary interaction |
 |---|---|---|---|
 | CIV1-UI-001 | Title Screen | boot/setup | continue |
@@ -80,3 +82,5 @@ BOOT -> SETUP -> WORLD MAP <-> CITY
                     +-> SPACE RACE
                     +-> ENDGAME
 ```
+
+See `SCENE_GRAPH.md` for the expanded ASCII and Mermaid versions of this navigation spine.
