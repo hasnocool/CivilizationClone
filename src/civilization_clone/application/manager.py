@@ -16,7 +16,7 @@ from civilization_clone.persistence.sqlite_store import SqliteGameStore
 
 @dataclass(slots=True)
 class GameManager:
-    """Own running engines, per-game mutation locks, persistence, and event subscribers."""
+    """Own running engines, mutation locks, persistence, and event subscribers."""
 
     store: SqliteGameStore | None = None
     _games: dict[GameId, GameEngine] = field(default_factory=dict)
@@ -24,6 +24,7 @@ class GameManager:
     _subscribers: dict[GameId, set[asyncio.Queue[EventEnvelope]]] = field(
         default_factory=dict
     )
+    _registry_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     async def create_game(
         self,
@@ -33,35 +34,42 @@ class GameManager:
         ruleset: RulesetRef | None = None,
         map_config: MapGenerationConfig | None = None,
     ) -> GameEngine:
-        """Create one in-memory game and optionally persist its initial state."""
-        if game_id in self._games:
-            raise ValueError(f"game already exists: {game_id}")
-        resolved_ruleset = ruleset or RulesetRef(RulesetId("poc-core"), "0.8.0")
-        engine = GameEngine.create(
-            game_id=game_id,
-            seed=seed,
-            ruleset=resolved_ruleset,
-            map_config=map_config,
-        )
-        self._games[game_id] = engine
-        self._locks[game_id] = asyncio.Lock()
-        self._subscribers.setdefault(game_id, set())
-        if self.store is not None:
-            await self.store.save(engine)
-        return engine
+        """Create one game exactly once and optionally persist its initial state."""
+        async with self._registry_lock:
+            if game_id in self._games:
+                raise ValueError(f"game already exists: {game_id}")
+            if self.store is not None and game_id in await self.store.list_games():
+                raise ValueError(f"game already exists: {game_id}")
+            resolved_ruleset = ruleset or RulesetRef(RulesetId("poc-core"), "0.8.0")
+            engine = GameEngine.create(
+                game_id=game_id,
+                seed=seed,
+                ruleset=resolved_ruleset,
+                map_config=map_config,
+            )
+            self._games[game_id] = engine
+            self._locks[game_id] = asyncio.Lock()
+            self._subscribers.setdefault(game_id, set())
+            if self.store is not None:
+                await self.store.save(engine)
+            return engine
 
     async def get_engine(self, game_id: GameId) -> GameEngine:
         """Return a running game, lazily restoring it from durable storage when configured."""
         engine = self._games.get(game_id)
         if engine is not None:
             return engine
-        if self.store is None:
-            raise KeyError(f"game not found: {game_id}")
-        engine = await self.store.load(game_id)
-        existing = self._games.setdefault(game_id, engine)
-        self._locks.setdefault(game_id, asyncio.Lock())
-        self._subscribers.setdefault(game_id, set())
-        return existing
+        async with self._registry_lock:
+            engine = self._games.get(game_id)
+            if engine is not None:
+                return engine
+            if self.store is None:
+                raise KeyError(f"game not found: {game_id}")
+            engine = await self.store.load(game_id)
+            self._games[game_id] = engine
+            self._locks.setdefault(game_id, asyncio.Lock())
+            self._subscribers.setdefault(game_id, set())
+            return engine
 
     async def process(self, command: CommandEnvelope) -> CommandResult:
         """Serialize one state-changing command for its game and publish only new events."""
