@@ -9,7 +9,6 @@ from civilization_clone.domain.ids import CommandId, GameId, PlayerId
 from civilization_clone.domain.map import HexCoord
 from civilization_clone.engine.commands import CommandEnvelope
 from civilization_clone.engine.hexgrid import distance, neighbors
-from civilization_clone.engine.research import TECHNOLOGIES
 
 
 class BotPolicy(Protocol):
@@ -46,7 +45,9 @@ class SimpleBotPolicy:
         selected = research.get("selected")
         completed = {str(item) for item in research.get("completed", [])}
         if selected is None:
-            technology = _first_available_technology(completed)
+            available = tuple(str(item) for item in research.get("available", []))
+            preferences = tuple(str(item) for item in research.get("preferences", []))
+            technology = _preferred_available_technology(available, preferences)
             if technology is not None:
                 return _command(
                     command_id,
@@ -157,11 +158,15 @@ class SimpleBotPolicy:
         return _command(command_id, game_id, player_id, version, "EndTurn")
 
 
-def _first_available_technology(completed: set[str]) -> str | None:
-    for technology_id, definition in sorted(TECHNOLOGIES.items()):
-        if technology_id not in completed and definition.prerequisites <= completed:
+def _preferred_available_technology(
+    available: tuple[str, ...],
+    preferences: tuple[str, ...],
+) -> str | None:
+    available_set = set(available)
+    for technology_id in preferences:
+        if technology_id in available_set:
             return technology_id
-    return None
+    return min(available_set) if available_set else None
 
 
 def _first_visible_attack(
