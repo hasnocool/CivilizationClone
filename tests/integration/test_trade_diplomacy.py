@@ -101,6 +101,28 @@ def test_trade_acceptance_is_atomic_idempotent_and_projected_to_participants() -
     assert engine.session.players[second].gold == second_after
 
 
+def test_rejected_trade_response_does_not_create_or_mutate_diplomacy_state() -> None:
+    engine, (first, _second) = _started_engine()
+    before_hash = engine.state_hash()
+    before_diplomacy = tuple(sorted(engine.session.diplomacy))
+
+    rejected = engine.process(
+        _command(
+            14,
+            engine,
+            "AcceptTrade",
+            first,
+            {"target_player_id": "ghost"},
+        )
+    )
+
+    assert not rejected.accepted
+    assert rejected.feedback[0].code == "TRADE_REJECTED"
+    assert rejected.feedback[0].context["reason"] == "player_not_found"
+    assert engine.state_hash() == before_hash
+    assert tuple(sorted(engine.session.diplomacy)) == before_diplomacy
+
+
 def test_trade_event_and_terms_are_hidden_from_uninvolved_player() -> None:
     engine, players = _started_engine(players=3)
     first, second, observer = players
