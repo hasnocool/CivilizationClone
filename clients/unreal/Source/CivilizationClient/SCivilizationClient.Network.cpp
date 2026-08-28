@@ -75,6 +75,8 @@ void SCivilizationClient::JoinNextPlayer(int32 Index)
     FPlayerConfig& Player = Players[Index];
     const FString Id = Player.Id.TrimStartAndEnd();
     const FString Name = Player.Name.TrimStartAndEnd();
+    Player.Id = Id;
+    Player.Name = Name;
     const FString Civ = CivilizationId(Player.CivilizationIndex);
     const TWeakPtr<SCivilizationClient> WeakThis = SharedThis(this);
     Api->JoinPlayer(GameId, AdminToken, Id, Name, Civ, [WeakThis, Index, Id](const FCivApiResponse& Response)
