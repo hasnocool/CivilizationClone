@@ -1,0 +1,13 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.8",
+  "Category": "Games",
+  "Description": "CivilizationClone public API client",
+  "Modules": [
+    {
+      "Name": "CivilizationClient",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}
