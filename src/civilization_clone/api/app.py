@@ -40,6 +40,7 @@ _PUBLIC_EVENT_TYPES = frozenset(
         "VictoryAchieved",
     }
 )
+_WEBSOCKET_PROTOCOL = "civilization.v1"
 
 
 def create_app(
@@ -234,12 +235,14 @@ def create_app(
                 ]
             )
             if player.research.selected is None:
-                mandatory.append(
-                    {
-                        "kind": "research",
-                        "options": list(available_technologies(player)),
-                    }
-                )
+                options = available_technologies(player)
+                if options:
+                    mandatory.append(
+                        {
+                            "kind": "research",
+                            "options": list(options),
+                        }
+                    )
         return {
             "game_id": game_id,
             "player_id": str(viewer_id),
@@ -251,11 +254,8 @@ def create_app(
 
     @app.websocket("/api/v1/games/{game_id}/events/ws")
     async def event_websocket(websocket: WebSocket, game_id: str) -> None:
-        raw_token = websocket.query_params.get("token")
-        if raw_token is None:
-            await websocket.close(code=1008, reason="token is required")
-            return
         try:
+            raw_token = _websocket_credential(websocket)
             resolved_game_id = validate_id(game_id, GameId)
             viewer_id = auth_manager.verify_player(raw_token, resolved_game_id)
             engine = await game_manager.get_engine(resolved_game_id)
@@ -266,7 +266,7 @@ def create_app(
             await websocket.close(code=1008, reason="game or credential not authorized")
             return
 
-        await websocket.accept()
+        await websocket.accept(subprotocol=_WEBSOCKET_PROTOCOL)
         try:
             after_sequence = _websocket_after_sequence(websocket)
             for event in await game_manager.snapshot_events(resolved_game_id):
@@ -362,6 +362,14 @@ def _command_response(
         events=events,
         feedback=feedback,
     )
+
+
+def _websocket_credential(websocket: WebSocket) -> str:
+    raw_protocols = websocket.headers.get("sec-websocket-protocol", "")
+    protocols = [item.strip() for item in raw_protocols.split(",") if item.strip()]
+    if len(protocols) != 2 or protocols[0] != _WEBSOCKET_PROTOCOL:
+        raise AuthenticationError("websocket credential protocol is required")
+    return protocols[1]
 
 
 def _websocket_after_sequence(websocket: WebSocket) -> int:
