@@ -7,7 +7,8 @@ This document maps the authoritative `/api/v1` contract to the Godot client. It 
 | API surface | Godot status | Client behavior |
 | --- | --- | --- |
 | `GET /api/v1/health` | Implemented | Connection and attach flows verify server availability. |
-| `GET /api/v1/rules/civilizations` | Implemented | Lobby civilization selectors are populated from the server response. |
+| `GET /api/v1/rules/civilizations` | Implemented | Lobby civilization selectors and the civilization browser are populated from the server response. |
+| `GET /api/v1/rules/content` | Implemented | Supplies server-owned unit/building/technology names, costs, visible stats/effects, prerequisites, unlocks, and public content requirements. |
 
 ## Game lifecycle
 
@@ -44,8 +45,24 @@ Every command uses a client-generated unique `command_id`, sends optimistic `exp
 | API surface | Godot status | Client behavior |
 | --- | --- | --- |
 | `GET .../state` | Implemented | Drives the fog-safe map and current viewer panels. |
-| `GET .../legal-actions` | Implemented | Drives legal action and mandatory research presentation. |
+| `GET .../legal-actions` | Implemented | Drives legal action and mandatory-decision presentation. |
+| `GET .../research-options` | Implemented | Replaces raw research IDs with server names, effective civilization-adjusted costs, prerequisites/unlocks, status, and current-turn selectability. |
+| `GET .../production-options?settlement_id=...` | Implemented | Populates the production dropdown for the authenticated viewer's own settlement, with separate queue blockers and stable completion-content blockers. |
 | `GET .../events?after_sequence=N` | Implemented | Used to bootstrap an authorized event cursor before the live stream connects. |
+
+### Production semantics
+
+The Godot client does not invent stricter production rules. When the server reports an item as `queue_allowed=true` but `completion_unlocked=false`, the choice remains queueable and is visibly annotated as future-gated. Items the command cannot currently queue are disabled. The hidden legacy definition-ID field is only an internal bridge into the pre-existing `QueueProduction` command handler; users no longer type gameplay definition IDs.
+
+## Rules browser
+
+The G2 browser is entirely server driven:
+
+- civilization cards use the public civilization response;
+- technology details use the public content catalog plus authorized research options;
+- production details use the public content catalog plus authorized settlement-scoped production options;
+- raw IDs remain command metadata, while server display names/costs/details are primary UI text;
+- tooltips explain public requirements and blockers without copying rule constants into GDScript.
 
 ## Authorized WebSocket events
 
@@ -60,20 +77,18 @@ Security contract:
 - policy close (`1008`) is treated as an authorization failure;
 - other disconnects use bounded exponential reconnect delay;
 - received JSON events are merged by monotonically increasing event sequence;
-- event-triggered projection refreshes still go through the normal authenticated HTTP state/legal-action queries.
+- event-triggered projection refreshes still go through normal authenticated HTTP queries.
 
-## What is not possible without new server API surfaces
+## Remaining server-dependent client work
 
-The following roadmap work is **not** an unimplemented client binding to the current v1 API. It requires the server contract to expose additional read-only/authorized data first:
+G2 closes the manual production/research-content gap. Later phases still require additional server-authorized data for:
 
-- server-driven unit/building production catalogs and lock reasons;
-- complete technology display definitions/unlocks;
-- authoritative movement-range/path/target query data;
-- richer public unit/settlement inspector metadata where projections do not currently expose it;
+- authoritative movement range/path/target previews;
+- richer inspector data where current projections/catalogs do not expose enough detail;
 - spectator/observer credential semantics if desired;
 - bot fast-forward or explicit bot-run controls if desired.
 
-These belong to later API additions (especially Godot phases G2/G3/G8). Godot must not fill these gaps by copying Python rule registries or deriving hidden state locally.
+Godot must not fill these gaps by copying Python rule registries or deriving hidden state locally.
 
 ## QA status
 
@@ -85,4 +100,4 @@ bash scripts/ci.sh
 bash scripts/playtest_godot.sh
 ```
 
-The human-style playtest should cover both a newly-created game and an attach-existing-game flow, Human/Bot enrollment choices, viewer switching, WebSocket reconnect behavior, and clearing the local session.
+The human-style playtest should cover server-driven research/production choices, locked/future annotations, civilization/technology browsing, viewer switching, live-event reconnect behavior, attach-existing-game, and clearing the local session.
