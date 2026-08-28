@@ -24,7 +24,7 @@ def _command(
     )
 
 
-def test_attack_rejects_hidden_defender_even_when_id_and_range_are_guessed() -> None:
+def test_attack_hides_whether_unavailable_enemy_target_exists() -> None:
     engine = GameEngine.create(
         game_id=GameId("hidden-target-game"),
         seed=8181,
@@ -33,8 +33,12 @@ def test_attack_rejects_hidden_defender_even_when_id_and_range_are_guessed() -> 
     )
     first = PlayerId("p1")
     second = PlayerId("p2")
-    assert engine.process(_command(engine, "join-1", "JoinGame", first, {"name": "One"})).accepted
-    assert engine.process(_command(engine, "join-2", "JoinGame", second, {"name": "Two"})).accepted
+    assert engine.process(
+        _command(engine, "join-1", "JoinGame", first, {"name": "One"})
+    ).accepted
+    assert engine.process(
+        _command(engine, "join-2", "JoinGame", second, {"name": "Two"})
+    ).accepted
     assert engine.process(_command(engine, "start", "StartGame")).accepted
     assert engine.process(
         _command(
@@ -66,7 +70,7 @@ def test_attack_rejects_hidden_defender_even_when_id_and_range_are_guessed() -> 
     )
     defender.position = hidden_destination
 
-    result = engine.process(
+    hidden = engine.process(
         _command(
             engine,
             "guessed-hidden-attack",
@@ -75,7 +79,18 @@ def test_attack_rejects_hidden_defender_even_when_id_and_range_are_guessed() -> 
             {"attacker_id": attacker.unit_id, "defender_id": defender.unit_id},
         )
     )
+    missing = engine.process(
+        _command(
+            engine,
+            "guessed-missing-attack",
+            "AttackUnit",
+            first,
+            {"attacker_id": attacker.unit_id, "defender_id": "unit-does-not-exist"},
+        )
+    )
 
-    assert not result.accepted
-    assert result.feedback[0].code == "ATTACK_REJECTED"
-    assert result.feedback[0].context["reason"] == "target_not_visible"
+    assert not hidden.accepted
+    assert not missing.accepted
+    assert hidden.feedback[0].code == missing.feedback[0].code == "ATTACK_REJECTED"
+    assert hidden.feedback[0].context["reason"] == "target_unavailable"
+    assert missing.feedback[0].context["reason"] == "target_unavailable"
