@@ -40,12 +40,33 @@ class ResearchState:
 
 
 class DiplomacyStatus(StrEnum):
-    """POC bilateral diplomatic relationship state."""
+    """Bilateral diplomatic relationship state."""
 
     UNKNOWN = "unknown"
     CONTACTED = "contacted"
     PEACE = "peace"
     WAR = "war"
+
+
+@dataclass(frozen=True, slots=True)
+class TradeOffer:
+    """One pending bilateral lump-sum gold exchange proposal.
+
+    Terms are always expressed from the proposer's perspective: ``offered_gold``
+    moves from proposer to recipient and ``requested_gold`` moves the other way if
+    the recipient accepts. Keeping the proposal immutable makes persistence and
+    deterministic event payloads straightforward.
+    """
+
+    proposer_id: PlayerId
+    offered_gold: int
+    requested_gold: int
+
+    def __post_init__(self) -> None:
+        if self.offered_gold < 0 or self.requested_gold < 0:
+            raise ValueError("trade gold amounts must be non-negative")
+        if self.offered_gold == 0 and self.requested_gold == 0:
+            raise ValueError("trade offer must exchange at least some gold")
 
 
 @dataclass(slots=True)
@@ -54,6 +75,15 @@ class DiplomaticRelationship:
 
     status: DiplomacyStatus = DiplomacyStatus.UNKNOWN
     pending_peace_from: PlayerId | None = None
+    pending_trade: TradeOffer | None = None
+    completed_trades: int = 0
+    last_trade_turn: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.completed_trades < 0:
+            raise ValueError("completed trade count must be non-negative")
+        if self.last_trade_turn is not None and self.last_trade_turn < 0:
+            raise ValueError("last trade turn must be non-negative")
 
 
 class VictoryType(StrEnum):
