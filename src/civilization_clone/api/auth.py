@@ -58,7 +58,7 @@ class AuthManager:
         if payload.get("kind") != "player" or payload.get("game_id") != str(game_id):
             raise AuthenticationError("credential is not authorized for this game")
         raw_player_id = payload.get("player_id")
-        if not isinstance(raw_player_id, str) or not raw_player_id:
+        if raw_player_id is None or not raw_player_id:
             raise AuthenticationError("credential has no player identity")
         return PlayerId(raw_player_id)
 
@@ -87,7 +87,7 @@ class AuthManager:
             for key, value in raw_payload.items()
         ):
             raise AuthenticationError("invalid credential")
-        return raw_payload
+        return {str(key): str(value) for key, value in raw_payload.items()}
 
 
 def _b64encode(value: bytes) -> str:
