@@ -24,7 +24,7 @@ class BotPolicy(Protocol):
 
 
 class SimpleBotPolicy:
-    """Small deterministic POC policy for exploration, growth, research, and combat."""
+    """Small deterministic policy for exploration, growth, research, trade, and combat."""
 
     def choose_command(
         self,
@@ -78,6 +78,18 @@ class SimpleBotPolicy:
             )
 
         diplomacy = [_mapping(item) for item in view.get("diplomacy", [])]
+        trade_response = _trade_response(viewer, diplomacy)
+        if trade_response is not None:
+            command_type, payload = trade_response
+            return _command(
+                command_id,
+                game_id,
+                player_id,
+                version,
+                command_type,
+                payload,
+            )
+
         at_war_with = {
             str(item["other_player_id"])
             for item in diplomacy
@@ -116,6 +128,21 @@ class SimpleBotPolicy:
                 )
 
         turn = int(view.get("turn", 0))
+        trade_target = _trade_offer_target(viewer, diplomacy)
+        if 3 <= turn < 8 and trade_target is not None:
+            return _command(
+                command_id,
+                game_id,
+                player_id,
+                version,
+                "OfferTrade",
+                {
+                    "target_player_id": trade_target,
+                    "offered_gold": 1,
+                    "requested_gold": 1,
+                },
+            )
+
         if turn >= 8 and not at_war_with:
             peace = next(
                 (item for item in diplomacy if item.get("status") == "peace"),
@@ -156,6 +183,47 @@ class SimpleBotPolicy:
             )
 
         return _command(command_id, game_id, player_id, version, "EndTurn")
+
+
+def _trade_response(
+    viewer: Mapping[str, Any],
+    diplomacy: list[Mapping[str, Any]],
+) -> tuple[str, dict[str, Any]] | None:
+    player_id = str(viewer["player_id"])
+    gold = int(viewer.get("gold", 0))
+    for relation in sorted(diplomacy, key=lambda item: str(item.get("other_player_id", ""))):
+        raw_offer = relation.get("pending_trade")
+        if not isinstance(raw_offer, Mapping):
+            continue
+        offer = _mapping(raw_offer)
+        if str(offer.get("proposer_id")) == player_id:
+            continue
+        offered_gold = int(offer.get("offered_gold", 0))
+        requested_gold = int(offer.get("requested_gold", 0))
+        target = str(relation["other_player_id"])
+        if requested_gold <= offered_gold and gold >= requested_gold:
+            return "AcceptTrade", {"target_player_id": target}
+        return "RejectTrade", {"target_player_id": target}
+    return None
+
+
+def _trade_offer_target(
+    viewer: Mapping[str, Any],
+    diplomacy: list[Mapping[str, Any]],
+) -> str | None:
+    if int(viewer.get("gold", 0)) < 1:
+        return None
+    candidates = [
+        relation
+        for relation in diplomacy
+        if relation.get("status") == "peace"
+        and relation.get("pending_trade") is None
+        and int(relation.get("completed_trades", 0)) == 0
+    ]
+    if not candidates:
+        return None
+    chosen = min(candidates, key=lambda item: str(item.get("other_player_id", "")))
+    return str(chosen["other_player_id"])
 
 
 def _preferred_available_technology(
