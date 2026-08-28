@@ -40,7 +40,11 @@ from civilization_clone.engine.event_log import EventLog
 from civilization_clone.engine.hexgrid import distance, neighbors
 from civilization_clone.engine.mapgen import MapGenerationConfig, generate_world
 from civilization_clone.engine.movement import apply_move, validate_move
-from civilization_clone.engine.research import choose_research, resolve_research
+from civilization_clone.engine.research import (
+    available_technologies,
+    choose_research,
+    resolve_research,
+)
 from civilization_clone.engine.state_hash import state_hash
 from civilization_clone.engine.turns import advance_turn
 from civilization_clone.engine.victory import check_victory, update_eliminations
@@ -721,6 +725,15 @@ class GameEngine:
         ended_turn = self.session.turn
         ended_player = command.player_id
         assert ended_player is not None
+        player = self.session.players[ended_player]
+        if player.research.selected is None:
+            options = available_technologies(player)
+            if options:
+                return self._rejected(
+                    "MANDATORY_CHOICE_REQUIRED",
+                    "Choose research before ending the turn.",
+                    {"choice": "research"},
+                )
         self.session.state_version += 1
         events = [
             self._emit(
@@ -731,7 +744,7 @@ class GameEngine:
         ]
         for outcome in resolve_player_economy(self.session, ended_player):
             events.append(self._emit(outcome.event_type, outcome.payload, command.command_id))
-        for outcome in resolve_research(self.session.players[ended_player]):
+        for outcome in resolve_research(player):
             events.append(self._emit(outcome.event_type, outcome.payload, command.command_id))
         self._update_player_visibility(ended_player)
 
