@@ -5,6 +5,7 @@ const SettingsScreen := preload("res://scripts/settings_screen.gd")
 const PANEL_BG := Color("151b24")
 const PANEL_BORDER := Color("334155")
 const CONTROL_HEIGHT := 36.0
+const CONFIGURED_META := &"civilization_ui_shell_configured"
 
 var _root_control: Control
 var _settings: CivilizationSettingsScreen
@@ -210,8 +211,9 @@ func _configure_option_button(option: OptionButton) -> void:
 	popup.search_bar_enabled = true
 	popup.search_bar_min_item_count = 8
 	popup.shrink_width = true
-	if not option.item_selected.is_connected(_sync_option_tooltip.bind(option)):
+	if not option.has_meta(CONFIGURED_META):
 		option.item_selected.connect(_sync_option_tooltip.bind(option))
+		option.set_meta(CONFIGURED_META, true)
 	_sync_option_tooltip(option.selected, option)
 	_constrain_popup(popup)
 
