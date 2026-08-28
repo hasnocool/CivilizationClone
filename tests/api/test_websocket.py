@@ -41,8 +41,10 @@ def test_authenticated_websocket_publishes_new_events_in_order() -> None:
     after_sequence = max(event["sequence"] for event in history)
 
     with client.websocket_connect(
-        f"/api/v1/games/ws-game/events/ws?token={tokens['p1']}&after_sequence={after_sequence}"
+        f"/api/v1/games/ws-game/events/ws?after_sequence={after_sequence}",
+        subprotocols=["civilization.v1", tokens["p1"]],
     ) as websocket:
+        assert websocket.accepted_subprotocol == "civilization.v1"
         response = client.post(
             "/api/v1/games/ws-game/commands",
             headers={"Authorization": f"Bearer {tokens['p1']}"},
