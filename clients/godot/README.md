@@ -31,6 +31,8 @@ It may:
 
 The server remains authoritative for legality, fog of war, ownership, economy, research, diplomacy, combat resolution, victory, persistence, and replay.
 
+See `API_COVERAGE.md` for the explicit mapping between the current `/api/v1` surface and Godot.
+
 ## Responsive window and layout
 
 The desktop window is intentionally **not fixed-size**. It can be freely resized and the UI responds to the actual window dimensions rather than assuming a single virtual desktop resolution.
@@ -53,7 +55,7 @@ Responsive behavior includes:
 - selected dropdown text is available as a tooltip when the control itself has to trim it;
 - panels receive consistent interior margins/borders so controls do not visually collide with panel edges;
 - the authorized hex map dynamically scales and recenters its hexes to fit the available map rectangle;
-- event/control panes remain scrollable rather than pushing neighboring UI outside the window.
+- event/control panes remain vertically scrollable rather than pushing neighboring UI outside the window.
 
 Current responsive breakpoints are presentation-only and can change without affecting gameplay:
 
@@ -83,21 +85,73 @@ user://client_settings.cfg
 
 Only presentation preferences are stored there. API credentials, game authority, and simulation state are never written into the client settings file.
 
+## Current `/api/v1` coverage
+
+The Godot client now consumes the complete existing POC transport surface rather than only the original hotseat happy path.
+
+Implemented lifecycle/setup fields include:
+
+- health and civilization discovery;
+- game ID and seed;
+- player count and map radius;
+- map water percentage and resource percentage;
+- per-player civilization selection;
+- per-player `human` / `bot` controller selection;
+- admin-authorized StartGame;
+- manual attach to an existing game using a player credential;
+- local disconnect/session clearing.
+
+All current POC gameplay command types are sent through the public command endpoint. State, legal actions, event history, and live events are always fetched with the selected player's credential.
+
+### Live authorized events
+
+The Godot client uses `WebSocketPeer` for the v1 event WebSocket.
+
+- requested protocols are `civilization.v1` followed by the player token;
+- the token is **never** placed in the WebSocket URL;
+- `after_sequence` is the only resume value in the URL;
+- an authorized HTTP event query bootstraps the cursor before the live connection;
+- viewer changes close the old stream and authenticate a new one;
+- policy close (`1008`) is presented as an authorization problem;
+- other disconnects use bounded exponential retry;
+- incoming authorized events trigger normal authenticated projection refreshes.
+
+The live-event status appears in the game toolbar.
+
+### Attach existing game
+
+The connection panel also supports attaching to an existing game without recreating it.
+
+Required:
+
+- game ID;
+- player token.
+
+Optional:
+
+- player ID, which is checked against the viewer identity returned by the authorized state projection.
+
+The token field is masked. The token stays in process memory only. **Disconnect / Clear Session** closes the event stream and clears admin/player credentials from client memory.
+
 ## Current playable flow
 
 1. Run the CivilizationClone API locally.
 2. Open `clients/godot/project.godot` in Godot 4.7.x.
 3. Connect to the API, default `http://127.0.0.1:8000`.
-4. Configure a 2–4 player hotseat game.
-5. Choose a civilization for each player.
+4. Configure game ID, seed, player count, radius, water %, and resource %.
+5. Configure each player name, civilization, and Human/Bot controller type.
 6. Create and start the game.
 7. Switch the active viewer with the viewer selector.
-8. Click one of the current viewer's units to select it.
-9. Click an empty authorized tile to submit `MoveUnit`.
-10. Click a visible opposing unit while one of your units is selected to submit `AttackUnit`.
-11. Use the side panel for settlement founding, worked tiles, research, production, diplomacy, turn advancement, concession, and event inspection.
+8. Observe live authorized event-stream status in the game toolbar.
+9. Click one of the current viewer's units to select it.
+10. Click an empty authorized tile to submit `MoveUnit`.
+11. Click a visible opposing unit while one of your units is selected to submit `AttackUnit`.
+12. Use the side panel for settlement founding, worked tiles, research, production, diplomacy, turn advancement, concession, and event inspection.
+13. Use **Disconnect / Clear Session** to remove in-memory credentials and return to the connection screen.
 
-The production definition field deliberately remains server-validated rather than embedding a second copy of gameplay content in Godot. A later API/catalog phase should expose richer production metadata for dropdowns and tooltips.
+Alternatively, use **Attach Existing Game** from the connection panel with an existing game ID and player token.
+
+The production definition field deliberately remains server-validated rather than embedding a second copy of gameplay content in Godot. A later API/catalog phase must expose richer production metadata for dropdowns and tooltips.
 
 ## Input model
 
@@ -109,9 +163,11 @@ The production definition field deliberately remains server-validated rather tha
 - With own unit selected, click visible enemy unit: attack attempt.
 - Click any authorized tile: select tile for worked-tile actions.
 
-### Hotseat
+### Hotseat / controller setup
 
 The client keeps credentials only in memory for the current process. It does not write bearer tokens to disk.
+
+The lobby can submit `human` or `bot` controller values through the existing enrollment API. Godot does not implement bot logic itself; server/application behavior remains authoritative.
 
 ## Local verification
 
@@ -128,6 +184,21 @@ bash scripts/playtest_godot.sh
 ```
 
 The human-style test must use the real Godot window with normal pointer/keyboard input. API-level tests do not replace this acceptance test.
+
+API-completeness acceptance should include, at minimum:
+
+1. connect to the API;
+2. create a game using non-default water/resource values;
+3. create at least one Human and one Bot enrollment where the server setup supports it;
+4. verify the game starts only through the public admin-authorized command path;
+5. verify the live-event indicator reaches `live`;
+6. perform commands and confirm state/events update without manual Refresh;
+7. switch viewers and confirm the stream re-authenticates for the new player;
+8. stop/restart or temporarily interrupt the API and inspect reconnect/error behavior where practical;
+9. clear the session and verify credentials are removed from the client UI/process state;
+10. attach using a valid existing game/player token;
+11. try an invalid token and confirm only safe authorization feedback is shown;
+12. confirm no bearer token appears in URLs, event text, status text, or saved settings.
 
 Resize/settings acceptance must include, at minimum:
 
@@ -155,6 +226,8 @@ clients/godot/
 │   └── main.tscn
 ├── scripts/
 │   ├── api_client.gd
+│   ├── api_features.gd
+│   ├── event_stream.gd
 │   ├── hex_map.gd
 │   ├── main.gd
 │   ├── responsive_layout.gd
@@ -163,19 +236,23 @@ clients/godot/
 ├── tests/
 │   └── smoke_test.gd
 ├── AGENTS.md
+├── API_COVERAGE.md
 ├── README.md
-└── TODO.md
+├── TODO.md
+└── UI_DESIGN.md
 ```
 
 ## Security/privacy rules
 
 - Bearer credentials are never printed into the event log UI.
 - The HTTP client does not include credentials in URLs.
-- The client renders only projections returned for the selected player credential.
+- WebSocket credentials are supplied only through the required subprotocol handshake, never the URL.
+- The client renders only projections/events returned for the selected player credential.
 - Error UI should display safe server detail/feedback, not raw stack traces.
 - Hidden unit IDs must never be guessed or surfaced by client code.
 - Local settings persist display/interface preferences only, never credentials.
+- Attach credentials remain memory-only and are removed by Disconnect / Clear Session.
 
 ## Future client work
 
-See `TODO.md`. The major next steps are server-driven production/research catalogs, richer inspector panels, WebSocket event updates, attach/reconnect flows, accessibility, animation/audio, and systematic Godot QA/playtest automation.
+See `TODO.md`. The next major client/server boundary is G2: server-driven production, unit/building, and technology presentation catalogs. Those require new read-only/authorized API data; Godot must not work around their absence by copying Python rule registries. Rich inspectors/map queries, event notifications, accessibility, presentation polish, and systematic local Godot QA remain later client work.
