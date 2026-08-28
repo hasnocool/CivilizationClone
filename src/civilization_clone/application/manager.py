@@ -60,7 +60,11 @@ class GameManager:
             self._accepted_commands[game_id] = []
             self._replay_complete[game_id] = True
             if self.store is not None:
-                await self.store.save(engine, accepted_commands=())
+                await self.store.save(
+                    engine,
+                    accepted_commands=(),
+                    replay_complete=True,
+                )
             return engine
 
     async def get_engine(self, game_id: GameId) -> GameEngine:
@@ -76,9 +80,10 @@ class GameManager:
                 raise KeyError(f"game not found: {game_id}")
             engine = await self.store.load(game_id)
             commands = list(await self.store.load_commands(game_id))
+            replay_complete = await self.store.replay_complete(game_id)
             self._games[game_id] = engine
             self._accepted_commands[game_id] = commands
-            self._replay_complete[game_id] = bool(commands) or engine.session.state_version == 0
+            self._replay_complete[game_id] = replay_complete
             self._locks.setdefault(game_id, asyncio.Lock())
             self._subscribers.setdefault(game_id, set())
             return engine
@@ -96,7 +101,11 @@ class GameManager:
             if result.accepted and new_events:
                 transcript.append(command)
             if not already_processed and self.store is not None:
-                await self.store.save(engine, accepted_commands=tuple(transcript))
+                await self.store.save(
+                    engine,
+                    accepted_commands=tuple(transcript),
+                    replay_complete=self._replay_complete.get(command.game_id, True),
+                )
             if new_events:
                 self._publish(command.game_id, new_events)
             return result
@@ -109,7 +118,11 @@ class GameManager:
         lock = self._locks.setdefault(game_id, asyncio.Lock())
         async with lock:
             transcript = tuple(self._accepted_commands.get(game_id, ()))
-            await self.store.save(engine, accepted_commands=transcript)
+            await self.store.save(
+                engine,
+                accepted_commands=transcript,
+                replay_complete=self._replay_complete.get(game_id, True),
+            )
 
     async def accepted_commands(self, game_id: GameId) -> tuple[CommandEnvelope, ...]:
         """Return an immutable accepted-command transcript for replay/debug tooling."""
