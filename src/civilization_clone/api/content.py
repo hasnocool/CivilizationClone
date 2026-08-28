@@ -10,6 +10,8 @@ from civilization_clone.api.schemas import (
     BuildingDefinitionResponse,
     ProductionOptionResponse,
     ProductionOptionsResponse,
+    ResearchOptionResponse,
+    ResearchOptionsResponse,
     RulesContentResponse,
     TechnologyDefinitionResponse,
     UnitDefinitionResponse,
@@ -19,7 +21,11 @@ from civilization_clone.domain.economy import ProductionKind, SettlementState
 from civilization_clone.domain.gameplay import GameSession, PlayerState
 from civilization_clone.domain.ids import PlayerId
 from civilization_clone.engine.economy import BUILDINGS, UNITS, production_rule_blockers
-from civilization_clone.engine.research import PRODUCTION_TECH_REQUIREMENTS, TECHNOLOGIES
+from civilization_clone.engine.research import (
+    PRODUCTION_TECH_REQUIREMENTS,
+    TECHNOLOGIES,
+    effective_research_cost,
+)
 from civilization_clone.rules.poc import POC_UNIQUE_BUILDING_OWNERS, POC_UNIQUE_UNIT_OWNERS
 
 
@@ -94,9 +100,7 @@ def production_options_response(
     not permanent content locks.
     """
     player = session.players[player_id]
-    is_active_player = (
-        session.current_player_id == player_id and not player.eliminated
-    )
+    is_active_player = session.current_player_id == player_id and not player.eliminated
     options: list[ProductionOptionResponse] = []
 
     for definition_id, definition in sorted(UNITS.items()):
@@ -134,6 +138,46 @@ def production_options_response(
         settlement_id=str(settlement.settlement_id),
         state_version=session.state_version,
         is_active_player=is_active_player,
+        options=options,
+    )
+
+
+def research_options_response(
+    session: GameSession,
+    player_id: PlayerId,
+) -> ResearchOptionsResponse:
+    """Return viewer-authorized research costs and selectable states."""
+    player = session.players[player_id]
+    options: list[ResearchOptionResponse] = []
+    for technology_id, definition in sorted(TECHNOLOGIES.items()):
+        blockers: list[str] = []
+        if technology_id in player.research.completed:
+            status = "completed"
+            blockers.append("already_completed")
+        elif not definition.prerequisites <= player.research.completed:
+            status = "locked"
+            blockers.append("prerequisites_incomplete")
+        elif player.research.selected == technology_id:
+            status = "selected"
+        else:
+            status = "available"
+        options.append(
+            ResearchOptionResponse(
+                technology_id=technology_id,
+                name=_display_name(technology_id),
+                base_cost=definition.cost,
+                effective_cost=effective_research_cost(player, technology_id),
+                prerequisites=sorted(definition.prerequisites),
+                unlocks=list(definition.unlocks),
+                status=status,
+                selectable=not blockers,
+                blockers=blockers,
+            )
+        )
+    return ResearchOptionsResponse(
+        game_id=str(session.game_id),
+        player_id=str(player_id),
+        state_version=session.state_version,
         options=options,
     )
 
