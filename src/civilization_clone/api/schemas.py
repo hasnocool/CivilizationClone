@@ -82,6 +82,7 @@ class YieldModifierResponse(BaseModel):
 
 class UnitDefinitionResponse(BaseModel):
     definition_id: str
+    name: str
     movement: int
     vision_radius: int
     production_cost: int
@@ -95,6 +96,7 @@ class UnitDefinitionResponse(BaseModel):
 
 class BuildingDefinitionResponse(BaseModel):
     definition_id: str
+    name: str
     production_cost: int
     yield_modifiers: list[YieldModifierResponse]
     required_civilization: str | None = None
@@ -103,6 +105,7 @@ class BuildingDefinitionResponse(BaseModel):
 
 class TechnologyDefinitionResponse(BaseModel):
     technology_id: str
+    name: str
     cost: int
     prerequisites: list[str]
     unlocks: list[str]
@@ -117,6 +120,7 @@ class RulesContentResponse(BaseModel):
 class ProductionOptionResponse(BaseModel):
     kind: str
     definition_id: str
+    name: str
     cost: int
     queue_allowed: bool
     queue_blockers: list[str]
