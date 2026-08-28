@@ -11,7 +11,7 @@ The v1 API does not trust `player_id` from arbitrary request data.
 - `POST /api/v1/games` returns an opaque `admin_token` scoped to that game.
 - The admin token authorizes player enrollment and `StartGame`.
 - `POST /api/v1/games/{game_id}/players` returns an opaque `player_token` scoped to exactly one game/player pair.
-- Player state, events, legal actions, and normal gameplay commands derive viewer/actor identity from the player token.
+- Player state, events, legal actions, player-specific content options, and normal gameplay commands derive viewer/actor identity from the player token.
 - If a legacy `player_id` is supplied on a command, it must match the signed identity or the request is rejected.
 - Tokens are application/transport metadata and never enter deterministic game state, event payloads, state hashes, RNG inputs, or replay transcripts as authority data.
 
@@ -48,6 +48,20 @@ This public endpoint returns the playable original POC civilization definitions 
 - research preferences and content hooks.
 
 Clients should discover these definitions rather than hard-code the available roster. The server remains authoritative for validating the selected `civilization_id` and applying its data-driven effects.
+
+### Public rules content
+
+`GET /api/v1/rules/content`
+
+This public, read-only endpoint adapts the authoritative POC content registries into deterministic presentation metadata. It is intended for clients that need names, costs, requirements, tooltips, and rules browsers without duplicating gameplay constants.
+
+The response contains:
+
+- producible unit definitions with id/name, movement, vision, production cost, founding capability, abstract attack/defense/ranged values, and public civilization/research requirements;
+- building definitions with id/name, production cost, visible yield modifiers, and public civilization/research requirements;
+- technology definitions with id/name, base cost, prerequisites, and unlock references.
+
+The public catalog does not contain credentials, fogged game state, opponent-private economy state, command internals, RNG state, save/database metadata, or other hidden authority data. A client must not infer current player legality from this public catalog; use the authenticated option queries below.
 
 ## Lifecycle
 
@@ -95,15 +109,47 @@ Every command carries a unique `command_id`. `expected_state_version` is optiona
 
 `EndTurn` is rejected with `MANDATORY_CHOICE_REQUIRED` while a selectable research decision is unresolved. The `legal-actions` query reports the same mandatory research options before the client attempts the command.
 
+### Queue-time versus completion-time production gates
+
+The current POC deliberately permits a known production definition to be queued before stable civilization/research completion gates are met. `QueueProduction` still validates active-player authority, settlement ownership, known kind/definition, and already-completed buildings at queue time. Production resolution later requires civilization ownership and any required technology before the queued order can complete.
+
+Clients must not tighten or reinterpret this rule locally. The production-options query exposes `queue_allowed`/`queue_blockers` separately from `completion_unlocked`/`completion_blockers` so a UI can clearly label a queueable future item without pretending it can already complete.
+
 ## Queries
 
-All normal queries require a player credential and return only that player's authorized projection.
+All normal queries require a player credential and return only that player's authorized projection or player-scoped option data.
 
 - `GET /api/v1/games/{game_id}/state`
 - `GET /api/v1/games/{game_id}/events?after_sequence=N`
 - `GET /api/v1/games/{game_id}/legal-actions`
+- `GET /api/v1/games/{game_id}/research-options`
+- `GET /api/v1/games/{game_id}/production-options?settlement_id=<own-settlement-id>`
 
 The player projection includes the viewer's selected civilization id and public civilization ids for the player roster. Unknown map tiles are omitted. Previously discovered but not currently visible tiles contain only persistent map knowledge. Hidden opposing units are omitted. Opponent settlement internals, production queues, and private economy details are not exposed.
+
+### Research options
+
+`GET /api/v1/games/{game_id}/research-options`
+
+Requires the player token. The response returns every public POC technology with:
+
+- id and display name;
+- base and viewer-effective research cost after authoritative civilization modifiers;
+- prerequisites and unlocks;
+- content status (`available`, `selected`, `locked`, or `completed`);
+- `selectable` and stable blocker codes, including active-turn legality.
+
+This keeps effective costs and command affordances server-derived. Clients should submit the selected `technology_id` through the normal `ChooseResearch` command and still handle command rejection normally.
+
+### Production options
+
+`GET /api/v1/games/{game_id}/production-options?settlement_id=<id>`
+
+Requires the player token. The requested settlement must belong to the authenticated viewer. An unknown settlement and another player's settlement intentionally produce the same generic `404 settlement not found` response so the query is not a settlement-existence oracle.
+
+Each option contains its kind, id/name, cost, public requirements, queue-time status/blockers, and stable completion-content status/blockers. The response does not reveal hidden opponent state. Resource accumulation and unit spawn-space availability remain runtime conditions rather than permanent content-unlock flags.
+
+Clients should use this endpoint to populate normal production controls, but still submit `QueueProduction` through the authoritative command route and handle the resulting accepted/rejected response.
 
 ## Event stream
 
@@ -121,4 +167,4 @@ Authentication/transport failures use HTTP status codes and must not expose stac
 
 ## Compatibility
 
-The v1 contract deliberately hardens the earlier v0.8 prototype by replacing trusted `player_id` query/body identity with signed credentials and a dedicated enrollment endpoint. It also makes civilization identity and its generic modifiers part of authoritative state/save/replay behavior. Future incompatible public changes require a new API version or an explicit compatibility decision.
+The v1 contract deliberately hardens the earlier v0.8 prototype by replacing trusted `player_id` query/body identity with signed credentials and a dedicated enrollment endpoint. It also makes civilization identity and its generic modifiers part of authoritative state/save/replay behavior. Public read-model additions under `/api/v1/rules/content`, `/research-options`, and `/production-options` are additive presentation/discovery surfaces; command authority remains unchanged. Future incompatible public changes require a new API version or an explicit compatibility decision.
