@@ -1,0 +1,111 @@
+CIVILIZATIONCLONE — CIV1-INSPIRED UI REFERENCE
+ANSII SUPPLEMENT: EXTENDED DIPLOMACY (CIV1-UI-131..142)
+
+[CIV1-UI-131] RIVAL INITIATES CONTACT
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                         FOREIGN ENVOY                              ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ [ LEADER PORTRAIT ]     Alexander of the Greeks wishes to negotiate.        ║
+║ <ACTION>                       [ RECEIVE ] [ REFUSE ]                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-132] PEACE OFFER
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                       PEACE NEGOTIATIONS                           ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ [ LEADER PORTRAIT ]                                                         ║
+║ The Greeks offer a peace treaty.                                             ║
+║ <ACTION>                      [ ACCEPT PEACE ] [ WAR ]                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-133] TECHNOLOGY TRADE SELECTION
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>SELECT THEIR TECHNOLOGY                            │
+├────────────────────────────────────────────────────────────┤
+│ <FOCUS>▶ Astronomy                                         │
+│ Navigation                                                 │
+│ Currency                                                   │
+│ <INFO>They choose one of your advances in return.         │
+│ <ACTION>                              [ TRADE ] [ CANCEL ]  │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-134] BUY PEACE / RIVAL DEMAND
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>PRICE OF PEACE                                     │
+├────────────────────────────────────────────────────────────┤
+│ The rival demands 150 gold or one technology advance.      │
+│ <ACTION>              [ PAY ] [ OFFER TECH ] [ REFUSE ]   │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-135] POST-TREATY NEGOTIATION MENU
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>AFTER THE PEACE TREATY                             │
+├────────────────────────────────────────────────────────────┤
+│ <FOCUS>▶ Declaration of harmony                            │
+│ Military proposal                                          │
+│ Demand tribute                                             │
+│ End negotiations                                           │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-136] MILITARY PROPOSAL - TARGET
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>MILITARY PROPOSAL                                  │
+├────────────────────────────────────────────────────────────┤
+│ Ask the Greeks to attack:                                  │
+│ <FOCUS>▶ Egyptians                                         │
+│ Germans                                                    │
+│ French                                                     │
+│ <ACTION>                                       [ PROPOSE ]  │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-137] MILITARY PROPOSAL - PAYMENT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>MILITARY PROPOSAL                                  │
+├────────────────────────────────────────────────────────────┤
+│ The Greeks request 200 gold for the proposal.              │
+│ Treasury: 430 gold                                         │
+│ <ACTION>                             [ PAY ] [ DECLINE ]    │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-138] DEMAND TRIBUTE RESULT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>TRIBUTE                                            │
+├────────────────────────────────────────────────────────────┤
+│ The Greeks agree to pay 100 gold.                          │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-139] BREAK TREATY WARNING
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>BREAK PEACE TREATY?                                │
+├────────────────────────────────────────────────────────────┤
+│ This action violates the agreement and begins war.         │
+│ <ACTION>                         [ PROCEED ] [ CANCEL ]     │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-140] SENATE BLOCKS WAR
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>SENATE ACTION                                      │
+├────────────────────────────────────────────────────────────┤
+│ The Senate refuses an unprovoked war under the current     │
+│ Republic or Democracy.                                     │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-141] DECLARATION OF WAR
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <WARN>                         WAR DECLARED                                ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ Diplomatic relations with the Greeks have collapsed.                         ║
+║ Your civilizations are now at war.                                           ║
+║ <ACTION>                         [ CONTINUE ]                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-142] PEACE TREATY SIGNED
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                     PEACE TREATY SIGNED                            ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ Rome and Greece are now at peace.                                            ║
+║ Additional post-treaty negotiations may follow.                              ║
+║ <ACTION>                         [ CONTINUE ]                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝

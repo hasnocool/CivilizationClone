@@ -1,0 +1,190 @@
+CIVILIZATIONCLONE — CIV1-INSPIRED UI REFERENCE
+ANSII SUPPLEMENT: UNITS, DIPLOMATS, CARAVANS, TRIBES (CIV1-UI-086..104)
+
+[CIV1-UI-086] UNIT STACK ACTIVATION
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>UNITS IN THIS SQUARE                               │
+├────────────────────────────────────────────────────────────┤
+│ <FOCUS>▶ Legion        Fortified                           │
+│          Phalanx       Sentry                              │
+│          Settlers      Active                              │
+│ <ACTION>                         [ ACTIVATE ] [ DONE ]      │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-087] GO TO DESTINATION TARGETING
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                     SELECT DESTINATION                             ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ ≈ ≈ · · · · · · ·                                                          ║
+║ · · [U] · · · · · ·                                                        ║
+║ · · · · · · · · ·                                                         ║
+║ · · · · · · <FOCUS>[X] · ·     X = destination cursor                     ║
+║ <ACTION>                         [ SET ] [ CANCEL ]                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-088] HOME CITY REASSIGNMENT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>CHANGE HOME CITY                                   │
+├────────────────────────────────────────────────────────────┤
+│ Unit: Legion                                               │
+│ Current home: Rome                                         │
+│ New home: <FOCUS>Antium                                   │
+│ <ACTION>                          [ CHANGE ] [ CANCEL ]     │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-089] SETTLER CONTEXT ORDERS
+┌────────────────────────────────┐
+│ <TITLE>SETTLER ORDERS         │
+├────────────────────────────────┤
+│ <FOCUS>▶ Found New City       │
+│ Build Road                     │
+│ Build Railroad                 │
+│ Irrigate                       │
+│ Build Mine                     │
+│ Build Fortress                 │
+│ Change Terrain                 │
+│ Clean Pollution                │
+│ Go To                          │
+│ Sentry                         │
+│ <WARN>Disband                 │
+└────────────────────────────────┘
+
+[CIV1-UI-090] CHANGE TERRAIN ORDER
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>CHANGE TERRAIN                                     │
+├────────────────────────────────────────────────────────────┤
+│ Current terrain: Jungle                                    │
+│ Result: Grassland                                          │
+│ Estimated work: several turns                              │
+│ <ACTION>                           [ BEGIN ] [ CANCEL ]     │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-091] DIPLOMAT BRIBE ENEMY UNIT OFFER
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>BRIBE ENEMY UNIT                                   │
+├────────────────────────────────────────────────────────────┤
+│ Enemy unit: Legion                                         │
+│ Defection price: 146 gold                                  │
+│ Treasury: 312 gold                                         │
+│ <ACTION>                              [ PAY ] [ REFUSE ]    │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-092] DIPLOMAT BRIBE RESULT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>UNIT HAS DEFECTED                                  │
+├────────────────────────────────────────────────────────────┤
+│ The enemy Legion has joined your civilization.             │
+│ Nearest friendly city becomes its home city.               │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-093] DIPLOMAT INCITE REVOLT PRICE
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>INCITE REVOLT                                      │
+├────────────────────────────────────────────────────────────┤
+│ City: Athens                                               │
+│ Dissidents demand: 428 gold                                │
+│ Treasury: 603 gold                                         │
+│ <ACTION>                              [ PAY ] [ REFUSE ]    │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-094] DIPLOMAT INCITE REVOLT RESULT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>CITY REVOLTS                                       │
+├────────────────────────────────────────────────────────────┤
+│ Athens has overthrown its former rulers                    │
+│ and joined your civilization.                              │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-095] DIPLOMAT ESTABLISH EMBASSY RESULT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>EMBASSY ESTABLISHED                                │
+├────────────────────────────────────────────────────────────┤
+│ An embassy has been established with the Greeks.           │
+│ Intelligence reports are now available.                    │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-096] DIPLOMAT STEAL TECHNOLOGY RESULT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>TECHNOLOGY ACQUIRED                                │
+├────────────────────────────────────────────────────────────┤
+│ Your diplomat has obtained: <FOCUS>ASTRONOMY             │
+│ <ACTION>                          [ DETAILS ] [ OK ]        │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-097] DIPLOMAT INDUSTRIAL SABOTAGE RESULT
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>INDUSTRIAL SABOTAGE                                │
+├────────────────────────────────────────────────────────────┤
+│ Target city: Athens                                        │
+│ Production or an improvement was destroyed.                │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-098] ENEMY CITY INSPECTION
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                    INSPECTION: ATHENS                              ║
+╠══════════════════════════════════════╦═══════════════════════════════════════╣
+║ CITY RESOURCE MAP                    ║ FOREIGN CITY INFORMATION              ║
+║ [F][S][T][·]                         ║ Population: 7                         ║
+║ [S][C][S][·]                         ║ Defenders: [PHX] [LEG]                ║
+║ [T][S][F][·]                         ║ Production: Marketplace               ║
+║                                      ║ Improvements: Temple, Walls           ║
+╠══════════════════════════════════════╩═══════════════════════════════════════╣
+║ <ACTION>                            [ RETURN ]                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-099] CARAVAN TRADE ROUTE DELIVERY
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>TRADE ROUTE OPENED                                 │
+├────────────────────────────────────────────────────────────┤
+│ Rome → Athens                                              │
+│ Immediate revenue: 92 gold                                 │
+│ Recurring trade route: +3 trade                            │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-100] CARAVAN WONDER CONTRIBUTION PROMPT
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>CARAVAN HAS ARRIVED                                │
+├────────────────────────────────────────────────────────────┤
+│ Rome is building: THE PYRAMIDS                             │
+│ Add Caravan resources to Wonder construction?              │
+│ <ACTION>                    [ CONTRIBUTE ] [ KEEP ]         │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-101] MINOR TRIBE - ANCIENT WISDOM
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>ANCIENT WISDOM FOUND                               │
+├────────────────────────────────────────────────────────────┤
+│ The village shares a scroll of ancient knowledge.          │
+│ Your civilization gains a technology advance.              │
+│ <ACTION>                          [ DETAILS ] [ OK ]        │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-102] MINOR TRIBE - JOINS AS CITY
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>A NEW CITY JOINS YOU                               │
+├────────────────────────────────────────────────────────────┤
+│ The minor tribe establishes a new city under your rule.    │
+│ <ACTION>                         [ VIEW CITY ] [ OK ]       │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-103] MINOR TRIBE - BARBARIANS
+┌────────────────────────────────────────────────────────────┐
+│ <WARN>AMBUSH!                                             │
+├────────────────────────────────────────────────────────────┤
+│ The village is inhabited by hostile barbarians.            │
+│ Raiders appear nearby.                                     │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-104] BARBARIAN LEADER RANSOM
+┌────────────────────────────────────────────────────────────┐
+│ <TITLE>BARBARIAN LEADER CAPTURED                          │
+├────────────────────────────────────────────────────────────┤
+│ The leader has been ransomed. Treasury receives 100 gold.  │
+│ <ACTION>                                             [ OK ] │
+└────────────────────────────────────────────────────────────┘

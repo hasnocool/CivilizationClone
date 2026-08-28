@@ -1,0 +1,283 @@
+CIVILIZATIONCLONE - CIV1-INSPIRED UI REFERENCE
+STRICT ASCII SUPPLEMENT: CITY SUBVIEWS, EVENTS, REPORT PAGES (CIV1-UI-105..130)
+===============================================================================
+
+[CIV1-UI-105] CITY INFORMATION TAB
++=============================================================================+
+| CITY: ROME                                              [INFO] HAPPY MAP VIEW |
++=============================================================================+
+| Defending units: [PHX] [LEG]                                                |
+| Trade routes: Athens +3 | Thebes +2                                          |
+| Pollution risk: ||||                                                        |
+| Supported units and city status remain visible around this information pane. |
++=============================================================================+
+
+[CIV1-UI-106] CITY HAPPINESS CHART
++=============================================================================+
+| CITY: ROME                                               INFO [HAPPY] MAP VIEW|
++=============================================================================+
+| Base population:      :| :| :( :(                                           |
+| Luxuries:             :) :| :( :(                                           |
+| Temple/Cathedral:     :) :) :| :(                                           |
+| Wonders / Martial:    :) :) :) :|                                           |
+| Final citizens:       :) :) :) :|                                           |
++=============================================================================+
+
+[CIV1-UI-107] CITY MAP SUBVIEW
++=============================================================================+
+| CITY: ROME                                               INFO HAPPY [MAP] VIEW|
++=============================================================================+
+|                         KNOWN WORLD                                          |
+|      ~~~~~....R....~~~~~~~....G....~~~~                                      |
+|      ~~~~~.........~~~~~~~.........~~~~                                      |
+| Home units: o     Trade partners: +     Current city: *                     |
++=============================================================================+
+
+[CIV1-UI-108] CITY CITIZEN REASSIGNMENT MODE
++=============================================================================+
+|                     ASSIGN CITY WORKERS                                     |
++=============================================================================+
+|          [F] [F] [S] [T] [.]                                                |
+|          [F] [W] [S] [T] [.]      W = selected worker tile                  |
+|          [.] [S] [C] [S] [.]                                                |
+|          [.] [T] [S] [F] [.]                                                |
+|                                                                             |
+|                    [ ASSIGN ] [ REMOVE ] [ DONE ]                            |
++=============================================================================+
+
+[CIV1-UI-109] CITY SPECIALIST ASSIGNMENT
++------------------------------------------------------------+
+|                      CHANGE SPECIALIST                     |
++------------------------------------------------------------+
+| Citizen: #4                                                |
+|                                                            |
+| > Entertainer                                              |
+|   Tax Collector                                            |
+|   Scientist                                                |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-110] RENAME CITY PROMPT
++------------------------------------------------------------+
+|                        RENAME CITY                         |
++------------------------------------------------------------+
+| Current name: Rome                                         |
+| New name: [ Roma____________________________ ]             |
+|                                                            |
+|                     [ RENAME ] [ CANCEL ]                   |
++------------------------------------------------------------+
+
+[CIV1-UI-111] CITY UNIT ACTIVATION
++------------------------------------------------------------+
+|                    ACTIVATE CITY UNIT                      |
++------------------------------------------------------------+
+| > Phalanx       Fortified                                  |
+|   Legion        Sentry                                     |
+|   Caravan       Active                                     |
+|                                                            |
+|                  [ ACTIVATE ] [ DONE ]                     |
++------------------------------------------------------------+
+
+[CIV1-UI-112] CITY IMPROVEMENT COMPLETED / VIEW
++=============================================================================+
+|                     IMPROVEMENT COMPLETED                                   |
++=============================================================================+
+| Rome has completed: MARKETPLACE                                              |
+|                                                                             |
+|               ____        ________        ____                              |
+|              | [] |      | MARKET |      | [] |                             |
+|              |____|______|________|______|____|                             |
+|                                                                             |
+|                         [ CONTINUE ]                                         |
++=============================================================================+
+
+[CIV1-UI-113] WONDER RACE LOST / FORCED PRODUCTION CHANGE
++------------------------------------------------------------+
+|                    WONDER NO LONGER AVAILABLE              |
++------------------------------------------------------------+
+| Another civilization has completed THE PYRAMIDS.           |
+| Rome must change production.                               |
+|                                                            |
+|                    [ CHANGE PRODUCTION ]                    |
++------------------------------------------------------------+
+
+[CIV1-UI-114] CIVIL DISORDER CONTINUES
++------------------------------------------------------------+
+|                    CIVIL DISORDER CONTINUES                |
++------------------------------------------------------------+
+| Rome remains in disorder.                                  |
+| Production is halted until order is restored.              |
+|                                                            |
+|                    [ VIEW CITY ] [ OK ]                     |
++------------------------------------------------------------+
+
+[CIV1-UI-115] WE LOVE THE KING DAY
++------------------------------------------------------------+
+|                   WE LOVE THE KING DAY!                    |
++------------------------------------------------------------+
+| The citizens of Rome celebrate your leadership.            |
+| The city receives the celebration effects of your          |
+| current government.                                        |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-116] POLLUTION APPEARS
++------------------------------------------------------------+
+|                     POLLUTION REPORTED                     |
++------------------------------------------------------------+
+| Industrial pollution has appeared near Rome.               |
+| The affected map square is marked for cleanup.             |
+|                                                            |
+|                      [ CENTER MAP ] [ OK ]                  |
++------------------------------------------------------------+
+
+[CIV1-UI-117] GLOBAL WARMING
++------------------------------------------------------------+
+|                      GLOBAL WARMING                        |
++------------------------------------------------------------+
+| Environmental damage has changed terrain around the world. |
+| Coastal and inland terrain may have deteriorated.          |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-118] NUCLEAR MELTDOWN
++------------------------------------------------------------+
+|                    NUCLEAR PLANT MELTDOWN                  |
++------------------------------------------------------------+
+| A nuclear power plant accident has struck Rome.            |
+| Population has fallen and nearby terrain is polluted.      |
+|                                                            |
+|                      [ CENTER MAP ] [ OK ]                  |
++------------------------------------------------------------+
+
+[CIV1-UI-119] DISASTER - EARTHQUAKE
++------------------------------------------------------------+
+|                         EARTHQUAKE                         |
++------------------------------------------------------------+
+| An earthquake has struck Rome.                             |
+| One city improvement has been destroyed.                   |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-120] DISASTER - FAMINE
++------------------------------------------------------------+
+|                           FAMINE                           |
++------------------------------------------------------------+
+| Famine has struck Rome.                                    |
+| Stored food and population have been lost.                 |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-121] DISASTER - FIRE
++------------------------------------------------------------+
+|                            FIRE                            |
++------------------------------------------------------------+
+| Fire has struck Rome.                                      |
+| One city improvement has been destroyed.                   |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-122] DISASTER - FLOOD
++------------------------------------------------------------+
+|                            FLOOD                           |
++------------------------------------------------------------+
+| Flooding has struck Rome.                                  |
+| City population has been reduced.                          |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-123] DISASTER - PIRACY
++------------------------------------------------------------+
+|                        PIRATE RAID                         |
++------------------------------------------------------------+
+| Pirates have raided Rome.                                  |
+| Stored food and current production have been lost.         |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-124] DISASTER - PLAGUE
++------------------------------------------------------------+
+|                           PLAGUE                           |
++------------------------------------------------------------+
+| Plague has struck Rome.                                    |
+| City population has been reduced.                          |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-125] DISASTER - VOLCANO
++------------------------------------------------------------+
+|                      VOLCANIC ERUPTION                     |
++------------------------------------------------------------+
+| A nearby volcano has erupted.                              |
+| Rome's population has been reduced.                        |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-126] MILITARY ADVISOR - CASUALTIES PAGE
++=============================================================================+
+|                      MILITARY CASUALTIES                                    |
++=============================================================================+
+| UNIT TYPE       YOUR LOSSES     ROMAN      GREEK      EGYPTIAN               |
+| Militia              3             -          2           1                  |
+| Phalanx              2             -          4           0                  |
+| Legion               1             -          3           2                  |
+|                                                                             |
+|                             [ BACK ] [ CLOSE ]                               |
++=============================================================================+
+
+[CIV1-UI-127] INTELLIGENCE ADVISOR - DETAIL PAGE
++=============================================================================+
+|                   INTELLIGENCE: GREEKS                                      |
++=============================================================================+
+| Leader: Alexander                Personality: Aggressive                      |
+| Apparent goals: Expansion / military pressure                               |
+| Recent advances: Navigation, Astronomy                                      |
+| Diplomatic state: War with Egyptians, Peace with Romans                      |
+|                                                                             |
+|                             [ BACK ] [ CLOSE ]                               |
++=============================================================================+
+
+[CIV1-UI-128] CIVILOPEDIA SECTION MENU
++------------------------------------------------------------+
+|                        CIVILOPEDIA                         |
++------------------------------------------------------------+
+| > Complete                                                 |
+|   Civilization Advances                                   |
+|   City Improvements                                       |
+|   Military Units                                          |
+|   Terrain Types                                           |
+|   Miscellaneous                                           |
++------------------------------------------------------------+
+
+[CIV1-UI-129] CIVILOPEDIA ENTRY - HISTORY PAGE
++=============================================================================+
+| CIVILOPEDIA: MATHEMATICS                                  PAGE 1 OF 2        |
++=============================================================================+
+|                         [ ENTRY ICON ]                                      |
+|                                                                             |
+| Historical description and background of the selected concept.              |
+|                                                                             |
+|                              [ NEXT ]                                       |
++=============================================================================+
+
+[CIV1-UI-130] CIVILOPEDIA ENTRY - GAMEPLAY PAGE
++=============================================================================+
+| CIVILOPEDIA: MATHEMATICS                                  PAGE 2 OF 2        |
++=============================================================================+
+| Prerequisites: Alphabet, Masonry                                             |
+| Enables: Catapult                                                            |
+| Leads toward: Astronomy                                                      |
+| Gameplay effects and rules summary.                                          |
+|                                                                             |
+|                         [ PREVIOUS ] [ CLOSE ]                               |
++=============================================================================+

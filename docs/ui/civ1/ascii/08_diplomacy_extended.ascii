@@ -1,0 +1,130 @@
+CIVILIZATIONCLONE - CIV1-INSPIRED UI REFERENCE
+STRICT ASCII SUPPLEMENT: EXTENDED DIPLOMACY (CIV1-UI-131..142)
+===============================================================================
+
+[CIV1-UI-131] RIVAL INITIATES CONTACT
++=============================================================================+
+|                           FOREIGN ENVOY                                     |
++=============================================================================+
+| [ LEADER PORTRAIT ]     Alexander of the Greeks wishes to negotiate.        |
+|                                                                             |
+|                     [ RECEIVE ] [ REFUSE ]                                   |
++=============================================================================+
+
+[CIV1-UI-132] PEACE OFFER
++=============================================================================+
+|                         PEACE NEGOTIATIONS                                  |
++=============================================================================+
+| [ LEADER PORTRAIT ]                                                         |
+|                                                                             |
+| The Greeks offer a peace treaty.                                             |
+|                                                                             |
+|                     [ ACCEPT PEACE ] [ WAR ]                                 |
++=============================================================================+
+
+[CIV1-UI-133] TECHNOLOGY TRADE SELECTION
++------------------------------------------------------------+
+|                    SELECT THEIR TECHNOLOGY                 |
++------------------------------------------------------------+
+| > Astronomy                                                |
+|   Navigation                                               |
+|   Currency                                                 |
+|                                                            |
+| They will select one of your advances in return.           |
+|                     [ TRADE ] [ CANCEL ]                    |
++------------------------------------------------------------+
+
+[CIV1-UI-134] BUY PEACE / RIVAL DEMAND
++------------------------------------------------------------+
+|                      PRICE OF PEACE                        |
++------------------------------------------------------------+
+| The rival demands:                                         |
+|     150 gold                                               |
+|       - or -                                               |
+|     one technology advance                                 |
+|                                                            |
+|                 [ PAY ] [ OFFER TECH ] [ REFUSE ]          |
++------------------------------------------------------------+
+
+[CIV1-UI-135] POST-TREATY NEGOTIATION MENU
++------------------------------------------------------------+
+|                  AFTER THE PEACE TREATY                    |
++------------------------------------------------------------+
+| > Declaration of harmony                                   |
+|   Military proposal                                        |
+|   Demand tribute                                           |
+|   End negotiations                                         |
++------------------------------------------------------------+
+
+[CIV1-UI-136] MILITARY PROPOSAL - TARGET
++------------------------------------------------------------+
+|                     MILITARY PROPOSAL                      |
++------------------------------------------------------------+
+| Ask the Greeks to attack:                                  |
+| > Egyptians                                                |
+|   Germans                                                  |
+|   French                                                   |
+|                                                            |
+|                       [ PROPOSE ]                           |
++------------------------------------------------------------+
+
+[CIV1-UI-137] MILITARY PROPOSAL - PAYMENT
++------------------------------------------------------------+
+|                     MILITARY PROPOSAL                      |
++------------------------------------------------------------+
+| The Greeks will consider attacking Egypt for 200 gold.     |
+| Treasury: 430 gold                                         |
+|                                                            |
+|                       [ PAY ] [ DECLINE ]                   |
++------------------------------------------------------------+
+
+[CIV1-UI-138] DEMAND TRIBUTE RESULT
++------------------------------------------------------------+
+|                         TRIBUTE                            |
++------------------------------------------------------------+
+| The Greeks have agreed to pay 100 gold.                    |
+|                                                            |
+| Treasury updated.                                          |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-139] BREAK TREATY WARNING
++------------------------------------------------------------+
+|                   BREAK PEACE TREATY?                      |
++------------------------------------------------------------+
+| This action will violate your peace agreement              |
+| and begin a state of war.                                  |
+|                                                            |
+|                  [ PROCEED ] [ CANCEL ]                    |
++------------------------------------------------------------+
+
+[CIV1-UI-140] SENATE BLOCKS WAR
++------------------------------------------------------------+
+|                       SENATE ACTION                        |
++------------------------------------------------------------+
+| The Senate refuses to allow an unprovoked war              |
+| while your government is a Republic or Democracy.          |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-141] DECLARATION OF WAR
++=============================================================================+
+|                         WAR DECLARED                                        |
++=============================================================================+
+| Diplomatic relations with the Greeks have collapsed.                         |
+| Your civilizations are now at war.                                           |
+|                                                                             |
+|                              [ CONTINUE ]                                    |
++=============================================================================+
+
+[CIV1-UI-142] PEACE TREATY SIGNED
++=============================================================================+
+|                       PEACE TREATY SIGNED                                   |
++=============================================================================+
+| Rome and Greece are now at peace.                                            |
+| Additional post-treaty negotiations may follow.                              |
+|                                                                             |
+|                              [ CONTINUE ]                                    |
++=============================================================================+

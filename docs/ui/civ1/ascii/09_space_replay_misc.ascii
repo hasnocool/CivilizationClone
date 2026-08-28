@@ -1,0 +1,279 @@
+CIVILIZATIONCLONE - CIV1-INSPIRED UI REFERENCE
+STRICT ASCII SUPPLEMENT: SPACE, REPLAY, FAILURE, PRESENTATION (CIV1-UI-143..168)
+===============================================================================
+
+[CIV1-UI-143] RIVAL SPACESHIP STATUS
++=============================================================================+
+|                         SPACESHIPS                                          |
++=============================================================================+
+| CIVILIZATION      STATUS       POPULATION   FLIGHT TIME   ARRIVAL            |
+| Romans            Building     10,000       --            --                 |
+| Greeks            In Flight    20,000       11 years      1987 AD            |
+| Egyptians         None         --           --            --                 |
+|                                                                             |
+|                            [ INSPECT ] [ CLOSE ]                             |
++=============================================================================+
+
+[CIV1-UI-144] SPACESHIP LAUNCH CONFIRMATION
++------------------------------------------------------------+
+|                     LAUNCH SPACESHIP?                      |
++------------------------------------------------------------+
+| Population: 30,000                                         |
+| Flight time: 9 years                                       |
+| Probability of success: 82%                                |
+|                                                            |
+|                 [ LAUNCH ] [ KEEP BUILDING ]               |
++------------------------------------------------------------+
+
+[CIV1-UI-145] SPACESHIP IN FLIGHT
++=============================================================================+
+|                       SPACESHIP IN FLIGHT                                   |
++=============================================================================+
+| Destination: Alpha Centauri                                                 |
+| Launch year: 1978 AD                                                        |
+| Expected arrival: 1987 AD                                                   |
+| Colonists: 30,000                                                           |
+|                                                                             |
+|                              [ CLOSE ]                                       |
++=============================================================================+
+
+[CIV1-UI-146] RIVAL SPACESHIP LAUNCH
++------------------------------------------------------------+
+|                   RIVAL SPACESHIP LAUNCHED                  |
++------------------------------------------------------------+
+| The Greeks have launched a spacecraft                       |
+| toward Alpha Centauri.                                      |
+|                                                             |
+|                   [ VIEW SPACESHIPS ] [ OK ]                |
++------------------------------------------------------------+
+
+[CIV1-UI-147] RIVAL ALPHA CENTAURI ARRIVAL
++=============================================================================+
+|                     ALPHA CENTAURI REACHED                                  |
++=============================================================================+
+| A rival civilization has reached Alpha Centauri first.                       |
+| Scoring play now ends.                                                       |
+|                                                                             |
+|                           [ FINAL SCORE ]                                    |
++=============================================================================+
+
+[CIV1-UI-148] AUTOMATIC HISTORY END
++=============================================================================+
+|                        END OF HISTORY                                       |
++=============================================================================+
+| The recorded history of this game has reached its scoring endpoint.          |
+| Your civilization will now be rated.                                         |
+|                                                                             |
+|                           [ FINAL SCORE ]                                    |
++=============================================================================+
+
+[CIV1-UI-149] CONTINUE PLAYING AFTER VICTORY
++------------------------------------------------------------+
+|                      CONTINUE PLAYING?                     |
++------------------------------------------------------------+
+| The game has ended for scoring purposes.                   |
+| You may continue, but no additional score will be recorded.|
+|                                                            |
+|                   [ CONTINUE ] [ END GAME ]                 |
++------------------------------------------------------------+
+
+[CIV1-UI-150] REPLAY OPTIONS
++------------------------------------------------------------+
+|                       REPLAY HISTORY                       |
++------------------------------------------------------------+
+| > Quick Replay                                             |
+|   Complete Replay                                          |
+|   Write Replay to Disk                                     |
+|   Skip Replay                                              |
++------------------------------------------------------------+
+
+[CIV1-UI-151] QUICK REPLAY
++=============================================================================+
+|                         QUICK REPLAY                                        |
++=============================================================================+
+| ~~~~~....R....~~~~~~~....G....~~~~                                          |
+|                                                                             |
+| 4000 BC  Rome founded                                                      |
+| 2100 BC  Athens founded                                                     |
+|  350 AD  Thebes captured                                                    |
+|                                                                             |
+|              [ PAUSE ] [ FASTER ] [ SKIP TO END ]                           |
++=============================================================================+
+
+[CIV1-UI-152] COMPLETE REPLAY
++=============================================================================+
+|                        COMPLETE REPLAY                                      |
++=============================================================================+
+| ~~~~~....R....~~~~~~~....G....~~~~                                          |
+|                                                                             |
+| 1200 BC - Romans first discover Mathematics                                |
+|  500 BC - Greeks complete the Colossus                                     |
+|  200 AD - Rome and Greece declare war                                      |
+|                                                                             |
+|                         [ NEXT EVENT ] [ EXIT ]                              |
++=============================================================================+
+
+[CIV1-UI-153] WRITE REPLAY TO DISK RESULT
++------------------------------------------------------------+
+|                     REPLAY EXPORTED                        |
++------------------------------------------------------------+
+| Complete replay written to REPLAY.TXT.                     |
+| A world map record was also written.                       |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-154] POWERGRAPH
++=============================================================================+
+|                           POWERGRAPH                                        |
++=============================================================================+
+| POWER                                                                       |
+|  ^          RRRRRRRR                                                        |
+|  |      RRRR       RRRR          GGG                                        |
+|  |  GGGG               RRR   GGGG                                           |
+|  |EE                       EEEE                                              |
+|  +-------------------------------------------------> TIME                    |
+|                                                                             |
+|                        [ CONTINUE ]                                          |
++=============================================================================+
+
+[CIV1-UI-155] DESTRUCTION - REPLAY OFFER
++------------------------------------------------------------+
+|                 YOUR CIVILIZATION IS DESTROYED              |
++------------------------------------------------------------+
+| No score can be recorded.                                  |
+| Would you like to review the history of this world?        |
+|                                                            |
+|                    [ REPLAY ] [ EXIT ]                      |
++------------------------------------------------------------+
+
+[CIV1-UI-156] PALACE IMPROVEMENT INVITATION
++------------------------------------------------------------+
+|                 YOUR PEOPLE HONOR YOU                      |
++------------------------------------------------------------+
+| Your growing civilization wishes to improve your palace.   |
+|                                                            |
+|                    [ VIEW PALACE ]                          |
++------------------------------------------------------------+
+
+[CIV1-UI-157] RIVAL WONDER COMPLETED ANNOUNCEMENT
++------------------------------------------------------------+
+|                  WONDER OF THE WORLD                       |
++------------------------------------------------------------+
+| The Greeks have completed THE COLOSSUS in Athens.          |
+|                                                            |
+|                    [ VIEW ] [ CONTINUE ]                    |
++------------------------------------------------------------+
+
+[CIV1-UI-158] WONDER OBSOLETE ANNOUNCEMENT
++------------------------------------------------------------+
+|                    WONDER OBSOLETE                         |
++------------------------------------------------------------+
+| A new technology has made THE ORACLE obsolete.             |
+| Its special effect no longer applies.                      |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-159] TREASURY SHORTFALL / IMPROVEMENT SOLD
++------------------------------------------------------------+
+|                     TREASURY SHORTFALL                     |
++------------------------------------------------------------+
+| Maintenance costs exceed available funds.                  |
+| A city improvement has been sold to cover expenses.        |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-160] UNSUPPORTED UNIT LOST
++------------------------------------------------------------+
+|                       UNIT DISBANDED                       |
++------------------------------------------------------------+
+| Rome cannot provide enough resources to support all units. |
+| The most distant unsupported unit has been lost.           |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-161] CITY DESTROYED
++=============================================================================+
+|                         CITY DESTROYED                                      |
++=============================================================================+
+| The last population point of Athens has been eliminated.                     |
+| The city and its improvements are gone.                                      |
+|                                                                             |
+|                              [ CONTINUE ]                                    |
++=============================================================================+
+
+[CIV1-UI-162] CITY CAPTURE LOOT - TECHNOLOGY
++------------------------------------------------------------+
+|                    CAPTURED KNOWLEDGE                      |
++------------------------------------------------------------+
+| The capture of Athens reveals a new advance:               |
+|                        ENGINEERING                          |
+|                                                            |
+|                  [ DETAILS ] [ OK ]                        |
++------------------------------------------------------------+
+
+[CIV1-UI-163] CITY CAPTURE LOOT - GOLD
++------------------------------------------------------------+
+|                    TREASURY PLUNDERED                      |
++------------------------------------------------------------+
+| Capturing Athens yields 87 gold.                           |
+| The funds have been added to your treasury.                |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-164] NUCLEAR ATTACK RESULT
++=============================================================================+
+|                       NUCLEAR ATTACK                                        |
++=============================================================================+
+| Target units have been destroyed and the affected city population reduced.  |
+| Nearby squares may now be polluted.                                          |
+|                                                                             |
+|                              [ CONTINUE ]                                    |
++=============================================================================+
+
+[CIV1-UI-165] SDI INTERCEPTION
++------------------------------------------------------------+
+|                       SDI DEFENSE                          |
++------------------------------------------------------------+
+| The city's SDI Defense has intercepted a nuclear attack.   |
+| The attack has no effect.                                  |
+|                                                            |
+|                         [ OK ]                              |
++------------------------------------------------------------+
+
+[CIV1-UI-166] RESEARCH MENU CIVILOPEDIA HELP
++=============================================================================+
+| CHOOSE RESEARCH                              CIVILOPEDIA HELP                |
++=============================================================================+
+| > Mathematics       | Prerequisites and gameplay information for             |
+|   Writing           | the highlighted advance.                              |
+|   Currency          |                                                       |
+|                     |                                                       |
+| [ RESEARCH ]        | [ CLOSE HELP ]                                         |
++=============================================================================+
+
+[CIV1-UI-167] PRODUCTION MENU CIVILOPEDIA HELP
++=============================================================================+
+| CHANGE PRODUCTION                            CIVILOPEDIA HELP                |
++=============================================================================+
+| > Settlers          | Cost, prerequisites, and gameplay information for      |
+|   Barracks          | the highlighted production item.                      |
+|   Granary           |                                                       |
+|   Pyramids          |                                                       |
+| [ BUILD ]           | [ CLOSE HELP ]                                         |
++=============================================================================+
+
+[CIV1-UI-168] CITY ADVISOR RECOMMENDATION OVERLAYS
++=============================================================================+
+| CITY OF ROME                                                                |
++=============================================================================+
+| MILITARY ADVISOR: We should strengthen our defenses.                         |
+|                                                                             |
+| DOMESTIC ADVISOR: We should improve growth and production.                   |
+|                                                                             |
+|                              [ OK ]                                          |
++=============================================================================+
