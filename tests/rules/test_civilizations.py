@@ -7,6 +7,7 @@ from civilization_clone.rules.civilizations import (
     CivilizationDefinition,
     load_civilizations,
 )
+from civilization_clone.rules.poc import POC_CIVILIZATIONS
 
 
 def test_poc_content_contains_two_unique_original_civilizations() -> None:
@@ -18,6 +19,7 @@ def test_poc_content_contains_two_unique_original_civilizations() -> None:
         "river_compact",
         "horizon_league",
     }
+    assert definitions == POC_CIVILIZATIONS
     assert all(item.research_preferences for item in definitions)
     assert all(item.content_hooks for item in definitions)
 
