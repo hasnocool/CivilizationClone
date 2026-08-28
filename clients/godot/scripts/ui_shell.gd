@@ -2,8 +2,24 @@ class_name CivilizationUiShell
 extends Node
 
 const SettingsScreen := preload("res://scripts/settings_screen.gd")
+
 const PANEL_BG := Color("151b24")
 const PANEL_BORDER := Color("334155")
+const ACTION_BG := Color("2563eb")
+const ACTION_HOVER := Color("3b82f6")
+const ACTION_PRESSED := Color("1d4ed8")
+const ACTION_BORDER := Color("60a5fa")
+const SECONDARY_BG := Color("1e293b")
+const SECONDARY_HOVER := Color("334155")
+const FIELD_BG := Color("0f172a")
+const FIELD_BORDER := Color("475569")
+const FIELD_FOCUS := Color("60a5fa")
+const TITLE_TEXT := Color("f8fafc")
+const SECTION_TEXT := Color("dbeafe")
+const FIELD_LABEL_TEXT := Color("cbd5e1")
+const DESCRIPTION_TEXT := Color("94a3b8")
+const CONTROL_TEXT := Color("f8fafc")
+const DISABLED_TEXT := Color("94a3b8")
 const CONTROL_HEIGHT := 36.0
 const CONFIGURED_META := &"civilization_ui_shell_configured"
 
@@ -49,6 +65,7 @@ func _build_toolbar() -> void:
 	var menu := MenuButton.new()
 	menu.text = "Menu"
 	menu.custom_minimum_size.y = CONTROL_HEIGHT
+	_style_secondary_button(menu)
 	var popup := menu.get_popup()
 	popup.add_item("Display & Interface Settings", 0)
 	popup.add_item("Fit Window to Screen", 1)
@@ -60,6 +77,7 @@ func _build_toolbar() -> void:
 	var settings_button := Button.new()
 	settings_button.text = "Settings"
 	settings_button.custom_minimum_size.y = CONTROL_HEIGHT
+	_style_action_button(settings_button)
 	settings_button.pressed.connect(_open_settings)
 	toolbar.add_child(settings_button)
 
@@ -71,7 +89,8 @@ func _build_toolbar() -> void:
 	_display_label = Label.new()
 	_display_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_display_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_display_label.modulate = Color("aeb8c4")
+	_display_label.add_theme_color_override("font_color", DESCRIPTION_TEXT)
+	_display_label.add_theme_font_size_override("font_size", 13)
 	toolbar.add_child(_display_label)
 
 	root_box.add_child(toolbar)
@@ -163,25 +182,22 @@ func _normalize_control(control: Control) -> void:
 
 	if control is PanelContainer:
 		_style_panel(control as PanelContainer)
-	if control is Button:
-		var button := control as Button
-		button.clip_text = true
-		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, CONTROL_HEIGHT)
+	if control is OptionButton:
+		_configure_option_button(control as OptionButton)
+	elif control is MenuButton:
+		_style_secondary_button(control as MenuButton)
+	elif control is Button:
+		_style_action_button(control as Button)
 	if control is LineEdit:
-		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		control.custom_minimum_size.y = maxf(control.custom_minimum_size.y, CONTROL_HEIGHT)
+		_style_line_edit(control as LineEdit)
 	if control is SpinBox:
 		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		control.custom_minimum_size.y = maxf(control.custom_minimum_size.y, CONTROL_HEIGHT)
-	if control is OptionButton:
-		_configure_option_button(control as OptionButton)
+		_style_line_edit((control as SpinBox).get_line_edit())
 	if control is Label:
-		var label := control as Label
-		if label.autowrap_mode == TextServer.AUTOWRAP_OFF:
-			label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_style_label(control as Label)
 	if control is RichTextLabel:
-		control.custom_minimum_size = Vector2(0, 120)
+		_style_rich_text(control as RichTextLabel)
 	if control is ScrollContainer:
 		var scroll := control as ScrollContainer
 		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
@@ -189,16 +205,83 @@ func _normalize_control(control: Control) -> void:
 func _style_panel(panel: PanelContainer) -> void:
 	if panel.has_theme_stylebox_override("panel"):
 		return
-	var style := StyleBoxFlat.new()
-	style.bg_color = PANEL_BG
-	style.border_color = PANEL_BORDER
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 10
-	style.content_margin_right = 10
-	style.content_margin_top = 9
-	style.content_margin_bottom = 9
+	var style := _box(PANEL_BG, PANEL_BORDER, 8, 10, 9)
 	panel.add_theme_stylebox_override("panel", style)
+
+func _style_action_button(button: Button) -> void:
+	button.clip_text = true
+	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, CONTROL_HEIGHT)
+	button.add_theme_stylebox_override("normal", _box(ACTION_BG, ACTION_BORDER, 7, 12, 7))
+	button.add_theme_stylebox_override("hover", _box(ACTION_HOVER, Color("93c5fd"), 7, 12, 7))
+	button.add_theme_stylebox_override("pressed", _box(ACTION_PRESSED, Color("bfdbfe"), 7, 12, 7))
+	button.add_theme_stylebox_override("focus", _box(ACTION_BG, Color("dbeafe"), 7, 11, 6, 2))
+	button.add_theme_stylebox_override("disabled", _box(Color("334155"), Color("475569"), 7, 12, 7))
+	button.add_theme_color_override("font_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_hover_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_pressed_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_focus_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_disabled_color", DISABLED_TEXT)
+	button.add_theme_font_size_override("font_size", 14)
+
+func _style_secondary_button(button: Button) -> void:
+	button.clip_text = true
+	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, CONTROL_HEIGHT)
+	button.add_theme_stylebox_override("normal", _box(SECONDARY_BG, FIELD_BORDER, 7, 12, 7))
+	button.add_theme_stylebox_override("hover", _box(SECONDARY_HOVER, Color("64748b"), 7, 12, 7))
+	button.add_theme_stylebox_override("pressed", _box(FIELD_BG, FIELD_FOCUS, 7, 12, 7))
+	button.add_theme_stylebox_override("focus", _box(SECONDARY_BG, FIELD_FOCUS, 7, 11, 6, 2))
+	button.add_theme_color_override("font_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_hover_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_pressed_color", CONTROL_TEXT)
+	button.add_theme_color_override("font_focus_color", CONTROL_TEXT)
+	button.add_theme_font_size_override("font_size", 14)
+
+func _style_line_edit(line_edit: LineEdit) -> void:
+	line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line_edit.custom_minimum_size.y = maxf(line_edit.custom_minimum_size.y, CONTROL_HEIGHT)
+	line_edit.add_theme_stylebox_override("normal", _box(FIELD_BG, FIELD_BORDER, 6, 10, 6))
+	line_edit.add_theme_stylebox_override("focus", _box(FIELD_BG, FIELD_FOCUS, 6, 9, 5, 2))
+	line_edit.add_theme_stylebox_override("read_only", _box(Color("111827"), Color("334155"), 6, 10, 6))
+	line_edit.add_theme_color_override("font_color", CONTROL_TEXT)
+	line_edit.add_theme_color_override("placeholder_color", DESCRIPTION_TEXT)
+	line_edit.add_theme_color_override("caret_color", Color("bfdbfe"))
+	line_edit.add_theme_font_size_override("font_size", 14)
+
+func _style_label(label: Label) -> void:
+	if label.autowrap_mode == TextServer.AUTOWRAP_OFF:
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var size := label.get_theme_font_size("font_size")
+	if size >= 20:
+		label.add_theme_color_override("font_color", TITLE_TEXT)
+		return
+	if size >= 17:
+		label.add_theme_color_override("font_color", SECTION_TEXT)
+		label.add_theme_font_size_override("font_size", maxi(size, 17))
+		return
+	if _looks_like_field_label(label):
+		label.add_theme_color_override("font_color", FIELD_LABEL_TEXT)
+		label.add_theme_font_size_override("font_size", 14)
+		return
+	if label.modulate == Color.WHITE:
+		label.add_theme_color_override("font_color", DESCRIPTION_TEXT)
+		label.add_theme_font_size_override("font_size", 13)
+
+func _looks_like_field_label(label: Label) -> bool:
+	var parent := label.get_parent()
+	if parent is GridContainer:
+		return true
+	if parent is HFlowContainer or parent is HBoxContainer:
+		var text := label.text.strip_edges()
+		return text.length() <= 24 and not text.contains("\n") and not text.contains(":")
+	return false
+
+func _style_rich_text(rich: RichTextLabel) -> void:
+	rich.custom_minimum_size = Vector2(0, 120)
+	rich.add_theme_stylebox_override("normal", _box(Color("0b1220"), Color("273449"), 6, 9, 8))
+	rich.add_theme_color_override("default_color", Color("cbd5e1"))
+	rich.add_theme_font_size_override("normal_font_size", 13)
 
 func _configure_option_button(option: OptionButton) -> void:
 	option.fit_to_longest_item = false
@@ -206,6 +289,11 @@ func _configure_option_button(option: OptionButton) -> void:
 	option.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	option.custom_minimum_size = Vector2(0, maxf(option.custom_minimum_size.y, CONTROL_HEIGHT))
+	_style_secondary_button(option)
+	option.add_theme_stylebox_override("normal", _box(FIELD_BG, FIELD_BORDER, 6, 10, 6))
+	option.add_theme_stylebox_override("hover", _box(Color("172033"), Color("64748b"), 6, 10, 6))
+	option.add_theme_stylebox_override("pressed", _box(Color("111827"), FIELD_FOCUS, 6, 10, 6))
+	option.add_theme_stylebox_override("focus", _box(FIELD_BG, FIELD_FOCUS, 6, 9, 5, 2))
 	var popup := option.get_popup()
 	popup.prefer_native_menu = false
 	popup.search_bar_enabled = true
@@ -236,6 +324,25 @@ func _constrain_popup(popup: PopupMenu) -> void:
 	var max_width := maxi(240, int(visible_size.x) - 32)
 	var max_height := maxi(180, int(visible_size.y) - 48)
 	popup.max_size = Vector2i(mini(560, max_width), mini(440, max_height))
+
+func _box(
+	background: Color,
+	border: Color,
+	radius: int,
+	horizontal_padding: float,
+	vertical_padding: float,
+	border_width: int = 1
+) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(border_width)
+	style.set_corner_radius_all(radius)
+	style.content_margin_left = horizontal_padding
+	style.content_margin_right = horizontal_padding
+	style.content_margin_top = vertical_padding
+	style.content_margin_bottom = vertical_padding
+	return style
 
 func _find_primary_vbox(parent: Node) -> VBoxContainer:
 	for child in parent.get_children():
