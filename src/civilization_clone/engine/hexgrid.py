@@ -61,3 +61,47 @@ def within_radius(center: HexCoord, radius: int) -> tuple[HexCoord, ...]:
         if abs(q + r) <= radius
     ]
     return tuple(sorted(coords))
+
+
+def line(start: HexCoord, end: HexCoord) -> tuple[HexCoord, ...]:
+    """Return a deterministic straight hex line including both endpoints.
+
+    Interpolation uses integer rational arithmetic only, avoiding platform-sensitive
+    floating-point nudges. Cube-rounding ties use a stable q/r/s priority and therefore
+    produce the same result in either traversal direction.
+    """
+    steps = distance(start, end)
+    if steps == 0:
+        return (start,)
+
+    result: list[HexCoord] = []
+    for index in range(steps + 1):
+        q_num = start.q * (steps - index) + end.q * index
+        r_num = start.r * (steps - index) + end.r * index
+        s_num = start.s * (steps - index) + end.s * index
+        q = _round_ratio(q_num, steps)
+        r = _round_ratio(r_num, steps)
+        s = _round_ratio(s_num, steps)
+
+        q_error = abs(q * steps - q_num)
+        r_error = abs(r * steps - r_num)
+        s_error = abs(s * steps - s_num)
+        if q + r + s != 0:
+            if q_error >= r_error and q_error >= s_error:
+                q = -r - s
+            elif r_error >= s_error:
+                r = -q - s
+            else:
+                s = -q - r
+        result.append(HexCoord(q, r))
+
+    return tuple(result)
+
+
+def _round_ratio(numerator: int, denominator: int) -> int:
+    """Round an exact rational to nearest integer with deterministic downward ties."""
+    floor = numerator // denominator
+    remainder = numerator - floor * denominator
+    if remainder * 2 > denominator:
+        return floor + 1
+    return floor
