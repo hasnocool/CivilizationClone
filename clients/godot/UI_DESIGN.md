@@ -17,6 +17,78 @@ The client is organized into four layers:
 
 The settings layer never contains game authority or credentials.
 
+## Visual language
+
+Interactive controls and explanatory text must be distinguishable before the user reads the wording.
+
+### Action buttons
+
+Buttons represent actions that can be executed now.
+
+- filled blue surface;
+- clearly visible border;
+- bright control text;
+- distinct hover, pressed, focus, and disabled states;
+- rounded corners and internal padding;
+- at least 36 px interactive height before UI scaling.
+
+Examples: `Connect`, `Settings`, `Choose Research`, `Queue Production`, `End Turn`, `Apply & Save`.
+
+A normal action button must never look like a plain text label.
+
+### Menus, dropdowns, and inputs
+
+Fields represent a choice or value rather than an immediate action.
+
+- dark inset surface;
+- neutral visible border;
+- blue focus border;
+- bright entered/selected text;
+- muted placeholder text;
+- dropdown arrow/menu affordance remains visible;
+- dropdown controls use the responsive popup rules below.
+
+This intentionally differs from the filled blue action-button treatment.
+
+### Titles and section headings
+
+Headings establish structure and are not interactive.
+
+- window/page title uses the brightest text and largest size;
+- section headings use bright cool-toned text and a larger size than normal labels;
+- headings have no button background, hover state, or border.
+
+Examples: `CivilizationClone — Godot Client`, `Research`, `Diplomacy`, `Turn`, `Display & Interface Settings`.
+
+### Field labels
+
+Field labels identify the control immediately beside or below them.
+
+- medium-high contrast text;
+- compact 14 px default size;
+- no background or border;
+- visually stronger than descriptive/help text but weaker than section headings.
+
+Examples: `API`, `Viewer`, `Game ID`, `Seed`, `Window mode`, `UI scale`.
+
+### Descriptions, status, and help text
+
+Descriptive text explains state or provides context and should not compete visually with controls.
+
+- muted slate text;
+- smaller default size around 13 px;
+- wrapping enabled;
+- no action-style background;
+- status/error coloring may override the muted color where needed.
+
+Examples: selection summaries, legal-action summaries, current display information, responsive-layout explanation, and help text.
+
+### Event/history text
+
+Read-only event/history areas use a dark inset panel distinct from both buttons and labels. This indicates content that can be read/scrolled but is not directly actionable.
+
+Color is not the sole distinction: interactive controls also have borders, filled/inset surfaces, pointer/focus states, and different spacing from static text.
+
 ## Application toolbar
 
 The toolbar should stay directly beneath the client title and wrap instead of clipping when horizontal space is limited.
@@ -164,6 +236,8 @@ Credentials and game/session data are prohibited from this file.
 - Scroll containers must remain keyboard/mouse reachable.
 - Settings can be dismissed with the normal `ui_cancel` action.
 - Color is not the only carrier of gameplay meaning; labels/markers remain required.
+- Buttons must remain distinguishable from static labels in grayscale through border, fill, padding, and interaction states.
+- Inputs/dropdowns must remain distinguishable from buttons through their inset field treatment.
 
 ## Acceptance matrix
 
@@ -181,4 +255,4 @@ Local human-style QA must verify at least:
 | Fullscreen | 100% | no stale windowed clipping |
 | 1280×720 windowed | 175% | controls remain reachable through wrapping/scrolling |
 
-For every row above, open all populated dropdowns and verify their popup is entirely reachable within the visible viewport.
+For every row above, open all populated dropdowns and verify their popup is entirely reachable within the visible viewport. Also verify that buttons, fields, headings, labels, and descriptions remain visually distinguishable without relying only on their text content.
