@@ -145,6 +145,14 @@ func production_options(
 		player_token
 	)
 
+func research_options(game_id: String, player_token: String) -> Dictionary:
+	return await _request_json(
+		HTTPClient.METHOD_GET,
+		"/api/v1/games/%s/research-options" % game_id.uri_encode(),
+		null,
+		player_token
+	)
+
 func events(game_id: String, player_token: String, after_sequence: int = -1) -> Dictionary:
 	return await _request_json(
 		HTTPClient.METHOD_GET,
