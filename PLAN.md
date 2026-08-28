@@ -2,19 +2,21 @@
 
 ## 1. Purpose
 
-CivilizationClone will be a **headless, deterministic, turn-based 4X strategy engine** exposed through a versioned API so that any client can play the same game: web UI, desktop UI, terminal/TUI, mobile app, Discord-style bot, AI agent, automated test harness, or a future 2D/3D client.
+CivilizationClone is a **headless, deterministic, turn-based 4X strategy engine** exposed through stable application/API boundaries so that any client can play the same authoritative simulation.
 
-The engine is inspired by the long-running design patterns documented publicly by Firaxis/2K for the Sid Meier's Civilization series: exploration, territorial expansion, resource/economic development, technological and cultural progression, diplomacy, warfare, distinct civilizations/leaders, and multiple paths to victory.
+Possible clients include web, desktop, terminal/TUI, mobile, Godot/Unity/Unreal or another renderer, Discord/chat-style clients, AI agents, automated play-test harnesses, and replay/spectator tools.
 
-The proof of concept should prove that those systems can be modeled **without coupling simulation rules to presentation**.
+The engine owns rules and state. Clients only submit commands and render authorized projections, events, and user feedback.
 
-> Important boundary: this project should use original implementation, original balance values, original text, and original content definitions. Official Civilization documentation is a design reference only. Do not copy proprietary game data, Civilopedia text, art, audio, leader likenesses, maps, UI, balance tables, or other protected content. The project is not affiliated with or endorsed by Firaxis Games, 2K, or Take-Two.
+The design is informed by public official Firaxis/2K Civilization documentation, but CivilizationClone must use **original implementation, balance, names, text, rules data, art, audio, maps, and content**. Do not copy proprietary Civilization data or assets.
+
+This project is not affiliated with or endorsed by Firaxis Games, 2K, or Take-Two.
 
 ---
 
 ## 2. Official design references
 
-Primary official references used when planning this project:
+Primary design references:
 
 - Civilization franchise overview: https://civilization.2k.com/
 - Civilization VI official overview: https://civilization.2k.com/en-GB/civ-vi/
@@ -23,168 +25,144 @@ Primary official references used when planning this project:
 - Civilization VII — Managing Your Empire dev diary: https://civilization.2k.com/civ-vii/archive/dev-diary/managing-your-empire/
 - Civilization VII game-guide archive: https://civilization.2k.com/civ-vii/game-guide/
 
-The useful design lessons are broader than any one Civilization release:
+Broad design lessons used here:
 
-1. Civilization is fundamentally a **turn-based 4X game**.
-2. The world is spatial and tile-based; modern entries use **hexagonal maps**.
-3. Players explore unknown territory, settle and develop territory, exploit resources, and compete/cooperate with other powers.
-4. Cities/settlements are core economic entities.
-5. Research and social/cultural progression unlock capabilities over time.
-6. Military units occupy and move through the world and resolve combat under deterministic rules plus controlled randomness.
-7. Diplomacy changes relationships between players over time.
-8. Different leaders/civilizations modify the base rules through data-driven abilities.
-9. Victory is not limited to conquest; the engine should support multiple configurable victory trackers.
-10. Late-game micromanagement and runaway snowballing are known design problems, so systems should support automation, batching, specialization, soft caps, and catch-up mechanics later without rewriting the engine.
-
----
-
-## 3. Proof-of-concept goal
-
-The POC is complete when two or more players can finish a small deterministic game entirely through the API.
-
-A complete POC match should support this loop:
-
-1. Create a game with a seed and configuration.
-2. Generate a hex map.
-3. Join/select a player profile and an original test civilization.
-4. Spawn starting units.
-5. Explore hidden tiles.
-6. Found settlements.
-7. Work territory and generate yields.
-8. Queue production.
-9. Research technologies.
-10. Move units and fight another player.
-11. Conduct basic diplomacy.
-12. End turns through an authoritative turn controller.
-13. Persist and reload the match.
-14. Replay the match from its event log.
-15. Detect a victory condition and finalize the game.
-16. Allow any client to reconstruct its permitted view of state from the API.
-
-### Initial POC match limits
-
-Keep the first playable slice intentionally small:
-
-- 2–4 players.
-- One map layer.
-- Small/medium hex maps.
-- One historical-style era/phase rather than a full human-history timeline.
-- 4–6 terrain types.
-- 3–5 resource types.
-- 4–6 unit classes.
-- 4–8 buildings.
-- 8–12 technologies.
-- 2 original civilization definitions.
-- Basic war/peace diplomacy.
-- Score and conquest-style victory conditions.
-- Simple AI opponent.
-
-The architecture must support later expansion without requiring those larger systems in the POC.
+1. turn-based 4X structure;
+2. spatial tile/hex world;
+3. exploration and fog of war;
+4. settlement growth and territorial development;
+5. resource/economic management;
+6. technology and cultural/social progression;
+7. military movement and combat;
+8. diplomacy and changing relationships;
+9. data-driven leader/civilization modifiers;
+10. multiple paths to victory;
+11. late-game automation/specialization to reduce micromanagement;
+12. rules and presentation should remain separable.
 
 ---
 
-## 4. Core architecture principle
+## 3. Proof-of-concept success criteria
 
-The simulation engine must have **no dependency on a graphical client or HTTP framework**.
+The POC is complete when two or more players can finish a small deterministic game entirely through the public engine/API surface.
+
+A complete POC match must be able to:
+
+1. create a seeded game;
+2. generate a hex map;
+3. configure/join players;
+4. spawn starting units;
+5. explore hidden territory;
+6. found settlements;
+7. work territory and generate yields;
+8. queue production;
+9. research technologies;
+10. move and fight units;
+11. conduct basic diplomacy;
+12. advance authoritative turns;
+13. persist/reload a game;
+14. replay from the deterministic event journal;
+15. expose useful runtime diagnostics;
+16. expose safe user-facing feedback;
+17. detect and finalize victory;
+18. reconstruct authorized client state/events without leaking hidden state.
+
+### Initial POC limits
+
+- 2–4 players;
+- one map layer;
+- small/medium hex maps;
+- one simplified historical-style phase/era;
+- 4–6 terrain types;
+- 3–5 resources;
+- 4–6 unit classes;
+- 4–8 buildings;
+- 8–12 technologies;
+- 2 original civilization definitions;
+- simple war/peace diplomacy;
+- score and conquest-style victory;
+- deterministic simple AI.
+
+---
+
+## 4. Core architecture
+
+The simulation has **no dependency on a graphical client or HTTP framework**.
 
 ```text
-                         ┌──────────────────────────────┐
-                         │           CLIENTS            │
-                         │                              │
-                         │ Web / TUI / Desktop / Bot   │
-                         │ Mobile / AI Agent / Tests   │
-                         └──────────────┬───────────────┘
-                                        │
-                                 REST / WebSocket
-                                        │
-                         ┌──────────────▼───────────────┐
-                         │          API LAYER           │
-                         │ auth • commands • queries    │
-                         │ projections • subscriptions  │
-                         └──────────────┬───────────────┘
-                                        │
-                              typed command boundary
-                                        │
-                         ┌──────────────▼───────────────┐
-                         │      GAME APPLICATION        │
-                         │ game sessions • turn actor   │
-                         │ command routing • snapshots  │
-                         └──────────────┬───────────────┘
-                                        │
-                         ┌──────────────▼───────────────┐
-                         │       DOMAIN / ENGINE        │
-                         │ deterministic game rules     │
-                         │ map • cities • units • AI    │
-                         │ economy • research • combat  │
-                         └──────────────┬───────────────┘
-                                        │
-                               events / snapshots
-                                        │
-                         ┌──────────────▼───────────────┐
-                         │        PERSISTENCE           │
-                         │ event log • saves • configs  │
-                         └──────────────────────────────┘
+CLIENTS
+  Web / TUI / Desktop / Mobile / Godot / Bots / Tests
+                    |
+                    v
+            API / CLIENT ADAPTERS
+       commands / queries / feedback / events
+                    |
+                    v
+             APPLICATION LAYER
+        sessions / command routing / actors
+                    |
+                    v
+            DOMAIN / ENGINE CORE
+ map / units / settlements / economy / research / combat
+ diplomacy / visibility / victory / deterministic event journal
+                    |
+                    v
+               PERSISTENCE
+       snapshots / durable events / configs
+
+Operational side-channel (not authoritative state):
+  structured runtime/debug logs -> console/files/support tools
 ```
 
-### Design rule
+### Fundamental rule
 
-Clients **request actions**; they never directly mutate game state.
-
-For example:
+Clients request actions; they never directly mutate authoritative state.
 
 ```text
 MoveUnitCommand
-      ↓
-validate ownership
-validate turn
-validate movement budget
-validate destination
-resolve movement
-update authoritative state
-emit UnitMoved event
-increment state version
-publish player-visible event
+    -> validate identity/ownership/turn
+    -> validate movement and destination
+    -> resolve deterministic rule effects
+    -> mutate authoritative state
+    -> emit immutable UnitMoved event
+    -> append event to deterministic journal
+    -> increment/record state version
+    -> publish authorized projection/event
+    -> produce safe user feedback if needed
+    -> write operational diagnostic logs as a side effect only
 ```
 
 ---
 
 ## 5. Technology direction
 
-Target Python **3.12+**.
+Target **Python 3.12+**.
 
-Recommended stack for the POC:
+POC direction:
 
-- FastAPI for the HTTP API.
-- Pydantic v2 models for API/domain boundary schemas.
-- Uvicorn for ASGI serving.
-- `asyncio`/AnyIO for non-blocking network and persistence operations.
-- SQLAlchemy 2 async APIs for persistence boundaries.
-- SQLite in WAL mode for local POC development.
-- PostgreSQL as the intended production persistence option.
-- Alembic for schema migrations.
-- pytest + pytest-asyncio for tests.
-- Hypothesis for property-based rule testing.
-- Ruff for linting/formatting.
-- Pyright or strict mypy for static type checking.
-- `uv` for project/dependency management.
+- FastAPI for later HTTP/WebSocket API;
+- Pydantic v2 at transport/application boundaries later;
+- asyncio/AnyIO for non-blocking network/persistence work;
+- SQLAlchemy 2 async persistence APIs later;
+- SQLite WAL for local POC persistence;
+- PostgreSQL as a possible production persistence target;
+- Alembic once migrations exist;
+- stdlib `logging` with structured JSON support for runtime diagnostics;
+- pytest + pytest-asyncio;
+- Hypothesis where property/state-machine testing is useful;
+- Ruff;
+- Pyright or strict mypy;
+- `uv` project/dependency management.
 
-### Concurrency rule
+### Async/concurrency rule
 
 Do not allow arbitrary concurrent writes to one game object.
 
-Each running game should have a **single serialized command stream** (actor/mailbox model or equivalent). API requests may arrive concurrently, but state-changing commands for a game are processed in order.
+Each running game uses one serialized state-mutation stream (actor/mailbox or equivalent). API requests may arrive concurrently, but state-changing commands for a game are processed in deterministic order.
 
-This gives us:
+CPU-heavy AI/pathfinding may later run against immutable snapshots in workers, but workers return proposed commands; they never mutate authoritative state.
 
-- thread-safe state mutation;
-- deterministic command ordering;
-- fewer lock-related bugs;
-- easy replay;
-- straightforward idempotency;
-- safe WebSocket fan-out;
-- non-blocking API workers.
-
-CPU-heavy AI/pathfinding work can later run in worker processes against immutable snapshots, but workers must return proposed commands rather than mutating authoritative state.
+Never block an async event loop with synchronous disk/network operations. Use async-native libraries or explicit worker/thread boundaries when unavoidable.
 
 ---
 
@@ -192,34 +170,26 @@ CPU-heavy AI/pathfinding work can later run in worker processes against immutabl
 
 ### `Game`
 
-Authoritative aggregate for a match.
-
-Fields/concepts:
-
 - game id;
 - ruleset id/version;
-- random seed;
-- current turn;
-- current phase;
-- game status;
+- seed;
+- current turn/phase/status;
 - state version;
 - player order;
 - world/map id;
 - victory configuration;
-- RNG state or deterministic random stream identifiers.
+- deterministic RNG stream states/identifiers;
+- deterministic event-journal sequence.
 
 ### `Player`
 
-Represents one participant.
-
 - player id;
-- controller type: human/bot;
-- civilization id;
-- leader/profile id;
-- resources/treasury;
-- research state;
-- diplomacy relationships;
-- known-map/fog state;
+- controller type human/bot;
+- civilization/profile;
+- treasury/resources;
+- research;
+- diplomacy;
+- fog/known map;
 - settlements;
 - units;
 - score/victory progress;
@@ -227,1143 +197,557 @@ Represents one participant.
 
 ### `CivilizationDefinition`
 
-Data-driven rules modifier rather than hard-coded subclass logic.
+Data-driven rather than subclass-specific logic:
 
-- id;
-- display name;
-- tags;
+- id/display name/tags;
 - starting bonuses;
 - passive modifiers;
-- unique unit references;
-- unique building references;
-- optional research modifiers;
-- optional economy/combat modifiers.
+- unique unit/building references;
+- research/economy/combat modifiers.
 
-All POC civilizations should be original fictional/test content.
+POC content is original fictional/test content.
 
-### `WorldMap`
+### `WorldMap` and `Tile`
 
-- width/height or map radius;
-- topology;
-- seed;
-- tile collection;
-- spawn regions;
-- resource placement;
-- map metadata.
-
-### `Tile`
-
-Use axial hex coordinates `(q, r)` internally.
-
-- coordinate;
-- terrain type;
-- feature tags;
-- resource;
-- base yields;
-- movement cost;
-- defense modifier;
-- passability;
-- settlement id if occupied;
-- unit occupancy references;
-- improvement/building references later.
+Use axial hex coordinates `(q, r)` internally. Tiles contain terrain/features/resources, yields, movement/passability, defense, settlement/occupancy references, and later territory/improvement references.
 
 ### `Settlement`
 
-- settlement id;
-- owner;
-- center coordinate;
+- id/owner/center;
 - population;
-- food/growth storage;
-- production storage;
-- controlled tiles;
-- worked tiles;
-- build queue;
+- food/growth;
+- production/build queue;
+- territory/worked tiles;
 - buildings;
 - defense;
-- local modifiers;
-- generated yields.
-
-The engine should leave room for a later `town`/`city` specialization model without requiring it in v0.x.
+- generated yields/modifiers.
 
 ### `Unit`
 
-- unit id;
-- owner;
-- unit definition id;
+- id/owner/definition;
 - position;
 - hit points;
-- movement points;
-- combat strength;
-- ranged strength/range when applicable;
-- experience/promotion state later;
-- status effects;
-- action flags.
+- movement/actions;
+- combat/range;
+- experience/promotions later;
+- statuses.
 
 ### `TechnologyDefinition`
 
-Technology progression is a directed acyclic graph.
-
-- id;
-- cost;
-- prerequisites;
-- unlocks;
-- modifiers;
-- tags.
-
-The same generic progression engine should later support civics/social research as a separate tree.
+Generic prerequisite DAG with id/cost, prerequisites, unlocks, modifiers, and tags. The same progression machinery should later support civics/social development.
 
 ### `DiplomaticRelationship`
 
-For each player pair:
-
-- contact state;
-- peace/war state;
-- relationship score optional;
-- treaties;
-- active offers;
-- grievance/history ledger later.
+Contact, peace/war, pending proposals, and later treaties/history.
 
 ### `VictoryTracker`
 
-Victory conditions must be pluggable.
-
-POC:
-
-- score victory after a configured maximum turn;
-- conquest/elimination victory.
-
-Later:
-
-- science/progression race;
-- culture/influence;
-- diplomacy;
-- configurable scenario objectives.
+Pluggable conditions. POC includes maximum-turn score and conquest/elimination. Later add science/progression, culture/influence, diplomacy, and scenario objectives.
 
 ---
 
 ## 7. Hex-map subsystem
 
-Use axial coordinates because they simplify neighbor and distance calculations.
-
 Required utilities:
 
 - six-neighbor lookup;
 - hex distance;
-- radius/ring queries;
+- ring/radius queries;
 - line queries;
 - movement range;
 - A* pathfinding;
-- terrain movement costs;
-- passability rules;
-- occupancy rules;
+- terrain costs/passability;
+- occupancy;
 - spawn validation;
-- territory ownership;
-- visibility/fog computation.
+- territory;
+- visibility/fog.
 
-### Map generation POC
+### Deterministic map generation
 
-Start with deterministic procedural generation:
-
-1. seed RNG;
+1. derive map RNG stream;
 2. generate land/water mask;
-3. assign terrain bands;
+3. assign terrain;
 4. place features;
-5. place strategic/bonus resources;
-6. choose valid starting regions;
-7. normalize unfair starts using configurable scoring;
+5. place resources;
+6. identify valid start regions;
+7. normalize starts with deterministic scoring;
 8. serialize map definition.
 
-Map generation must produce the same result from the same seed + ruleset version.
+Same seed + ruleset version must produce the same map.
 
 ---
 
-## 8. Fog of war and player projections
+## 8. Fog of war and projections
 
-A client must never receive authoritative hidden state by default.
+Visibility states:
 
-Maintain visibility states such as:
-
-- `UNKNOWN` — never seen;
-- `DISCOVERED` — previously seen, current dynamic details hidden;
+- `UNKNOWN` — never observed;
+- `DISCOVERED` — observed before, dynamic details hidden;
 - `VISIBLE` — currently observable.
-
-The server will maintain the full state but expose **player-specific projections**.
 
 ```text
 Authoritative GameState
-       ├── project(player_a) → Player A view
-       ├── project(player_b) → Player B view
-       └── project(admin)    → complete debug view
+  -> project(player_a)
+  -> project(player_b)
+  -> project(admin/debug)
 ```
 
-This is essential if web, multiplayer, bots, and third-party clients all use the same API.
+Player clients, event streams, user feedback, and normal player logs must not expose unauthorized hidden state.
 
 ---
 
-## 9. Yield/economy model
+## 9. Economy/yields
 
-Use a small generic POC yield set:
-
-- Food — settlement growth;
-- Production — construction and unit creation;
-- Gold — treasury and purchases/maintenance later;
-- Science — technology progress;
-- Culture — social/civic progress later.
-
-Keep yields represented through extensible typed maps so new yield types do not require database redesign.
-
-Every turn:
+POC yield types: Food, Production, Gold, Science, and Culture. Use extensible typed yield maps.
 
 ```text
 tile yields
 + buildings
 + civilization modifiers
-+ temporary modifiers
++ temporary effects
 - maintenance/penalties
 = settlement yields
 = empire totals
 ```
 
-All modifiers should pass through one modifier/effect pipeline rather than being scattered across entity classes.
-
 ---
 
 ## 10. Modifier/effect system
 
-Avoid hard-coding rules such as civilization-specific `if` statements in engine internals.
+Avoid civilization-specific conditionals in engine internals.
 
-Instead, definitions register typed modifiers.
+Typed modifier concepts include flat/percentage yield, terrain yield, combat, movement, build/research cost, upkeep, visibility, growth, and conditional triggers.
 
-Conceptual modifier types:
-
-- flat yield;
-- percentage yield;
-- terrain yield;
-- unit combat;
-- movement;
-- build cost;
-- research cost;
-- upkeep;
-- visibility;
-- settlement growth;
-- conditional trigger.
-
-A modifier should contain:
-
-- source;
-- target selector;
-- operation;
-- value;
-- condition;
-- duration;
-- stacking policy;
-- priority/order.
-
-This is one of the most important architectural decisions because nearly every future civilization, technology, policy, wonder, building, event, and difficulty modifier can use the same mechanism.
+Each modifier includes source, target selector, operation, value, conditions, duration, stacking policy, and priority/order.
 
 ---
 
 ## 11. Turn model
 
-Use a deterministic state machine.
-
-POC recommendation: sequential players with explicit end-turn commands, while designing the command model so simultaneous-turn multiplayer can be added later.
-
-### Turn lifecycle
+POC: sequential players with explicit end-turn commands, while preserving a future path to simultaneous-turn multiplayer.
 
 ```text
-GAME TURN START
-    ↓
-start active player turn
-    ↓
-refresh unit movement/actions
-apply start-turn effects
-resolve recurring economy/growth/research
-    ↓
-accept commands
-    ├── move
-    ├── attack
-    ├── found settlement
-    ├── change production
-    ├── choose research
-    ├── diplomacy
-    └── end turn
-    ↓
-validate player has completed mandatory choices
-    ↓
-end active player turn
-    ↓
-next player
-    ↓
-GLOBAL TURN END
-    ↓
-resolve global effects
-check victory
-snapshot if required
-increment turn
+GLOBAL TURN START
+ -> active-player start
+ -> refresh actions
+ -> recurring economy/growth/research
+ -> accept legal commands
+ -> ensure mandatory choices complete
+ -> active-player end
+ -> next player
+ -> GLOBAL TURN END
+ -> global effects
+ -> victory check
+ -> optional snapshot
+ -> next turn
 ```
 
-Mandatory decisions should be queryable via the API so clients know why `EndTurn` is rejected.
+Mandatory decisions must be queryable so clients can explain rejected `EndTurn` requests.
 
 ---
 
 ## 12. Command model
 
-Everything that mutates game state is a command.
+All state mutation uses commands.
 
-POC commands:
+POC commands include `CreateGame`, `JoinGame`, `StartGame`, `MoveUnit`, `AttackUnit`, `FoundSettlement`, `SetWorkedTile`, `QueueProduction`, `CancelProduction`, `ChooseResearch`, `DeclareWar`, `OfferPeace`, `AcceptPeace`, `EndTurn`, and `Concede`.
 
-- `CreateGame`
-- `JoinGame`
-- `StartGame`
-- `MoveUnit`
-- `AttackUnit`
-- `FoundSettlement`
-- `SetWorkedTile`
-- `QueueProduction`
-- `CancelProduction`
-- `ChooseResearch`
-- `DeclareWar`
-- `OfferPeace`
-- `AcceptPeace`
-- `EndTurn`
-- `Concede`
-
-Every command envelope should include:
-
-- `command_id`;
-- `game_id`;
-- `player_id`;
-- expected `state_version` when appropriate;
-- command type;
-- payload;
-- client timestamp for diagnostics only.
+Command envelope includes command id, game id, player id when applicable, expected state version, command type, immutable payload, and optional client timestamp for diagnostics only.
 
 ### Idempotency
 
-`command_id` must be unique per game.
-
-If a client retries the same request after a timeout, the engine should return the original result instead of applying the command twice.
+`command_id` must be unique per game. Retrying the same command returns/reuses the original result rather than applying the mutation twice.
 
 ---
 
-## 13. Event model
+## 13. Deterministic domain event model
 
-Successful commands produce immutable domain events.
+Successful commands produce immutable events such as `GameCreated`, `GameStarted`, `TurnStarted`, `UnitMoved`, `UnitAttacked`, `UnitDamaged`, `UnitDestroyed`, `SettlementFounded`, production/research events, diplomacy events, turn events, elimination, and victory.
 
-Examples:
-
-- `GameCreated`
-- `GameStarted`
-- `TurnStarted`
-- `UnitMoved`
-- `UnitAttacked`
-- `UnitDamaged`
-- `UnitDestroyed`
-- `SettlementFounded`
-- `ProductionQueued`
-- `ProductionCompleted`
-- `TechnologySelected`
-- `TechnologyCompleted`
-- `WarDeclared`
-- `PeaceEstablished`
-- `PlayerEndedTurn`
-- `TurnEnded`
-- `PlayerEliminated`
-- `VictoryAchieved`
-
-Events enable:
-
-- replay;
-- debugging;
-- client updates;
-- audit trails;
-- spectator mode;
-- deterministic tests;
-- AI analysis;
-- rollback/branch experiments later.
+Events support replay, debugging, auditability, client updates, spectator tools, deterministic tests, and AI analysis.
 
 ---
 
-## 14. Deterministic randomness
+## 14. Event logging, runtime logging, diagnostics, and user feedback
 
-Randomness is allowed, but never uncontrolled global randomness.
+The project has **three distinct channels**. They must remain separate.
 
-All random outcomes must derive from:
+### 14.1 Deterministic domain event journal
 
-- game seed;
-- deterministic stream/category;
-- stable event/command context.
+Every successful state-changing command appends immutable events to a game-scoped ordered journal.
 
-Suggested streams:
+The journal is authoritative simulation history and therefore deterministic.
 
-- map generation;
-- combat;
-- neutral events;
-- AI tie-breaking.
+Journal requirements:
 
-The engine should record enough information to reproduce every random result exactly during replay.
+- one game id per journal;
+- strictly contiguous/monotonic event sequence;
+- state version must not move backwards;
+- immutable event payloads;
+- causation command id when known;
+- reproducible ordering from the same seed + command stream;
+- suitable for canonical hashing/replay verification;
+- in-memory implementation is acceptable initially;
+- durable append-only storage arrives later without changing semantics.
 
----
+Do **not** place wall-clock timestamps, process ids, hostnames, debug levels, filesystem paths, or other operational information in deterministic event payloads unless explicitly modeled as authoritative game data.
 
-## 15. Combat POC
+### 14.2 Runtime/debug logging
 
-Start small.
+Operational diagnostics are separate from game history.
 
-Combat needs:
+Structured runtime logs should support fields such as timestamp, level, logger/component, message, game id, command id, event id, turn, state version, operation/action, error code, and exception details when appropriate.
 
-- melee and ranged categories;
-- attack/defense strength;
-- hit points;
-- terrain defense;
-- deterministic RNG variance with a seeded stream;
-- unit destruction;
-- movement/action consumption;
-- ownership/war validation.
+Runtime logs may be human-readable or JSON lines.
 
-Do not reproduce Civilization's exact combat formulas. Create original configurable formulas with tests.
+Critical invariant: changing logging level, destination, formatter, or enabling/disabling logging **must never** change RNG consumption, authoritative state, event ordering, event payloads, state hashes, or replay outcome.
 
-Later extensions:
+Never log secrets, credentials, private tokens, or unrestricted hidden-player state.
 
-- zones of control;
-- fortifications;
-- siege;
-- promotions;
-- commanders;
-- naval/air layers;
-- support units;
-- retreat;
-- supply/logistics.
+### 14.3 User-facing feedback
 
----
+Debug logs are not a user interface.
 
-## 16. Settlement POC
+Expected outcomes/rejections should produce typed safe feedback containing a stable code, severity (`info`, `warning`, `error`), human-readable message, and small safe structured context.
 
-Settlements should be engines of growth and production.
+Examples include `MOVE_REJECTED`, `STALE_STATE_VERSION`, `MANDATORY_CHOICE_REQUIRED`, `SAVE_COMPLETED`, and `RULESET_LOAD_FAILED`.
 
-Minimum loop:
+Feedback must not expose stack traces, secrets, internal filesystem paths, raw database errors, or hidden opponent information.
 
-1. founder unit establishes settlement;
-2. center tile becomes controlled;
-3. settlement works one or more controlled tiles;
-4. worked tiles produce yields;
-5. food advances growth;
-6. production advances build queue;
-7. population growth adds workable capacity;
-8. completed buildings add modifiers;
-9. completed units spawn on/near the settlement.
+### 14.4 Local diagnostic artifacts
 
-Territorial growth can initially be deterministic and simplified, then replaced by a culture/border system later.
-
----
-
-## 17. Research POC
-
-Implement a generic prerequisite graph.
-
-Example original test tree:
+Agents may persist ignored local artifacts under:
 
 ```text
-Agriculture
-├── Masonry
-│   └── Engineering
-└── Animal Husbandry
-    └── Riding
-
-Writing
-└── Mathematics
+logs/
+artifacts/
 ```
 
-Research flow:
-
-- player chooses an available technology;
-- empire Science adds progress each turn;
-- completed technology emits an event;
-- unlocks become available immediately or at next defined phase;
-- client obtains newly available choices through a query.
-
-A second progression tree can later use exactly the same engine for civics/social development.
+Failure reports should preserve useful logs/traces/screenshots and cite local paths when appropriate.
 
 ---
 
-## 18. Diplomacy POC
+## 15. Deterministic randomness
 
-Initial diplomacy is intentionally small:
+Never use uncontrolled global randomness for simulation rules.
 
-- unknown;
-- contacted;
-- at peace;
-- at war;
-- peace proposal pending.
+All random outcomes derive from root game seed, deterministic named stream/category, and stable command/event context when needed.
 
-Commands:
+Suggested streams: map generation, combat, neutral events, and AI tie-breaking.
 
-- declare war;
-- offer peace;
-- accept/reject peace.
-
-Later:
-
-- trade deals;
-- alliances;
-- open borders;
-- diplomatic currency/influence;
-- grievances;
-- reputation;
-- joint wars;
-- independent powers/city-states;
-- global diplomatic systems using original rules.
+RNG algorithm behavior is regression-tested with known vectors. RNG state must be serializable/restorable.
 
 ---
 
-## 19. AI architecture
+## 16. Combat POC
 
-Bots should consume the **same legal command interface as human clients**.
+Use original configurable formulas, not Civilization formulas. Include melee/ranged categories, attack/defense strength, hit points, terrain modifiers, deterministic RNG variation, destruction, action consumption, and ownership/war validation.
 
-```text
-GameSnapshot
-    ↓
-BotPolicy.choose_commands(...)
-    ↓
-normal validated engine commands
-```
-
-POC bot priorities:
-
-1. reveal nearby unknown tiles;
-2. find a legal settlement location;
-3. keep settlement production active;
-4. choose available research;
-5. defend threatened settlements;
-6. attack enemy units when favorable;
-7. end turn.
-
-Do not give normal AI direct access to hidden opponent state. A special omniscient debug bot can exist only for testing.
-
-Future AI layers:
-
-- utility scoring;
-- goal planning;
-- tactical search;
-- strategic economic planning;
-- diplomacy personalities;
-- simulation/rollouts;
-- LLM advisor/controller adapters that propose commands but cannot bypass validation.
+Later: zones of control, fortifications, siege, promotions, naval/air, support, retreat, supply/logistics.
 
 ---
 
-## 20. API design
+## 17. Settlement POC
 
-Use `/api/v1` from the first endpoint.
+Founder establishes settlement; center becomes controlled; settlement works controlled tiles; yields accumulate; food advances growth; production advances build queue; population increases workable capacity; buildings add modifiers; completed units spawn legally.
 
-### Game lifecycle
-
-```text
-POST   /api/v1/games
-GET    /api/v1/games/{game_id}
-POST   /api/v1/games/{game_id}/players
-POST   /api/v1/games/{game_id}/start
-POST   /api/v1/games/{game_id}/commands
-GET    /api/v1/games/{game_id}/state
-GET    /api/v1/games/{game_id}/events
-GET    /api/v1/games/{game_id}/legal-actions
-```
-
-### Player-scoped projection
-
-```text
-GET /api/v1/games/{game_id}/players/{player_id}/view
-```
-
-The endpoint returns only information that player is permitted to know.
-
-### Definitions/content
-
-```text
-GET /api/v1/rulesets
-GET /api/v1/rulesets/{ruleset_id}
-GET /api/v1/rulesets/{ruleset_id}/units
-GET /api/v1/rulesets/{ruleset_id}/buildings
-GET /api/v1/rulesets/{ruleset_id}/technologies
-GET /api/v1/rulesets/{ruleset_id}/civilizations
-```
-
-### Real-time channel
-
-```text
-WS /api/v1/games/{game_id}/stream
-```
-
-WebSocket messages should publish:
-
-- state version changes;
-- player-visible domain events;
-- turn changes;
-- required decisions;
-- game completion.
-
-Clients that cannot use WebSockets can poll events using `after_sequence`.
+Territorial growth can begin simplified and deterministic.
 
 ---
 
-## 21. API response philosophy
+## 18. Research POC
 
-Clients should not need to reimplement core rules merely to render the game.
-
-Useful state should include computed values such as:
-
-- legal destination tiles;
-- current movement points;
-- build progress;
-- current yields;
-- available research;
-- valid production options;
-- diplomacy status;
-- mandatory decisions;
-- victory progress;
-- visible map coordinates.
-
-But the API must still treat the server as authoritative. Client-provided calculated values are never trusted.
+Implement a generic prerequisite DAG. Science advances selected research each turn and completion emits deterministic events/unlocks. The same progression engine should support later civics/social development.
 
 ---
 
-## 22. Persistence and replay
+## 19. Diplomacy POC
 
-Use a hybrid model:
+Initial states: unknown, contacted, peace, war, and pending peace proposal. Commands include declare war, offer peace, and accept/reject peace.
 
-1. append immutable event;
-2. update/store current snapshot;
-3. periodically create durable snapshots;
-4. retain ruleset version used by the match.
+Later: trade, alliances, borders, influence, grievances, reputation, joint wars, and independent powers.
 
-Suggested tables/concepts:
+---
 
-- `games`;
-- `game_players`;
-- `game_events`;
-- `game_snapshots`;
-- `rulesets`;
-- optional `command_results` for idempotency.
+## 20. AI architecture
 
-Each event needs monotonically increasing sequence numbers per game.
-
-A replay test should be able to:
+Bots consume the **same legal command interface** as human clients.
 
 ```text
-initial state + seed + ordered commands/events
-                    ↓
-                replay
-                    ↓
-state_hash == recorded_state_hash
+Authorized GameSnapshot
+ -> BotPolicy.choose_commands(...)
+ -> normal validated commands
 ```
+
+POC priorities: explore, find settlement location, maintain production, choose research, defend, attack favorable targets, end turn.
+
+Normal bots do not receive hidden state.
 
 ---
 
-## 23. Ruleset/content packs
+## 21. API direction
 
-Keep mechanics and content separate.
+Use `/api/v1` from the first HTTP endpoint.
 
-Suggested layout:
+Planned areas: game lifecycle, commands, state/projection queries, legal actions/mandatory decisions, event subscriptions/WebSockets, safe user feedback, and separated admin/debug endpoints.
 
-```text
-src/
-  civilization_clone/
-    domain/
-    engine/
-    application/
-    api/
-    persistence/
-    ai/
-    rules/
-    projections/
-
-content/
-  poc/
-    ruleset.yaml
-    terrains.yaml
-    resources.yaml
-    units.yaml
-    buildings.yaml
-    technologies.yaml
-    civilizations.yaml
-    victories.yaml
-```
-
-Definitions should be validated at startup.
-
-Rulesets require explicit semantic versions so persisted games always know which balance/rules they were created with.
+Transport handlers translate requests into application commands/queries and contain no game rules.
 
 ---
 
-## 24. Suggested repository structure
+## 22. Persistence and replay direction
+
+Persistence will store game metadata, immutable durable event journal, periodic snapshots, ruleset/version metadata, and processed command ids/idempotency results.
+
+Replay algorithm:
+
+1. load initial state/ruleset/seed;
+2. consume ordered command/event history according to the defined model;
+3. reproduce state transitions;
+4. compare event sequence/checkpoint hashes;
+5. report first divergence with useful diagnostics.
+
+Operational runtime logs are **not** replay input.
+
+---
+
+## 23. Repository structure
 
 ```text
 CivilizationClone/
 ├── PLAN.md
+├── AGENTS.md
 ├── README.md
 ├── pyproject.toml
-├── alembic.ini
-├── src/
-│   └── civilization_clone/
-│       ├── __init__.py
-│       ├── domain/
-│       │   ├── game.py
-│       │   ├── player.py
-│       │   ├── map.py
-│       │   ├── settlement.py
-│       │   ├── unit.py
-│       │   ├── research.py
-│       │   ├── diplomacy.py
-│       │   ├── victory.py
-│       │   └── events.py
-│       ├── engine/
-│       │   ├── commands.py
-│       │   ├── reducer.py
-│       │   ├── turns.py
-│       │   ├── movement.py
-│       │   ├── combat.py
-│       │   ├── economy.py
-│       │   ├── effects.py
-│       │   └── visibility.py
-│       ├── application/
-│       │   ├── game_service.py
-│       │   ├── game_actor.py
-│       │   └── command_bus.py
-│       ├── persistence/
-│       │   ├── models.py
-│       │   ├── repositories.py
-│       │   └── snapshots.py
-│       ├── api/
-│       │   ├── app.py
-│       │   ├── dependencies.py
-│       │   ├── routes/
-│       │   └── schemas/
-│       ├── ai/
-│       │   ├── base.py
-│       │   └── simple_bot.py
-│       └── rules/
-│           ├── loader.py
-│           └── schemas.py
-├── content/
-│   └── poc/
+├── docs/
+│   ├── WORKFLOW.md
+│   └── LOGGING.md
+├── scripts/
+│   └── ci.sh
+├── src/civilization_clone/
+│   ├── domain/
+│   │   ├── ids.py
+│   │   ├── state.py
+│   │   ├── events.py
+│   │   └── feedback.py
+│   ├── engine/
+│   │   ├── commands.py
+│   │   ├── event_log.py
+│   │   ├── rng.py
+│   │   ├── state_hash.py
+│   │   ├── reducer.py
+│   │   ├── turns.py
+│   │   ├── movement.py
+│   │   ├── combat.py
+│   │   ├── economy.py
+│   │   ├── effects.py
+│   │   └── visibility.py
+│   ├── observability/
+│   │   └── logging.py
+│   ├── rules/
+│   ├── application/
+│   ├── persistence/
+│   ├── api/
+│   └── ai/
+├── content/poc/
 ├── tests/
-│   ├── unit/
-│   ├── integration/
-│   ├── replay/
-│   └── api/
-└── migrations/
+├── logs/       # ignored local diagnostics
+└── artifacts/  # ignored local QA artifacts
 ```
+
+**Do not add `.github/workflows/`; GitHub Actions is not used.**
 
 ---
 
-## 25. Testing strategy
+## 24. Testing strategy
 
-This project should treat determinism as a first-class feature.
+Determinism is first-class.
 
 ### Unit tests
 
-- hex coordinate math;
-- distance/neighbors;
-- pathfinding;
-- movement validation;
-- yields;
-- research prerequisites;
-- combat resolution;
-- visibility;
-- modifier stacking;
-- victory conditions.
+Cover ids/common state, hex math/pathfinding, movement, yields, research, combat, visibility, modifiers, victory, event-journal invariants, feedback safety, and logging formatter/context.
 
-### Property tests
+### Property/invariant tests
 
 Examples:
 
 - hex distance is symmetric;
-- movement never ends on an illegal tile;
-- a destroyed unit cannot act;
-- yield totals never depend on dictionary iteration order;
-- replay always produces the same final hash;
-- command retries never apply twice;
-- a player projection never reveals an undiscovered enemy unit.
+- movement never ends illegally;
+- destroyed units cannot act;
+- yield totals are independent of dictionary iteration order;
+- same input produces same final state hash;
+- same input produces same deterministic event journal;
+- event sequence rejects duplicates/gaps/out-of-order entries;
+- command retries do not apply twice;
+- player projection never reveals undiscovered enemy unit;
+- runtime logging enabled/disabled does not alter deterministic result;
+- user feedback does not expose debug-only details.
 
 ### Integration tests
 
-Run complete scripted games through the command bus.
+Run scripted games through command bus and verify event/log/state behavior.
 
-### API contract tests
+### API tests
 
-- create/start game;
-- submit commands;
-- stale state-version handling;
-- idempotent command retries;
-- WebSocket event ordering;
-- fog-of-war filtering.
+Cover create/start, commands, stale version, idempotency, event ordering, feedback contract, fog filtering, and later WebSocket ordering.
 
 ### Simulation tests
 
-Run hundreds/thousands of bot-vs-bot POC matches and record:
-
-- completion rate;
-- average turns;
-- victory distribution;
-- command failures;
-- state divergence/replay failures;
-- performance per turn.
+Run bot-vs-bot matches and collect completion rate, turns, victory distribution, command failures, replay divergence, and performance.
 
 ---
 
-## 26. Observability
+## 25. Observability
 
-Expose structured diagnostics from the start.
+Runtime metrics/diagnostics should eventually include command latency, turn-resolution latency, pathfinding latency, AI decision latency, active games, command/event counts, snapshot size, replay failures, invalid-command reasons, subscribers/connections, and error counts by stable code.
 
-Metrics to capture:
-
-- command latency;
-- turn resolution latency;
-- pathfinding latency;
-- AI decision latency;
-- active games;
-- commands per game;
-- event count;
-- snapshot size;
-- replay verification failures;
-- WebSocket subscriber count;
-- invalid-command reasons.
-
-All logs should include `game_id`, `turn`, `state_version`, and `command_id` where applicable.
+Operational log records should include correlation identifiers where available.
 
 ---
 
-## 27. Security and multiplayer authority
+## 26. Security and multiplayer authority
 
 Even in the POC:
 
-- server owns authoritative state;
-- player identity is never inferred solely from payload fields;
-- commands are authorization-checked;
+- server/engine owns authoritative state;
+- identity is not trusted from arbitrary payload fields;
+- ownership/authorization checks precede mutations;
 - hidden state is filtered server-side;
-- command payloads are validated;
-- command rate limits can be added at API boundary;
-- game ruleset/content input is treated as untrusted until schema validation succeeds;
-- admin/debug endpoints are separate from normal player endpoints.
+- payload/ruleset input is validated;
+- admin/debug surfaces are separate;
+- logs and feedback avoid secrets/hidden state;
+- normal client event feeds are authorized projections, not raw internal history.
 
 ---
 
-## 28. Performance principles
+## 27. Performance principles
 
-Do not prematurely optimize the POC, but preserve the right architecture.
+- do not prematurely optimize;
+- no blocking disk/network calls in async handlers;
+- serialized mutation stream per game;
+- immutable snapshots for readers;
+- coordinate-indexed map access;
+- bounded pathfinding;
+- batch persistence safely;
+- compact typed events;
+- structured logging should be configurable and avoid expensive debug work when disabled;
+- logging must not become part of simulation timing/order assumptions.
 
-- no blocking database/network calls inside async API handlers;
-- one serialized mutation stream per game;
-- immutable/read-only snapshots for concurrent readers;
-- incremental player projections rather than rebuilding the entire world on every tiny event when scale requires it;
-- cache static content definitions;
-- use coordinate-indexed dictionaries/arrays for map access;
-- use bounded pathfinding searches;
-- batch persistence writes when safe;
-- snapshot at configurable intervals;
-- keep event payloads compact and typed.
+A small POC should run many automated turns per second.
 
-A small POC game should comfortably run many turns per second in automated mode.
+---
+
+## 28. Local-only CI policy
+
+This project **does not use GitHub Actions or paid hosted CI**.
+
+All verification runs locally by development agents/humans.
+
+Canonical local CI command:
+
+```bash
+bash scripts/ci.sh
+```
+
+The local CI/QA process owns dependency/environment validation, formatting/linting, type checking, tests, determinism/replay/event-journal verification, logging/feedback safety checks, build/package checks, and interactive playtests when applicable.
+
+Pull requests contain the exact local QA evidence. GitHub is used for source control, issues, review, PRs, and releases only.
+
+Do not create `.github/workflows/` files or require GitHub status checks for merging.
 
 ---
 
 ## 29. Milestone roadmap
 
-### v0.1 — Repository and deterministic core
+### v0.1 — Repository, deterministic core, and diagnostics foundation
 
 Deliver:
 
 - Python project skeleton;
-- CI/lint/type/test configuration;
-- typed IDs and common models;
+- local CI/lint/type/test configuration;
+- typed IDs/common models;
 - seeded RNG service;
-- command/event base classes;
-- state hashing;
-- basic ruleset loader.
+- command/event envelope primitives;
+- canonical state hashing;
+- basic ruleset loader;
+- deterministic in-memory event journal;
+- structured runtime/debug logging foundation;
+- typed safe user-feedback primitives;
+- tests proving logging does not alter deterministic results;
+- no GitHub Actions workflow.
 
 Exit criteria:
 
-- same seed produces the same deterministic test result;
-- CI passes on an empty/sample game.
+- same seed produces same deterministic test result;
+- fixed RNG vectors pass;
+- event-journal invariants pass;
+- same deterministic event list hashes identically;
+- runtime logging on/off does not alter state hash;
+- feedback primitives are immutable/safe;
+- complete local agent CI passes in a connected dev environment.
 
 ### v0.2 — Hex world and map generation
 
-Deliver:
+Deliver axial coordinates, tile model, neighbor/distance/ring utilities, deterministic terrain/resources/spawn selection, A* pathfinding, fog primitives, and map-generation events/logging/diagnostics.
 
-- axial coordinates;
-- tile model;
-- neighbor/distance utilities;
-- procedural terrain;
-- resources;
-- spawn selection;
-- A* pathfinding;
-- fog-of-war primitives.
+Exit: deterministic maps plus pathfinding/visibility coverage.
 
-Exit criteria:
+### v0.3 — Game sessions, turns, players, units
 
-- deterministic maps;
-- pathfinding and visibility test coverage.
+Deliver game/player aggregates, units, movement, turn state machine, validation, command handling, event emission/journal append integration, useful runtime logs, and safe command feedback.
 
-### v0.3 — Game session, turns, players, and units
+Exit: two scripted players move for multiple turns deterministically with stable event journals.
 
-Deliver:
+### v0.4 — Settlements, economy, effects
 
-- game aggregate;
-- player aggregate/state;
-- unit definitions;
-- movement;
-- turn state machine;
-- end-turn flow;
-- command validation;
-- event emission.
+Deliver founding/territory/worked tiles, yields/growth, build queues/buildings/unit production, generic modifier/effect pipeline, and economy events/diagnostics/feedback.
 
-Exit criteria:
-
-- two scripted players can move units for multiple turns deterministically.
-
-### v0.4 — Settlements and economy
-
-Deliver:
-
-- found settlement;
-- territory;
-- worked tiles;
-- yields;
-- growth;
-- build queue;
-- buildings;
-- unit production;
-- generic effect/modifier pipeline.
-
-Exit criteria:
-
-- players can create functioning settlements and produce new units.
+Exit: functioning settlements produce units/buildings deterministically.
 
 ### v0.5 — Research, combat, diplomacy, victory
 
-Deliver:
+Deliver technology DAG/progress, deterministic combat variation, war/peace, elimination, score/conquest victory, safe player feedback, and detailed debug diagnostics.
 
-- technology DAG;
-- research progress;
-- melee/ranged combat;
-- seeded combat variation;
-- war/peace state;
-- elimination;
-- score/conquest victory.
+Exit: legal complete game reaches victory through commands alone.
 
-Exit criteria:
+### v0.6 — Durable event store, saves, replay
 
-- a complete game can reach a legal victory through engine commands alone.
+Build on the v0.1 event-journal contract:
 
-### v0.6 — Event log, saves, replay
-
-Deliver:
-
-- persistence repositories;
-- async SQLite storage;
-- command idempotency;
-- event sequence;
+- async SQLite repositories;
+- durable append-only event storage;
+- command idempotency persistence;
 - snapshots;
 - reload;
-- deterministic replay verifier.
+- replay verifier;
+- divergence diagnostics and state-hash checkpoints.
 
-Exit criteria:
-
-- save/reload does not alter state;
-- replay final hash matches the live game hash.
+Exit: save/reload preserves state and replay final hash equals live hash.
 
 ### v0.7 — Client-agnostic API
 
-Deliver:
+Deliver FastAPI `/api/v1`, lifecycle/command/query routes, OpenAPI, player projections, WebSocket authorized event stream, typed user feedback responses, structured request/command logs, and non-blocking persistence integration.
 
-- FastAPI `/api/v1`;
-- game lifecycle routes;
-- command endpoint;
-- query/state endpoints;
-- OpenAPI docs;
-- player projections;
-- WebSocket event stream;
-- non-blocking persistence integration.
-
-Exit criteria:
-
-- entire game can be played using HTTP/WebSocket only.
+Exit: entire game playable through HTTP/WebSocket only.
 
 ### v0.8 — Basic AI and automation harness
 
-Deliver:
+Deliver deterministic bot-policy interface, simple bot, bot-vs-bot runner, simulation metrics, headless fast-forward, and AI-decision diagnostics without hidden-state cheating.
 
-- bot policy interface;
-- simple deterministic bot;
-- bot-vs-bot runner;
-- simulation metrics;
-- headless fast-forward mode.
+### v0.9 — First playable client
 
-Exit criteria:
+Deliver a minimal client (TUI or simple web client) using only public API contracts.
 
-- bots reliably finish games without direct state mutation or hidden-state cheating.
+Exit: local QA can human-style playtest a complete match with keystrokes/clicks and verify visible feedback.
 
-### v0.9 — POC content pack and balancing tools
+### v1.0 — POC hardening
 
-Deliver:
-
-- original POC civilizations;
-- original technologies;
-- original units/buildings/resources;
-- validation tooling;
-- balance report from automated simulations;
-- configurable game speeds/map sizes.
-
-Exit criteria:
-
-- repeatable playable ruleset distributed entirely as project-owned content.
-
-### v1.0 — Proof of concept complete
-
-Deliver:
-
-- stable API v1;
-- versioned ruleset;
-- deterministic save/replay;
-- human and AI controllers;
-- multiplayer-safe fog-of-war projections;
-- sample API client or TUI;
-- complete automated POC match tests;
-- architecture/developer documentation.
-
-Exit criteria:
-
-A fresh client can discover the API, create a match, join it, play a legal game to completion, disconnect/reconnect, and reconstruct its view without any client-specific engine logic.
+Deliver complete end-to-end test/playtest suite, deterministic replay corpus, documentation, local release/build scripts, performance baseline, stable public POC contracts, and no hosted CI dependency.
 
 ---
 
-## 30. Post-POC expansion path
+## 30. Post-POC directions
 
-Only after v1.0 is stable:
+Possible later work includes larger worlds/eras, richer original culture/religion/influence systems, espionage, trade networks, advanced diplomacy, simultaneous turns, mod/plugin SDK, scenario editor, stronger AI planning, deterministic multiplayer experiments, richer replay/spectator tools, multiple 2D/3D clients, and performance/distributed simulation tooling.
 
-### v1.1 — Civics/government/policies
-
-Reuse the research graph and modifier system for social progression and policy slots.
-
-### v1.2 — Rich diplomacy and trade
-
-Treaties, trade routes, negotiations, alliances, influence, independent powers.
-
-### v1.3 — Advanced empire management
-
-Settlement specializations, automation, soft settlement caps, happiness/stability, reduced late-game micromanagement.
-
-### v1.4 — Advanced tactical layer
-
-Zones of control, fortifications, siege, promotions, commanders, naval combat, supply.
-
-### v1.5 — Eras/Ages framework
-
-Add configurable campaign phases where content, rules, resources, or objectives can change while the persistent empire continues.
-
-### v1.6 — Multiple victory frameworks
-
-Science/progression, culture/influence, diplomacy, scenario-specific victory paths.
-
-### v1.7 — Modding SDK
-
-JSON/YAML schemas, content validation CLI, ruleset inheritance, mod load order, compatibility metadata.
-
-### v1.8 — Advanced AI
-
-Strategic planners, tactical evaluators, configurable personalities, parallel snapshot simulation, optional agent/LLM controller API.
-
-### v1.9 — Multiplayer services
-
-Lobby/matchmaking boundary, spectators, reconnect tokens, simultaneous-turn mode, server scaling.
-
-### v2.0 — General-purpose historical 4X engine
-
-The project should by this point be capable of supporting many distinct Civilization-like clients and rulesets rather than being tied to one clone presentation.
-
----
-
-## 31. Deliberate non-goals for the POC
-
-Do **not** block v1.0 on:
-
-- a graphical client;
-- historical leader art/content;
-- exact Civilization balance;
-- religion;
-- espionage;
-- governors;
-- global congress;
-- climate simulation;
-- great people;
-- wonders with complex bespoke scripting;
-- naval/air warfare;
-- full historical era progression;
-- massive maps;
-- ranked multiplayer;
-- sophisticated AI;
-- monetization/account services.
-
-The POC exists to prove the engine and API boundaries first.
-
----
-
-## 32. Architecture decisions that should not be compromised
-
-1. **Headless first.** No gameplay rule belongs in a UI.
-2. **Server authoritative.** Clients submit intent, not state.
-3. **Deterministic simulation.** Seeded randomness and stable ordering everywhere.
-4. **Commands in, events out.** All mutations use one auditable path.
-5. **Serialized mutation per game.** Concurrent requests must not cause concurrent state mutation.
-6. **Async I/O only at service boundaries.** Do not block API/event loops with database or network operations.
-7. **Data-driven content.** Civilizations, units, technologies, buildings, terrain, and victory rules are definitions rather than giant conditional trees.
-8. **Generic modifier pipeline.** New content should mostly compose existing mechanics.
-9. **Player-specific projections.** Hidden information remains on the server.
-10. **Version everything.** API, ruleset, events, snapshots, and persistence schemas need migration paths.
-11. **Replay is a feature, not a debug afterthought.** A deterministic replay test should exist early.
-12. **Original content.** Learn from official Civilization design documentation without embedding proprietary Civilization content.
-
----
-
-## 33. First implementation slice
-
-The first coding PR after this plan should be deliberately narrow:
-
-```text
-v0.1
-├── pyproject.toml
-├── package skeleton
-├── typed identifiers
-├── deterministic RNG
-├── GameState
-├── Command / Event envelopes
-├── state version + state hash
-├── content/ruleset schema loader
-├── test fixtures
-└── CI quality gates
-```
-
-Do **not** start FastAPI first.
-
-The strongest foundation is a deterministic engine that can run completely in process. Once the domain can execute a scripted game, the API becomes a thin adapter rather than the place where game rules accidentally accumulate.
-
----
-
-## 34. Definition of success
-
-CivilizationClone succeeds as a POC if we can swap the client without changing the engine.
-
-For example, all of these should eventually be equally valid:
-
-```text
-Web browser ─┐
-TUI ─────────┤
-Godot ───────┤
-Unity ───────┤
-Mobile ──────┤── API ──> same authoritative engine
-Discord bot ─┤
-AI agent ────┤
-Test runner ─┘
-```
-
-That client independence—combined with deterministic rules, replayable events, data-driven content, and a clean modifier system—is the central design goal of the project.
+The architectural rule remains: **one authoritative deterministic engine, many clients**.
