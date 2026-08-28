@@ -1,0 +1,151 @@
+CIVILIZATIONCLONE — CIV1-INSPIRED UI REFERENCE
+ANSII ART SET: DIPLOMACY, GOVERNMENT, EVENTS (CIV1-UI-035..046)
+
+[CIV1-UI-035] PALACE
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                    YOUR PEOPLE HONOR YOU                            ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                              ________                                        ║
+║                             ╱        ╲                                       ║
+║                    ________╱   ╱╲     ╲_______                               ║
+║                   │   □    │  ╱  ╲    │   □   │                              ║
+║             ______│________│___________│_______│______                        ║
+║            ╱                 YOUR PALACE               ╲                      ║
+║           ╱_____________________________________________╲                     ║
+║ <ACTION>[ LEFT WING ] [ CENTER ] [ RIGHT WING ] [ TOWER ]                  ║
+║                                      [ DONE ]                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-036] FIRST CONTACT
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                           DIPLOMACY                                 ║
+╠══════════════════════════════╦═══════════════════════════════════════════════╣
+║                              ║ <FOCUS>ALEXANDER                              ║
+║       LEADER PORTRAIT        ║ Leader of the Greeks                         ║
+║                              ║ Government: Monarchy                         ║
+╠══════════════════════════════╩═══════════════════════════════════════════════╣
+║ The Greek delegation wishes to speak.                                       ║
+║ <ACTION>              [ RECEIVE DELEGATION ] [ REFUSE ]                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-037] DIPLOMACY CONVERSATION
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                     DIPLOMATIC MEETING                             ║
+╠═══════════════════════════╦══════════════════════════════════════════════════╣
+║                           ║ ALEXANDER — Greeks                              ║
+║      LEADER PORTRAIT      ║ Relations: Uneasy                              ║
+╠═══════════════════════════╩══════════════════════════════════════════════════╣
+║ “We have matters to discuss.”                                               ║
+║ <FOCUS>▶ Discuss peace                                                      ║
+║ Exchange knowledge                                                          ║
+║ Offer tribute                                                               ║
+║ Demand tribute                                                              ║
+║ <WARN>Declare war                                                           ║
+║ End meeting                                                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+[CIV1-UI-038] TECHNOLOGY EXCHANGE
+┌────────────────────────────────────────────────────────────────────┐
+│ <TITLE>EXCHANGE KNOWLEDGE                                         │
+├───────────────────────────────┬────────────────────────────────────┤
+│ THEY KNOW                     │ YOU KNOW                           │
+│ <FOCUS>▶ Astronomy            │ Mathematics                        │
+│ Currency                      │ Construction                       │
+│ Navigation                    │ Republic                           │
+├───────────────────────────────┴────────────────────────────────────┤
+│ They offer ASTRONOMY for your knowledge of REPUBLIC.               │
+│ <ACTION>                         [ ACCEPT ] [ REFUSE ]              │
+└────────────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-039] TRIBUTE / DEMAND
+┌────────────────────────────────────────────────────────────────────┐
+│ <TITLE>DIPLOMACY                                                  │
+├────────────────────────────────────────────────────────────────────┤
+│                        [ LEADER PORTRAIT ]                          │
+│ The Greeks demand 100 gold as a token of friendship.               │
+│ <FOCUS>▶ PAY 100 GOLD                                              │
+│ OFFER SOMETHING ELSE                                               │
+│ <WARN>REFUSE                                                       │
+└────────────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-040] DIPLOMAT AT FOREIGN CITY
+┌────────────────────────────────────────────────────────────────────┐
+│ <TITLE>DIPLOMATIC MISSION                                         │
+├────────────────────────────────────────────────────────────────────┤
+│ City of ATHENS                                                     │
+│ <FOCUS>▶ Establish Embassy                                         │
+│ Investigate City                                                   │
+│ Steal Technology                                                   │
+│ Sabotage Production                                                │
+│ Incite Revolt                                                      │
+│ <ACTION>                                              [ CANCEL ]    │
+└────────────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-041] REVOLUTION
+┌────────────────────────────────────────────────────────────────────┐
+│ <WARN>REVOLUTION!                                                 │
+├────────────────────────────────────────────────────────────────────┤
+│ The old government has collapsed.                                  │
+│                              ANARCHY                                │
+│ A new government may soon be formed.                               │
+│ <ACTION>                                          [ CONTINUE ]      │
+└────────────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-042] FORM A GOVERNMENT
+┌────────────────────────────────────────────────────────────────────┐
+│ <TITLE>FORM A GOVERNMENT                                          │
+├────────────────────────────────────────────────────────────────────┤
+│ <FOCUS>▶ Despotism                                                 │
+│ Monarchy                                                           │
+│ Republic                                                           │
+│ Communism                                                          │
+│ Democracy                                                          │
+│ <ACTION>                                            [ ACCEPT ]      │
+└────────────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-043] NEW CABINET
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ <TITLE>                   A NEW CABINET IS FORMED                          ║
+╠══════════════════╦══════════════════╦══════════════════╦═════════════════════╣
+║ DEFENSE ADVISOR  ║ FOREIGN ADVISOR  ║ DOMESTIC ADVISOR ║ SCIENCE ADVISOR    ║
+╚══════════════════╩══════════════════╩══════════════════╩═════════════════════╝
+<INFO>Government: REPUBLIC</INFO>                                      [ OK ]
+
+[CIV1-UI-044] BARBARIAN WARNING
+┌──────────────────────────────────────────────────────────────┐
+│ <WARN>WARNING!                                              │
+├──────────────────────────────────────────────────────────────┤
+│                              ⚠                               │
+│                  BARBARIANS HAVE BEEN SIGHTED!               │
+│ Raiders have appeared near Antium.                           │
+│ <ACTION>                                        [ OK ]        │
+└──────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-045] CIVIL DISORDER
+┌──────────────────────────────────────────────────────────────┐
+│ <WARN>CIVIL DISORDER                                       │
+├──────────────────────────────────────────────────────────────┤
+│                        CITY OF ROME                          │
+│                          ☹ ☹ ☹ ☺ ▬                          │
+│ The citizens are rioting! Production has stopped.            │
+│ <ACTION>                  [ VIEW CITY ] [ OK ]               │
+└──────────────────────────────────────────────────────────────┘
+
+[CIV1-UI-046] CITY CAPTURED
+┌──────────────────────────────────────────────────────────────┐
+│ <WARN>CITY FALLS                                           │
+├──────────────────────────────────────────────────────────────┤
+│                         ┌────────┐                           │
+│                         │ ATHENS │                           │
+│                         └────────┘                           │
+│ Roman forces capture Athens!                                │
+│ Population and improvements may be lost.                    │
+│ <ACTION>                                     [ CONTINUE ]    │
+└──────────────────────────────────────────────────────────────┘
+
+[GENERIC-CONFIRM] REUSABLE CONFIRMATION OVERLAY
+             ┌──────────────────────────────────────────┐
+             │ <WARN>Are you sure you wish to do this?│
+             │                                          │
+             │ <ACTION>        [ YES ]     [ NO ]       │
+             └──────────────────────────────────────────┘
