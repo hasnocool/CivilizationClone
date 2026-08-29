@@ -61,6 +61,17 @@ TERMINAL CAPABILITY FALLBACK
 - `animation/DATA_EFFECTS.md` — progress bars, charts, deltas, and status-change effects.
 - `animation/MAP_ANIMATION.md` — strategic map movement, reveal, construction, and city founding effects.
 - `animation/SCENE_STORYBOARDS.md` — canonical animation recipes for important scene families.
+- `animation/SCENE_EFFECT_MATRIX.md` — explicit effect binding for all 168 canonical scene IDs.
+- `animation/APPLIED_00_BOOT_SETUP.ascii` — concrete ASCII frame references for scenes 001-006.
+- `animation/APPLIED_01_CORE_GAMEPLAY.md` — concrete ASCII/ANSI treatment for scenes 007-018.
+- `animation/APPLIED_02_ADVISORS_WORLD.md` — concrete ASCII/ANSI treatment for scenes 019-034.
+- `animation/APPLIED_03_DIPLOMACY_EVENTS.md` — concrete ASCII/ANSI treatment for scenes 035-046.
+- `animation/APPLIED_04_SPACE_ENDGAME.md` — concrete ASCII/ANSI treatment for scenes 047-057.
+- `animation/APPLIED_05_SYSTEM_MENUS.md` — concrete ASCII/ANSI treatment for scenes 058-085.
+- `animation/APPLIED_06_UNITS_SPECIAL.md` — concrete ASCII/ANSI treatment for scenes 086-104.
+- `animation/APPLIED_07_CITY_EVENTS_REPORTS.md` — concrete ASCII/ANSI treatment for scenes 105-130.
+- `animation/APPLIED_08_DIPLOMACY_EXTENDED.md` — concrete ASCII/ANSI treatment for scenes 131-142.
+- `animation/APPLIED_09_SPACE_REPLAY_MISC.md` — concrete ASCII/ANSI treatment for scenes 143-168.
 - `palettes/PALETTE_CONTRACT.md` — semantic ANSI roles, capability tiers, and themes.
 
 ### Reusable component references
@@ -81,20 +92,20 @@ Components and effects are presentation primitives. The engine/API remains the a
 
 ## Layout sets
 
-| Range | Category | ASCII | ANSII |
-|---|---|---|---|
-| 001-006 | Boot and game setup | `ascii/00_boot_setup.ascii` | `ansii/00_boot_setup.ansii` |
-| 007-018 | Strategic map, cities, research | `ascii/01_core_gameplay.ascii` | `ansii/01_core_gameplay.ansii` |
-| 019-034 | Civilopedia, advisors, world reports | `ascii/02_advisors_world.ascii` | `ansii/02_advisors_world.ansii` |
-| 035-046 | Palace, diplomacy, government, events | `ascii/03_diplomacy_events.ascii` | `ansii/03_diplomacy_events.ansii` |
-| 047-057 | Space race, victory, defeat, save/load | `ascii/04_space_endgame.ascii` | `ansii/04_space_endgame.ansii` |
-| 058-085 | Startup/system, Game menu, turn/historian states | `ascii/05_system_menus.ascii` | `ansii/05_system_menus.ansii` |
-| 086-104 | Unit modes, Diplomats, Caravans, minor tribes | `ascii/06_units_special.ascii` | `ansii/06_units_special.ansii` |
-| 105-130 | City subviews, environmental/disaster events, report pages | `ascii/07_city_events_reports.ascii` | `ansii/07_city_events_reports.ansii` |
-| 131-142 | Extended diplomacy | `ascii/08_diplomacy_extended.ascii` | `ansii/08_diplomacy_extended.ansii` |
-| 143-168 | Space status, replay, failures, presentation/help states | `ascii/09_space_replay_misc.ascii` | `ansii/09_space_replay_misc.ascii` |
+| Range | Category | ASCII | ANSII | Applied visual refs |
+|---|---|---|---|---|
+| 001-006 | Boot and game setup | `ascii/00_boot_setup.ascii` | `ansii/00_boot_setup.ansii` | `animation/APPLIED_00_BOOT_SETUP.ascii` |
+| 007-018 | Strategic map, cities, research | `ascii/01_core_gameplay.ascii` | `ansii/01_core_gameplay.ansii` | `animation/APPLIED_01_CORE_GAMEPLAY.md` |
+| 019-034 | Civilopedia, advisors, world reports | `ascii/02_advisors_world.ascii` | `ansii/02_advisors_world.ansii` | `animation/APPLIED_02_ADVISORS_WORLD.md` |
+| 035-046 | Palace, diplomacy, government, events | `ascii/03_diplomacy_events.ascii` | `ansii/03_diplomacy_events.ansii` | `animation/APPLIED_03_DIPLOMACY_EVENTS.md` |
+| 047-057 | Space race, victory, defeat, save/load | `ascii/04_space_endgame.ascii` | `ansii/04_space_endgame.ansii` | `animation/APPLIED_04_SPACE_ENDGAME.md` |
+| 058-085 | Startup/system, Game menu, turn/historian states | `ascii/05_system_menus.ascii` | `ansii/05_system_menus.ansii` | `animation/APPLIED_05_SYSTEM_MENUS.md` |
+| 086-104 | Unit modes, Diplomats, Caravans, minor tribes | `ascii/06_units_special.ascii` | `ansii/06_units_special.ansii` | `animation/APPLIED_06_UNITS_SPECIAL.md` |
+| 105-130 | City subviews, environmental/disaster events, report pages | `ascii/07_city_events_reports.ascii` | `ansii/07_city_events_reports.ansii` | `animation/APPLIED_07_CITY_EVENTS_REPORTS.md` |
+| 131-142 | Extended diplomacy | `ascii/08_diplomacy_extended.ascii` | `ansii/08_diplomacy_extended.ansii` | `animation/APPLIED_08_DIPLOMACY_EXTENDED.md` |
+| 143-168 | Space status, replay, failures, presentation/help states | `ascii/09_space_replay_misc.ascii` | `ansii/09_space_replay_misc.ansii` | `animation/APPLIED_09_SPACE_REPLAY_MISC.md` |
 
-Start with `SCENE_INDEX.md`, then open the matching ASCII or ANSII range file. Use `SCENE_GRAPH.md` for navigation relationships rather than treating the numeric order as the runtime route order.
+Start with `SCENE_INDEX.md`, then open the matching ASCII/ANSII range file and its applied visual reference. Use `SCENE_GRAPH.md` for navigation relationships rather than treating the numeric order as the runtime route order.
 
 ## Format conventions
 
