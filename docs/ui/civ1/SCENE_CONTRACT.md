@@ -275,7 +275,79 @@ Do not rely on color alone. The `.ansii` semantic tags are roles, not mandatory 
 - replay controls must be keyboard reachable and pausable;
 - screen-reader-friendly clients should expose table/field names rather than ASCII art as raw unreadable decoration.
 
-## 11. Testing references
+## 11. Visual component and effect system
+
+The canonical scene references may use the reusable terminal system under this directory.
+
+```text
+SCENE
+  -> COMPONENT TREE
+  -> SEMANTIC PALETTE ROLE
+  -> EFFECT
+  -> ANIMATION / TRANSITION
+  -> CAPABILITY FALLBACK
+```
+
+Components are documented in `components/COMPONENT_CATALOG.md` and its family references. Effects are documented in `effects/EFFECTS_CATALOG.md` and domain-specific effect recipes. Animation behavior is governed by `animation/ANIMATION_CONTRACT.md`, `TIMING.md`, and `TRANSITIONS.md`.
+
+A component may expose named animation hooks, but it must always have a static final representation.
+
+## 12. Component contract
+
+Reusable components should document:
+
+```text
+component_id
+purpose
+inputs
+states
+ASCII representation
+ANSI representation
+focus/selection behavior
+animation hooks
+responsive behavior
+reduced-motion behavior
+accessibility behavior
+```
+
+Components must remain presentation-only. They must not encode hidden rules or mutate engine state.
+
+## 13. Animation contract
+
+Every named effect should define:
+
+```text
+trigger
+visual states/frames
+default duration
+loop mode
+interruptibility
+skip behavior
+minimum capability tier
+ASCII fallback
+reduced-motion fallback
+```
+
+Animation can emphasize authoritative state transitions but cannot predict, invent, or replace their outcomes.
+
+## 14. Terminal capability tiers
+
+Clients should negotiate or detect support for:
+
+```text
+ASCII_ONLY
+ANSI_COLOR
+UNICODE_BOX_DRAWING
+CURSOR_CONTROL
+BLINK_SUPPORTED
+TRUECOLOR
+REDUCED_MOTION
+STATIC_CAPTURE
+```
+
+The renderer selects the richest compatible representation. Canonical scene semantics remain stable across tiers.
+
+## 15. Testing references
 
 Client tests may use these IDs for human-style acceptance scenarios. Examples:
 
