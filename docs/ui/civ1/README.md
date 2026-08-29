@@ -26,6 +26,59 @@ See `COVERAGE_AUDIT.md` for the evidence, scope, and inclusion rules used for th
 - `SCENE_INDEX.md` — stable `CIV1-UI-NNN` identifiers for every canonical UI state.
 - `SCENE_CONTRACT.md` — cross-client implementation contract, actions, ownership boundaries, responsive behavior, accessibility, and acceptance-test guidance.
 
+## Terminal visual system
+
+The scene references are supported by a reusable visual system for richer ASCII/ANSI presentation, animation, transitions, palettes, and client-independent components.
+
+### Architecture
+
+```text
+CANONICAL SCENE
+      |
+      v
+REUSABLE COMPONENTS
+      |
+      v
+SEMANTIC STYLE / PALETTE
+      |
+      v
+NAMED EFFECT
+      |
+      v
+ANIMATION / TRANSITION
+      |
+      v
+TERMINAL CAPABILITY FALLBACK
+```
+
+### Visual-system references
+
+- `effects/EFFECTS_CATALOG.md` — complete effect vocabulary and semantic behavior.
+- `animation/ANIMATION_CONTRACT.md` — storyboard, timing, interruption, skip, determinism, and reduced-motion rules.
+- `animation/TIMING.md` — standard timing bands and terminal animation cadence.
+- `animation/TRANSITIONS.md` — scene in/out transitions.
+- `animation/TEXT_EFFECTS.md` — typewriter, reveal, number-roll, scramble, and erase effects.
+- `animation/DATA_EFFECTS.md` — progress bars, charts, deltas, and status-change effects.
+- `animation/MAP_ANIMATION.md` — strategic map movement, reveal, construction, and city founding effects.
+- `animation/SCENE_STORYBOARDS.md` — canonical animation recipes for important scene families.
+- `palettes/PALETTE_CONTRACT.md` — semantic ANSI roles, capability tiers, and themes.
+
+### Reusable component references
+
+- `components/COMPONENT_CATALOG.md` — canonical component inventory and composition rules.
+- `components/FRAMING_AND_NAVIGATION.md` — frames, panels, menus, action bars, cursors, focus, fields, toggles, and selection.
+- `components/MAP_AND_WORLD.md` — map grid, terrain, resources, roads, cities, units, fog, and paths.
+- `components/CITY_AND_ECONOMY.md` — city grids, citizens, yields, production, improvements, and growth/completion states.
+- `components/KNOWLEDGE_AND_REPORTS.md` — tables, graphs, technologies, Civilopedia entries, and historical timelines.
+- `components/DIPLOMACY_AND_EVENTS.md` — leader portraits, dialogue, offers, treaties, events, and severity states.
+- `components/PRESENTATION_AND_RESULTS.md` — palace, wonders, spaceship, replay, Powergraph, and end-game result components.
+- `components/ASCII_COMPONENTS.md` — strict ASCII portability examples.
+- `components/ANSI_COMPONENTS.md` — richer Unicode/semantic-ANSI examples.
+
+### Design rule
+
+Components and effects are presentation primitives. The engine/API remains the authority for game state, command legality, outcomes, and persistence. The client renders those authoritative results and may animate their presentation, but must never derive rules from animation.
+
 ## Layout sets
 
 | Range | Category | ASCII | ANSII |
@@ -39,7 +92,7 @@ See `COVERAGE_AUDIT.md` for the evidence, scope, and inclusion rules used for th
 | 086-104 | Unit modes, Diplomats, Caravans, minor tribes | `ascii/06_units_special.ascii` | `ansii/06_units_special.ansii` |
 | 105-130 | City subviews, environmental/disaster events, report pages | `ascii/07_city_events_reports.ascii` | `ansii/07_city_events_reports.ansii` |
 | 131-142 | Extended diplomacy | `ascii/08_diplomacy_extended.ascii` | `ansii/08_diplomacy_extended.ansii` |
-| 143-168 | Space status, replay, failures, presentation/help states | `ascii/09_space_replay_misc.ascii` | `ansii/09_space_replay_misc.ansii` |
+| 143-168 | Space status, replay, failures, presentation/help states | `ascii/09_space_replay_misc.ascii` | `ansii/09_space_replay_misc.ascii` |
 
 Start with `SCENE_INDEX.md`, then open the matching ASCII or ANSII range file. Use `SCENE_GRAPH.md` for navigation relationships rather than treating the numeric order as the runtime route order.
 
