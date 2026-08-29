@@ -1,0 +1,194 @@
+# Applied Visual Effects Matrix
+
+This matrix binds every canonical `CIV1-UI-NNN` scene to concrete reusable components and animation effects. The existing `.ascii` and `.ansii` scene layouts remain the canonical static frames; these bindings specify what can animate around or within those layouts.
+
+## Effect grammar
+
+`COMPONENT` = reusable visual building block. `EFFECT` = named animation. `TRANSITION` = scene entry/exit. `FALLBACK` = readable final state.
+
+## 001-018
+
+- 001 Title Screen: FRAME.DRAW + TEXT.CENTER_REVEAL + PROMPT.PULSE; TRANSITION.FADE; FALLBACK=full title.
+- 002 Main Menu: MENU.REVEAL + CURSOR.PULSE; TRANSITION.SCAN; FALLBACK=focused menu.
+- 003 World Creation: PANEL.REVEAL + OPTION.SELECT + VALUE.CHANGE; FALLBACK=selected parameters.
+- 004 Difficulty Selection: CURSOR.MOVE + OPTION.SELECT; FALLBACK=marked difficulty.
+- 005 Civilization/Leader Selection: PORTRAIT.REVEAL + CURSOR.PULSE + SELECTION.CONFIRM.
+- 006 Opening/Dawn: TEXT.TYPEWRITER + SCENE.REVEAL; FALLBACK=full opening text.
+- 007 World Map: MAP.TILE_REVEAL + CURSOR.TARGET + MAP.WATER_SHIMMER + MAP.MOVE_UNIT.
+- 008 Orders Menu: MENU.REVEAL + CURSOR.PULSE + ACTION.CONFIRM.
+- 009 Tile Information: PANEL.REVEAL + DATA.STREAM; FALLBACK=complete terrain table.
+- 010 Unit Information: PANEL.REVEAL + UNIT.SILHOUETTE_REVEAL; FALLBACK=complete stats.
+- 011 Found City: CITY.FOUND + TEXT.TYPEWRITER + CONFIRM.PULSE.
+- 012 City Management: CITY.RESOURCE_TICK + PRODUCTION.PROGRESS + CURSOR.PULSE.
+- 013 Change Production: MENU.REVEAL + CURSOR.MOVE + VALUE.HIGHLIGHT.
+- 014 Buy Production: MONEY.NUMBER_ROLL + CONFIRM.PULSE.
+- 015 Sell Improvement: WARNING.FRAME + CONFIRM.PULSE.
+- 016 City View: BUILDING.REVEAL + PANEL.DRAW.
+- 017 Choose Research: MENU.REVEAL + CURSOR.PULSE + RESEARCH.SELECT.
+- 018 Technology Discovered: TECH.DISCOVERY + TEXT.CENTER_REVEAL + REWARD.HIGHLIGHT.
+
+## 019-046
+
+- 019 Civilopedia Browser: INDEX.REVEAL + CURSOR.MOVE + PAGE.FLIP.
+- 020 Civilopedia Entry: PAGE.REVEAL + TEXT.TYPEWRITER + PAGE.FLIP.
+- 021 Advisors Hub: PANEL.SWEEP + CURSOR.PULSE.
+- 022 City Status Advisor: TABLE.REVEAL + ROW.HIGHLIGHT.
+- 023 Military Advisor: TABLE.REVEAL + UNIT.COUNT_ROLL.
+- 024 Intelligence Advisor: DATA.REDACTED_REVEAL + RIVAL.HIGHLIGHT.
+- 025 Attitude Advisor: MOOD.INDICATOR + TABLE.REVEAL.
+- 026 Trade Advisor: DATA.STREAM + NUMBER.ROLL.
+- 027 Tax/Luxury/Science Rates: SLIDER.SNAP + VALUE.ROLL + FOCUS.PULSE.
+- 028 Science Advisor: RESEARCH.PROGRESS + TABLE.REVEAL.
+- 029 World Menu: MENU.REVEAL + CURSOR.PULSE.
+- 030 Wonders of the World: WONDER.ICON_REVEAL + STATUS.PULSE.
+- 031 Top Five Cities: RANKING.SORT + ROW.REVEAL.
+- 032 Civilization Score: SCORE.COUNTUP + BAR.GROW.
+- 033 Known World Map: MAP.TILE_REVEAL + MARKER.PULSE.
+- 034 Demographics: BAR.GROW + RANKING.REVEAL.
+- 035 Palace: PALACE.DRAW + BRICK.BUILD + CHOICE.PULSE.
+- 036 First Contact: DIPLOMACY.ARRIVAL + PORTRAIT.REVEAL + DIALOG.TYPEWRITER.
+- 037 Diplomacy Conversation: PORTRAIT.PULSE + DIALOG.TYPEWRITER + MENU.REVEAL.
+- 038 Technology Exchange: ITEM.TRANSFER + CONFIRM.PULSE.
+- 039 Tribute/Demand: WARNING.FRAME + VALUE.ROLL + DECISION.PULSE.
+- 040 Diplomat at Foreign City: INFILTRATION.CURSOR + MENU.REVEAL + RESULT.FLASH.
+- 041 Revolution: TRANSITION.SCAN + TEXT.REVEAL + GOVERNMENT.FLIP.
+- 042 Form a Government: OPTION.SELECT + PANEL.REVEAL + CONFIRM.PULSE.
+- 043 New Cabinet: PORTRAIT.REVEAL + PANEL.SWEEP.
+- 044 Barbarian Warning: ALERT.PULSE + MAP.CENTER + TEXT.REVEAL.
+- 045 Civil Disorder: ALERT.PULSE + CITY.MARKER_PULSE.
+- 046 City Captured: MAP.FLASH + CITY.REPLACE + TEXT.REVEAL.
+
+## 047-085
+
+- 047 Wonder Completed: WONDER.REVEAL + FANFARE.PULSE + TEXT.CENTER_REVEAL.
+- 048 Wonder Illustration: ART.DRAW + BORDER.PULSE.
+- 049 Spaceship Overview: SHIP.BUILD + MODULE.LIGHT + STATUS.PULSE.
+- 050 Spaceship Launch: SHIP.LAUNCH + EXHAUST.STREAM + SCENE.WIPE.
+- 051 Alpha Centauri Victory: VICTORY.REVEAL + SCORE.COUNTUP + FIREWORKS.SYMBOLIC.
+- 052 Conquest Victory: VICTORY.REVEAL + SCORE.COUNTUP + BATTLE.RESULT_RECAP.
+- 053 Defeat: DEFEAT.REVEAL + SCORE.COUNTUP + FADE_SYMBOLIC.
+- 054 Final Rating: SCORE.COUNTUP + RANKING.REVEAL.
+- 055 Hall of Fame: TABLE.REVEAL + RANKING.HIGHLIGHT.
+- 056 Save Game: TEXT.TYPEWRITER + SAVE.PROGRESS + CONFIRM.PULSE.
+- 057 Load Game: LIST.REVEAL + LOAD.PROGRESS + CHECKMARK.PULSE.
+- 058 Credits: TEXT.TYPEWRITER + CREDITS.SCROLL.
+- 059 Sound Driver Selection: MENU.REVEAL + OPTION.SELECT + CHECKMARK.PULSE.
+- 060 Game/World Options: PANEL.REVEAL + OPTION.SELECT.
+- 061 Load Drive Prompt: DRIVE.SCAN + CURSOR.PULSE.
+- 062 Land Mass: SLIDER.SNAP + MAP.PREVIEW_CHANGE.
+- 063 Temperature: SLIDER.SNAP + WEATHER.PREVIEW_CHANGE.
+- 064 Moisture: SLIDER.SNAP + TERRAIN.PREVIEW_CHANGE.
+- 065 Age/Start: SLIDER.SNAP + ERA.TEXT_REVEAL.
+- 066 Level of Competition: COUNT.ROLL + CURSOR.PULSE.
+- 067 Custom Tribe Name: TEXT.TYPEWRITER + CARET.PULSE.
+- 068 Ruler Name: TEXT.TYPEWRITER + CARET.PULSE.
+- 069 Copy Protection Quiz: PAGE.REVEAL + CURSOR.PULSE + INPUT.CHECK.
+- 070 Copy Protection Failure: WARNING.FRAME + TEXT.REVEAL + SHAKE_SYMBOLIC.
+- 071 Game Menu: MENU.REVEAL + CURSOR.PULSE.
+- 072 Game Options Submenu: PANEL.REVEAL + TOGGLE.SNAP.
+- 073 Tax Rate Dialog: SLIDER.SNAP + VALUE.ROLL.
+- 074 Luxury Rate Dialog: SLIDER.SNAP + VALUE.ROLL.
+- 075 Find City Prompt: SEARCH.TYPE + MAP.CENTER + MARKER.PULSE.
+- 076 Save Drive/Slot Prompt: DRIVE.SCAN + SLOT.HIGHLIGHT.
+- 077 Quit Confirmation: WARNING.FRAME + CONFIRM.PULSE.
+- 078 Retire Confirmation: WARNING.FRAME + CONFIRM.PULSE.
+- 079 End of Turn Prompt: TURN.ROLL + MENU.REVEAL + CONFIRM.PULSE.
+- 080 Instant Advice: ADVICE.TYPEWRITER + INFO.PULSE.
+- 081 Historian Advancement: RANKING.REVEAL + SCORE.COUNTUP.
+- 082 Historian Happiness: RANKING.REVEAL + MOOD.INDICATOR.
+- 083 Historian Power: RANKING.REVEAL + UNIT.COUNT_ROLL.
+- 084 Historian Size: RANKING.REVEAL + NUMBER.ROLL.
+- 085 Historian Wealth: RANKING.REVEAL + GOLD.COUNT_ROLL.
+
+## 086-130
+
+- 086 Unit Stack Activation: STACK.REVEAL + CURSOR.MOVE + UNIT.PULSE.
+- 087 Go To Targeting: TARGET.CURSOR + PATH.PREVIEW + DESTINATION.PULSE.
+- 088 Home City Reassignment: CITY.LIST_REVEAL + CURSOR.MOVE + LINK.PULSE.
+- 089 Settler Context Orders: MENU.REVEAL + ORDER.HIGHLIGHT.
+- 090 Change Terrain Order: TILE.PREVIEW + PROGRESS.REVEAL + CONFIRM.PULSE.
+- 091 Diplomat Bribe Offer: MONEY.ROLL + TARGET.PULSE + CONFIRM.PULSE.
+- 092 Diplomat Bribe Result: RESULT.REVEAL + TARGET.UPDATE.
+- 093 Incite Revolt Price: MONEY.ROLL + WARNING.FRAME.
+- 094 Incite Revolt Result: CITY.FLASH + RESULT.REVEAL.
+- 095 Embassy Result: DIPLOMACY.SEAL + RESULT.REVEAL.
+- 096 Steal Technology Result: TECH.REVEAL + DATA.SLIDE.
+- 097 Industrial Sabotage Result: ALERT.PULSE + RESULT.REVEAL.
+- 098 Enemy City Inspection: MAP.CENTER + CITY.PANEL_REVEAL.
+- 099 Caravan Trade Route Delivery: ROUTE.DRAW + GOLD.COUNT_ROLL + RESULT.REVEAL.
+- 100 Caravan Wonder Contribution: WONDER.PROGRESS + DECISION.PULSE.
+- 101 Minor Tribe Wisdom: TEXT.CENTER_REVEAL + TECH.DISCOVERY.
+- 102 Minor Tribe Joins: CITY.FOUND + MARKER.PULSE.
+- 103 Minor Tribe Barbarians: ALERT.PULSE + MAP.CENTER.
+- 104 Barbarian Leader Ransom: MONEY.ROLL + ALERT.PULSE.
+- 105 City Information Tab: TABLE.REVEAL + ROW.HIGHLIGHT.
+- 106 City Happiness Chart: BAR.GROW + MOOD.INDICATOR.
+- 107 City Map Subview: MAP.REVEAL + UNIT.PULSE + ROUTE.DRAW.
+- 108 Citizen Reassignment Mode: CURSOR.MOVE + TILE.SELECT + CITIZEN.PULSE.
+- 109 Specialist Assignment: CURSOR.MOVE + SPECIALIST.REVEAL.
+- 110 Rename City: TEXT.TYPEWRITER + CARET.PULSE.
+- 111 City Unit Activation: UNIT.PULSE + MENU.REVEAL.
+- 112 City Improvement Completed: BUILDING.REVEAL + RESULT.PULSE.
+- 113 Wonder Race Lost: WARNING.FRAME + PRODUCTION.RESET.
+- 114 Civil Disorder Continues: ALERT.PULSE + CITY.MARKER_PULSE.
+- 115 We Love the King Day: CELEBRATION.PULSE + CITY.MARKER_PULSE.
+- 116 Pollution Appears: ALERT.PULSE + TILE.REVEAL.
+- 117 Global Warming: WORLD.WASH + ALERT.PULSE.
+- 118 Nuclear Meltdown: CRITICAL.FRAME + CITY.FLASH.
+- 119 Earthquake: MAP.SHAKE_SYMBOLIC + DAMAGE.REVEAL.
+- 120 Famine: FOOD.BAR_DRAIN + ALERT.PULSE.
+- 121 Fire: FLAME.STREAM + DAMAGE.REVEAL.
+- 122 Flood: WATER.SWEEP + DAMAGE.REVEAL.
+- 123 Piracy: ROUTE.INTERRUPT + ALERT.PULSE.
+- 124 Plague: CITY.MARKER_PULSE + WARNING.FRAME.
+- 125 Volcano: MOUNTAIN.FLASH + MAP.SHAKE_SYMBOLIC.
+- 126 Military Casualties: TABLE.REVEAL + NUMBER.ROLL + ROW.HIGHLIGHT.
+- 127 Intelligence Detail: DATA.SLIDE + REDACTED.REVEAL.
+- 128 Civilopedia Section Menu: MENU.REVEAL + CURSOR.PULSE.
+- 129 Civilopedia History Page: PAGE.FLIP + TEXT.TYPEWRITER.
+- 130 Civilopedia Gameplay Page: PAGE.FLIP + DATA.REVEAL.
+
+## 131-168
+
+- 131 Rival Initiates Contact: PORTRAIT.REVEAL + ALERT.PULSE.
+- 132 Peace Offer: DIPLOMACY.SEAL + DECISION.PULSE.
+- 133 Technology Trade Selection: LIST.REVEAL + ITEM.HIGHLIGHT.
+- 134 Buy Peace/Demand: MONEY.ROLL + WARNING.FRAME + DECISION.PULSE.
+- 135 Post-Treaty Menu: MENU.REVEAL + PORTRAIT.PULSE.
+- 136 Military Proposal Target: TARGET.CURSOR + MAP.CENTER.
+- 137 Military Proposal Payment: MONEY.ROLL + CONFIRM.PULSE.
+- 138 Demand Tribute Result: RESULT.REVEAL + MONEY.COUNT_ROLL.
+- 139 Break Treaty Warning: CRITICAL.FRAME + CONFIRM.PULSE.
+- 140 Senate Blocks War: WARNING.FRAME + TEXT.REVEAL.
+- 141 Declaration of War: ALERT.PULSE + TRANSITION.SCAN.
+- 142 Peace Treaty Signed: DIPLOMACY.SEAL + TEXT.REVEAL.
+- 143 Rival Spaceship Status: SHIP.STATUS_SCAN + PANEL.REVEAL.
+- 144 Spaceship Launch Confirmation: COUNTDOWN.REVEAL + CONFIRM.PULSE.
+- 145 Spaceship In Flight: STARFIELD.DRIFT + SHIP.PULSE.
+- 146 Rival Spaceship Launch: LAUNCH.SUMMARY + ALERT.PULSE.
+- 147 Rival Alpha Centauri Arrival: VICTORY.REVEAL + RIVAL.HIGHLIGHT.
+- 148 Automatic History End: TURN.ROLL + ENDGAME.REVEAL.
+- 149 Continue After Victory: DECISION.PULSE + VICTORY.FRAME.
+- 150 Replay Options: MENU.REVEAL + CURSOR.PULSE.
+- 151 Quick Replay: REPLAY.SCRUB + MAP.PLAYBACK.
+- 152 Complete Replay: REPLAY.EVENT_STEP + MAP.PLAYBACK + TEXT.LOG_REVEAL.
+- 153 Write Replay to Disk: SAVE.PROGRESS + CHECKMARK.PULSE.
+- 154 Powergraph: GRAPH.DRAW + CURSOR.PULSE.
+- 155 Destruction Replay Offer: DEFEAT.REVEAL + DECISION.PULSE.
+- 156 Palace Improvement Invitation: PALACE.DRAW + CHOICE.PULSE.
+- 157 Rival Wonder Completed: WONDER.REVEAL + ALERT.PULSE.
+- 158 Wonder Obsolete: STATUS.FLASH + TEXT.REVEAL.
+- 159 Treasury Shortfall: GOLD.DRAIN + WARNING.FRAME.
+- 160 Unsupported Unit Lost: UNIT.FADE + ALERT.PULSE.
+- 161 City Destroyed: CITY.FADE + MAP.FLASH.
+- 162 Capture Loot Technology: TECH.REVEAL + RESULT.PULSE.
+- 163 Capture Loot Gold: GOLD.COUNT_ROLL + RESULT.PULSE.
+- 164 Nuclear Attack Result: CRITICAL.FRAME + MAP.FLASH + RESULT.REVEAL.
+- 165 SDI Interception: SHIELD.FLASH + RESULT.REVEAL.
+- 166 Research Help Overlay: HELP.REVEAL + CURSOR.PULSE.
+- 167 Production Help Overlay: HELP.REVEAL + CURSOR.PULSE.
+- 168 City Advisor Recommendation: ADVICE.TYPEWRITER + TARGET.PULSE + CONFIRM.PULSE.
+
+## Rendering requirement
+
+Every binding must preserve a readable static endpoint. The renderer may add animation, but it must never require animation to understand game state, action availability, or the selected target.
