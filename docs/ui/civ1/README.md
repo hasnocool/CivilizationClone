@@ -28,7 +28,24 @@ See `COVERAGE_AUDIT.md` for the evidence, scope, and inclusion rules used for th
 - `HOTKEYS.md` — IBM/DOS classic hotkeys, keyboard-only controls, context precedence, logical action IDs, and hotkey-to-scene Mermaid chart.
 - `NAVIGATION.md` — exhaustive 168-state ingress/exit matrix, direct-key overlays, and subsystem Mermaid transition charts.
 - `SCENE_GRAPH.md` — family-level navigation, exhaustive scene coverage map, and scene-family ownership graph.
+- `mermaid-gallery.html` — browser gallery that automatically extracts and renders every Mermaid block from `SCENE_GRAPH.md`, `HOTKEYS.md`, and `NAVIGATION.md`, with search, theme switching, raw source, and SVG export.
 - `SCENE_CONTRACT.md` — cross-client implementation contract, actions, ownership boundaries, responsive behavior, accessibility, and acceptance-test guidance.
+
+## Mermaid gallery
+
+Serve the repository through any local HTTP server and open:
+
+```text
+/docs/ui/civ1/mermaid-gallery.html
+```
+
+For example, from the repository root:
+
+```bash
+python -m http.server
+```
+
+Then visit the path above on the local server. The gallery reads the Markdown files directly, so Mermaid diagrams remain single-source and automatically reflect documentation edits after a reload.
 
 ## Layout sets
 
@@ -45,7 +62,7 @@ See `COVERAGE_AUDIT.md` for the evidence, scope, and inclusion rules used for th
 | 131-142 | Extended diplomacy | `ascii/08_diplomacy_extended.ascii` | `ansii/08_diplomacy_extended.ansii` |
 | 143-168 | Space status, replay, failures, presentation/help states | `ascii/09_space_replay_misc.ascii` | `ansii/09_space_replay_misc.ansii` |
 
-Start with `SCENE_INDEX.md`, then open the matching ASCII or ANSII range file. Use `HOTKEYS.md` to determine input bindings, `NAVIGATION.md` for exact scene ingress/exits, and `SCENE_GRAPH.md` for the broader architecture/coverage view. Numeric ID order is not the runtime navigation order.
+Start with `SCENE_INDEX.md`, then open the matching ASCII or ANSII range file. Use `HOTKEYS.md` to determine input bindings, `NAVIGATION.md` for exact scene ingress/exits, `SCENE_GRAPH.md` for the broader architecture/coverage view, and `mermaid-gallery.html` to view all charts together. Numeric ID order is not the runtime navigation order.
 
 ## Format conventions
 
