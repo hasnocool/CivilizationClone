@@ -1,0 +1,93 @@
+CIV1 VISUAL APPLICATION - BOOT AND SETUP
+RANGE: CIV1-UI-001..006
+SOURCE SETS: ../ascii/00_boot_setup.ascii + ../ansii/00_boot_setup.ansii
+
+Purpose: concrete frame references for the static boot/setup layouts. These frames are additive; the original scene wireframes remain the final readable state.
+
+[CIV1-UI-001] TITLE SCREEN
+Effects: FRAME.DRAW, TEXT.CENTER_REVEAL, INPUT.PROMPT_PULSE
+ASCII frames:
+01
++---------------------------------+
+|                                 |
+|                                 |
+|                                 |
++---------------------------------+
+02
++---------------------------------+
+|          C I V I L I Z A T I O N|
+|                                 |
+|                                 |
++---------------------------------+
+03
++---------------------------------+
+|          C I V I L I Z A T I O N|
+|      BUILD AN EMPIRE THAT WILL  |
+|        STAND THE TEST OF TIME   |
++---------------------------------+
+04
++---------------------------------+
+|          C I V I L I Z A T I O N|
+|      BUILD AN EMPIRE THAT WILL  |
+|        STAND THE TEST OF TIME   |
+|          [ PRESS ANY KEY ]      |
++---------------------------------+
+Fallback: frame 04, no animation.
+
+[CIV1-UI-002] MAIN MENU
+Effects: FRAME.DRAW, CURSOR.PULSE, MENU.REVEAL
+Frames:
+> START A GAME
+  LOAD A GAME
+  OPTIONS
+  QUIT
+then
+> START A GAME
+  LOAD A GAME
+  OPTIONS
+  QUIT
+and cursor alternates > / * at 250 ms while focus remains.
+
+[CIV1-UI-003] WORLD CREATION
+Effects: PANEL.REVEAL, OPTION.SELECT, VALUE.CHANGE
+ASCII sequence:
+LAND MASS   (*) Normal
+CLIMATE     (*) Normal
+TEMPERATURE (*) Temperate
+AGE         (*) 4 Billion Years
+When an option changes, briefly render:
+LAND MASS   (*) Normal  ->  LAND MASS   (*) LARGE
+Use a one-line delta marker: [CHANGED].
+
+[CIV1-UI-004] DIFFICULTY SELECTION
+Effects: CURSOR.MOVE, OPTION.SELECT, SELECTION.CONFIRM
+Frame pair:
+> EASY
+  NORMAL
+  HARD
+then selected:
+> [X] HARD
+
+[CIV1-UI-005] CIVILIZATION / LEADER SELECTION
+Effects: PORTRAIT.REVEAL, CURSOR.PULSE, SELECTION.CONFIRM
+ASCII portrait reveal:
+[        ]
+[   O    ]
+[  /|\   ]
+[  / \   ]
+then faction/leader name appears below. Selection settles to static portrait.
+
+[CIV1-UI-006] OPENING / DAWN OF CIVILIZATION
+Effects: TEXT.TYPEWRITER, FADE_SYMBOLIC, SCENE.TRANSITION
+Frame 01:
+DAWN OF
+Frame 02:
+DAWN OF CIVILIZATION
+Frame 03:
+DAWN OF CIVILIZATION
+--------------------
+Your people stand ready...
+Frame 04 holds until CONTINUE.
+
+ASCII capability rule: no cursor-control is required; frame replacement is sufficient.
+Accessibility: all animations must be skippable by keypress and final text must remain visible.
