@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CivilizationClone — Civ1 UI Mermaid Gallery</title>
+  <meta name="description" content="Rendered Mermaid charts extracted from the CivilizationClone Civ1 UI documentation.">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0f14;
+      --panel: #111821;
+      --panel-2: #17212c;
+      --line: #2a3949;
+      --text: #e6edf3;
+      --muted: #98a6b5;
+      --accent: #8ec5ff;
+      --good: #8bd49c;
+      --bad: #ff9b9b;
+      --shadow: 0 12px 35px rgb(0 0 0 / 28%);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, select { font: inherit; }
+
+    a { color: var(--accent); }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgb(11 15 20 / 94%);
+      backdrop-filter: blur(12px);
+    }
+
+    .header-inner {
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(280px, 520px) auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.05rem, 2vw, 1.45rem);
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .search {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 9px 11px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .button, select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    .button:hover, select:hover { border-color: var(--accent); }
+
+    .layout {
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 94px;
+      align-self: start;
+      max-height: calc(100vh - 115px);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar h2 {
+      margin: 0;
+      padding: 13px 14px 8px;
+      font-size: .93rem;
+    }
+
+    .stats {
+      padding: 0 14px 12px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 8px 10px;
+    }
+
+    .nav-list a {
+      display: block;
+      border-radius: 6px;
+      padding: 7px 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .82rem;
+      line-height: 1.25;
+    }
+
+    .nav-list a:hover { background: var(--panel-2); color: var(--text); }
+
+    .source-label {
+      color: var(--accent);
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    main { min-width: 0; }
+
+    .notice {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .notice strong { color: var(--text); }
+
+    .chart-card {
+      scroll-margin-top: 105px;
+      margin-bottom: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .chart-card[hidden] { display: none; }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .card-header h2 {
+      margin: 3px 0 0;
+      font-size: 1.05rem;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chart-output {
+      min-height: 180px;
+      overflow: auto;
+      padding: 20px;
+      background: #fff;
+      text-align: center;
+    }
+
+    .chart-output svg {
+      display: block;
+      max-width: none;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .render-error {
+      color: var(--bad);
+      white-space: pre-wrap;
+      text-align: left;
+    }
+
+    details {
+      border-top: 1px solid var(--line);
+      background: #0d131a;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 10px 16px;
+      color: var(--muted);
+      user-select: none;
+    }
+
+    pre {
+      margin: 0;
+      padding: 0 16px 16px;
+      overflow: auto;
+      color: #c9d7e5;
+      font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre;
+    }
+
+    .empty {
+      display: none;
+      padding: 40px 10px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty.visible { display: block; }
+
+    @media (max-width: 950px) {
+      .header-inner { grid-template-columns: 1fr; }
+      .toolbar { justify-content: flex-start; }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; max-height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div>
+        <h1>Civ1 UI Mermaid Gallery</h1>
+        <div class="subtitle">All rendered Mermaid graphs from the canonical UI documentation</div>
+      </div>
+      <input id="search" class="search" type="search" placeholder="Filter charts by title, source, or Mermaid text…" aria-label="Filter charts">
+      <div class="toolbar">
+        <select id="theme" aria-label="Mermaid theme">
+          <option value="default">Default</option>
+          <option value="neutral">Neutral</option>
+          <option value="dark">Dark</option>
+          <option value="forest">Forest</option>
+        </select>
+        <button id="reload" class="button" type="button">Reload docs</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Chart navigation">
+      <h2>Charts</h2>
+      <div id="stats" class="stats">Loading…</div>
+      <ul id="nav" class="nav-list"></ul>
+    </aside>
+
+    <main>
+      <div id="notice" class="notice">
+        <strong>Live documentation view.</strong> This page reads Mermaid code blocks directly from
+        <code>SCENE_GRAPH.md</code>, <code>HOTKEYS.md</code>, and <code>NAVIGATION.md</code>, so chart edits do not need to be duplicated here.
+      </div>
+      <div id="cards"></div>
+      <div id="empty" class="empty">No charts match the current filter.</div>
+    </main>
+  </div>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs";
+
+    const SOURCES = [
+      { file: "SCENE_GRAPH.md", label: "Scene Graph" },
+      { file: "HOTKEYS.md", label: "Hotkeys" },
+      { file: "NAVIGATION.md", label: "Navigation" },
+    ];
+
+    const state = { charts: [], theme: "default" };
+    const cardsEl = document.querySelector("#cards");
+    const navEl = document.querySelector("#nav");
+    const statsEl = document.querySelector("#stats");
+    const searchEl = document.querySelector("#search");
+    const themeEl = document.querySelector("#theme");
+    const reloadEl = document.querySelector("#reload");
+    const emptyEl = document.querySelector("#empty");
+    const noticeEl = document.querySelector("#notice");
+
+    function slug(value) {
+      return value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 80);
+    }
+
+    function parseMermaid(markdown, source) {
+      const lines = markdown.split(/\r?\n/);
+      const charts = [];
+      let heading = source.label;
+      let headingLevel = 1;
+
+      for (let i = 0; i < lines.length; i += 1) {
+        const headingMatch = lines[i].match(/^(#{1,6})\s+(.+?)\s*$/);
+        if (headingMatch) {
+          headingLevel = headingMatch[1].length;
+          heading = headingMatch[2].replace(/`/g, "");
+          continue;
+        }
+
+        if (lines[i].trim() !== "```mermaid") continue;
+
+        const code = [];
+        i += 1;
+        while (i < lines.length && lines[i].trim() !== "```") {
+          code.push(lines[i]);
+          i += 1;
+        }
+
+        charts.push({
+          source: source.file,
+          sourceLabel: source.label,
+          heading,
+          headingLevel,
+          code: code.join("\n").trim(),
+        });
+      }
+      return charts;
+    }
+
+    async function readSources() {
+      const batches = await Promise.all(SOURCES.map(async (source) => {
+        const response = await fetch(source.file, { cache: "no-store" });
+        if (!response.ok) throw new Error(`${source.file}: HTTP ${response.status}`);
+        return parseMermaid(await response.text(), source);
+      }));
+      return batches.flat();
+    }
+
+    async function copyText(text, button) {
+      await navigator.clipboard.writeText(text);
+      const old = button.textContent;
+      button.textContent = "Copied";
+      setTimeout(() => { button.textContent = old; }, 900);
+    }
+
+    function saveSvg(svg, filename) {
+      const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function renderChart(chart, index, output, saveButton) {
+      try {
+        const renderId = `mermaid-gallery-${Date.now()}-${index}`;
+        const { svg } = await mermaid.render(renderId, chart.code);
+        output.innerHTML = svg;
+        saveButton.disabled = false;
+        saveButton.onclick = () => saveSvg(svg, `${String(index + 1).padStart(2, "0")}-${slug(chart.heading) || "chart"}.svg`);
+      } catch (error) {
+        output.innerHTML = "";
+        const pre = document.createElement("pre");
+        pre.className = "render-error";
+        pre.textContent = `Mermaid render failed:\n${String(error)}`;
+        output.append(pre);
+        saveButton.disabled = true;
+      }
+    }
+
+    async function buildGallery() {
+      cardsEl.innerHTML = "";
+      navEl.innerHTML = "";
+      statsEl.textContent = "Loading…";
+      emptyEl.classList.remove("visible");
+
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: "strict",
+        theme: state.theme,
+        flowchart: { htmlLabels: true, useMaxWidth: false },
+      });
+
+      try {
+        state.charts = await readSources();
+      } catch (error) {
+        statsEl.textContent = "Load failed";
+        noticeEl.innerHTML = `<strong>Could not load the Markdown files.</strong> ${String(error)}<br><br>If this page was opened with <code>file://</code>, serve the repository through a local HTTP server, for example <code>python -m http.server</code> from the repository root, then open <code>/docs/ui/civ1/mermaid-gallery.html</code>.`;
+        return;
+      }
+
+      const counts = new Map();
+      for (const chart of state.charts) {
+        counts.set(chart.sourceLabel, (counts.get(chart.sourceLabel) || 0) + 1);
+      }
+      statsEl.textContent = `${state.charts.length} charts · ${[...counts.entries()].map(([name, count]) => `${name} ${count}`).join(" · ")}`;
+
+      for (const [index, chart] of state.charts.entries()) {
+        const id = `chart-${index + 1}-${slug(chart.heading)}`;
+        const card = document.createElement("article");
+        card.className = "chart-card";
+        card.id = id;
+        card.dataset.search = `${chart.sourceLabel} ${chart.source} ${chart.heading} ${chart.code}`.toLowerCase();
+
+        const header = document.createElement("div");
+        header.className = "card-header";
+
+        const headingWrap = document.createElement("div");
+        const sourceLabel = document.createElement("div");
+        sourceLabel.className = "source-label";
+        sourceLabel.textContent = chart.source;
+        const title = document.createElement("h2");
+        title.textContent = chart.heading;
+        headingWrap.append(sourceLabel, title);
+
+        const actions = document.createElement("div");
+        actions.className = "card-actions";
+        const copyButton = document.createElement("button");
+        copyButton.className = "button";
+        copyButton.type = "button";
+        copyButton.textContent = "Copy source";
+        copyButton.onclick = () => copyText(chart.code, copyButton);
+        const saveButton = document.createElement("button");
+        saveButton.className = "button";
+        saveButton.type = "button";
+        saveButton.textContent = "Save SVG";
+        saveButton.disabled = true;
+        actions.append(copyButton, saveButton);
+        header.append(headingWrap, actions);
+
+        const output = document.createElement("div");
+        output.className = "chart-output";
+        output.textContent = "Rendering…";
+
+        const details = document.createElement("details");
+        const summary = document.createElement("summary");
+        summary.textContent = "Mermaid source";
+        const pre = document.createElement("pre");
+        const code = document.createElement("code");
+        code.textContent = chart.code;
+        pre.append(code);
+        details.append(summary, pre);
+
+        card.append(header, output, details);
+        cardsEl.append(card);
+
+        const navItem = document.createElement("li");
+        const navLink = document.createElement("a");
+        navLink.href = `#${id}`;
+        navLink.innerHTML = `<span class="source-label">${chart.sourceLabel}</span><br>${chart.heading}`;
+        navItem.append(navLink);
+        navEl.append(navItem);
+
+        await renderChart(chart, index, output, saveButton);
+      }
+
+      applyFilter();
+    }
+
+    function applyFilter() {
+      const query = searchEl.value.trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll(".chart-card").forEach((card) => {
+        const show = !query || card.dataset.search.includes(query);
+        card.hidden = !show;
+        if (show) visible += 1;
+      });
+      emptyEl.classList.toggle("visible", visible === 0);
+    }
+
+    searchEl.addEventListener("input", applyFilter);
+    reloadEl.addEventListener("click", buildGallery);
+    themeEl.addEventListener("change", async () => {
+      state.theme = themeEl.value;
+      await buildGallery();
+    });
+
+    buildGallery();
+  </script>
+</body>
+</html>

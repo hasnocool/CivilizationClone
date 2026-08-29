@@ -4,7 +4,7 @@ This directory is the canonical visual reference for CivilizationClone clients i
 
 ## Coverage
 
-The reference now catalogs **168 distinct UI state templates**. The original `CIV1-UI-001..057` IDs are preserved for compatibility; `058..168` cover the startup, menu, subview, special-unit, event, diplomacy, replay, and failure states that were compressed or omitted in the first pass.
+The reference catalogs **168 distinct UI state templates**. The original `CIV1-UI-001..057` IDs are preserved for compatibility; `058..168` cover the startup, menu, subview, special-unit, event, diplomacy, replay, and failure states that were compressed or omitted in the first pass.
 
 A scene ID represents a visually or behaviorally distinct UI template. Content variants such as individual leaders, technologies, wonders, units, generated city names, or government-specific advisor costumes are parameters of those templates rather than separate scene IDs.
 
@@ -15,6 +15,8 @@ See `COVERAGE_AUDIT.md` for the evidence, scope, and inclusion rules used for th
 - catalog the documented Civilization I scene/menu/modal/report flow used as inspiration for CivilizationClone;
 - give terminal/TUI, Bevy, Godot, Unity, Unreal, web, and future clients stable scene identifiers;
 - provide both strict 7-bit `.ascii` wireframes and richer `.ansii` terminal-art references for every canonical ID;
+- document the original IBM/DOS keyboard controls and map each binding to stable logical actions/scenes;
+- document scene-to-scene ingress, exits, returns, modes, event injections, and terminal paths for all 168 IDs;
 - keep original IDs stable as the reference grows;
 - separate reusable scene families from one-off presentation;
 - keep game logic in the engine/API and treat these files as presentation references only.
@@ -22,9 +24,28 @@ See `COVERAGE_AUDIT.md` for the evidence, scope, and inclusion rules used for th
 ## Canonical references
 
 - `COVERAGE_AUDIT.md` — audit of omissions in the original 57-scene pass, source material, and the canonical definition of a distinct UI state.
-- `SCENE_GRAPH.md` — overall ASCII/Mermaid navigation model and scene-family ownership graph.
 - `SCENE_INDEX.md` — stable `CIV1-UI-NNN` identifiers for every canonical UI state.
+- `HOTKEYS.md` — IBM/DOS classic hotkeys, keyboard-only controls, context precedence, logical action IDs, and hotkey-to-scene Mermaid chart.
+- `NAVIGATION.md` — exhaustive 168-state ingress/exit matrix, direct-key overlays, and subsystem Mermaid transition charts.
+- `SCENE_GRAPH.md` — family-level navigation, exhaustive scene coverage map, and scene-family ownership graph.
+- `mermaid-gallery.html` — browser gallery that automatically extracts and renders every Mermaid block from `SCENE_GRAPH.md`, `HOTKEYS.md`, and `NAVIGATION.md`, with search, theme switching, raw source, and SVG export.
 - `SCENE_CONTRACT.md` — cross-client implementation contract, actions, ownership boundaries, responsive behavior, accessibility, and acceptance-test guidance.
+
+## Mermaid gallery
+
+Serve the repository through any local HTTP server and open:
+
+```text
+/docs/ui/civ1/mermaid-gallery.html
+```
+
+For example, from the repository root:
+
+```bash
+python -m http.server
+```
+
+Then visit the path above on the local server. The gallery reads the Markdown files directly, so Mermaid diagrams remain single-source and automatically reflect documentation edits after a reload.
 
 ## Layout sets
 
@@ -41,7 +62,7 @@ See `COVERAGE_AUDIT.md` for the evidence, scope, and inclusion rules used for th
 | 131-142 | Extended diplomacy | `ascii/08_diplomacy_extended.ascii` | `ansii/08_diplomacy_extended.ansii` |
 | 143-168 | Space status, replay, failures, presentation/help states | `ascii/09_space_replay_misc.ascii` | `ansii/09_space_replay_misc.ansii` |
 
-Start with `SCENE_INDEX.md`, then open the matching ASCII or ANSII range file. Use `SCENE_GRAPH.md` for navigation relationships rather than treating the numeric order as the runtime route order.
+Start with `SCENE_INDEX.md`, then open the matching ASCII or ANSII range file. Use `HOTKEYS.md` to determine input bindings, `NAVIGATION.md` for exact scene ingress/exits, `SCENE_GRAPH.md` for the broader architecture/coverage view, and `mermaid-gallery.html` to view all charts together. Numeric ID order is not the runtime navigation order.
 
 ## Format conventions
 
@@ -60,10 +81,16 @@ These documents describe UI composition and flow. They do **not** define rules l
 ## Recommended client architecture
 
 ```text
-INPUT
+PHYSICAL INPUT
   |
   v
-CLIENT SCENE ROUTER
+INPUT MAP / CLASSIC HOTKEY PROFILE
+  |
+  v
+LOGICAL UI ACTIONS
+  |
+  v
+CLIENT SCENE ROUTER <-------- RETURN / MODAL STACK
   |
   +-- boot/setup/system
   +-- strategic map / unit modes
@@ -80,6 +107,8 @@ COMMANDS ---------------------> ENGINE/API
   |                                v
   +--------- VIEW MODEL / EVENTS --+
 ```
+
+The scene router should resolve hotkeys using the context precedence documented in `HOTKEYS.md` and use the transition semantics/return paths in `NAVIGATION.md`.
 
 ## Reusable scene families
 
