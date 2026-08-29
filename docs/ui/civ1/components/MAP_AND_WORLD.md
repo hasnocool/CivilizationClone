@@ -1,6 +1,6 @@
 # World Map and Terrain Components
 
-The strategic map is the primary persistent workspace. The current scene contract identifies it as `CIV1-UI-007` and prioritizes map viewport, focused tile/unit feedback, critical status, commands, then secondary history. fileciteturn4file0
+The strategic map is the primary persistent workspace. The scene contract identifies `CIV1-UI-007` as the world-map hub and prioritizes the map viewport, focused tile/unit feedback, critical status, commands, then secondary history.
 
 ## CIV1-COMP-MAPGRID
 
@@ -168,7 +168,7 @@ Example:
 or:
 
 ```text
-[A] → → ↘ ↓ [X]
+[A] -> -> \\ [X]
 ```
 
 Once the engine confirms movement, the preview is replaced by authoritative unit position.
